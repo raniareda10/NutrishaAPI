@@ -39,6 +39,7 @@ using MailReader;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using Hangfire;
 using Hangfire.MemoryStorage;
+using NutrishaAPI.ServicesRegistrations;
 using NutrishaAPIAPI;
 
 namespace KSEEngineeringJobs
@@ -57,141 +58,7 @@ namespace KSEEngineeringJobs
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            #region Configure Logging
-
-           // services.AddElmah<SqlErrorLog>(options =>
-           //{
-           //    options.ConnectionString = Configuration.GetConnectionString("ConnectionString");
-
-           //    options.ApplicationName = Configuration["Ksejos"];
-
-           //});
-
-            #endregion
-            services.ConfigureLoggerService();
-
-            services.AddCors(o => o.AddPolicy("MyPolicy", builder =>
-            {
-                builder.AllowAnyOrigin()
-                       .AllowAnyMethod()
-                       .AllowAnyHeader();
-            }));
-
-            services.AddHangfire(config =>
-               config.SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
-               .UseSimpleAssemblyNameTypeSerializer()
-               .UseDefaultTypeSerializer()
-               .UseMemoryStorage());
-
-            services.AddHangfireServer();
-
-         //   services.AddTransient<IClearFireBaseJob, ClearFireBaseJob>();
-            services.AddTransient<IMailService, MailService>();
-            services.AddTransient<ISMS, SMS>();
-            services.AddTransient<IMailRepository, MailRepository>();
-
-
-            var mapperConfig = new MapperConfiguration(mc =>
-            {
-                mc.AddProfile(new MappingConfigration());
-            });
-
-            IMapper mapper = mapperConfig.CreateMapper();
-            services.AddSingleton(mapper);
-            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-            services.AddDbContext<AppDBContext>(options => options.UseSqlServer(Configuration.GetConnectionString("ConnectionString")));
-            services.AddTransient<IUnitOfWork, UnitOfWork>();
-          
-            services.Configure<CookiePolicyOptions>(options =>
-            {
-                // This lambda determines whether user consent for non-essential cookies is needed for a given request.
-                options.CheckConsentNeeded = context => true;
-                options.MinimumSameSitePolicy = SameSiteMode.None;
-            });
-            #region Configure Session
-            services.AddDistributedMemoryCache();
-            services.AddMvc().AddSessionStateTempDataProvider();
-            services.Configure<CookiePolicyOptions>(options =>
-            {
-                options.CheckConsentNeeded = context => false;
-                options.MinimumSameSitePolicy = SameSiteMode.None;
-            });
-
-            services.AddSession(
-                options =>
-                {
-                    options.Cookie.IsEssential = true;
-                    options.Cookie.HttpOnly = true;
-                    options.IdleTimeout = TimeSpan.FromHours(10);
-                }
-            );
-            #endregion
-            #region API Token Config
-
-            services.Configure<TokenManagement>(Configuration.GetSection("tokenManagement"));
-            var token = Configuration.GetSection("tokenManagement").Get<TokenManagement>();
-
-            services.AddAuthentication(jwtBearerDefaults =>
-            {
-                jwtBearerDefaults.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                jwtBearerDefaults.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            }).AddJwtBearer(options =>
-            {
-                options.RequireHttpsMetadata = false;
-                options.SaveToken = true;
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(token.Secret)),
-                    ValidateIssuer = false,
-                    ValidateAudience = false
-                    // ValidIssuer = token.Issuer,
-                    // ValidAudience = token.Audience
-                };
-            });
-
-            services.AddScoped<IAuthenticateService, TokenAuthenticationService>();
-            services.AddScoped<IUserManagementService, UserManagementService>();
-
-            #endregion
-
-
-            services.AddScoped<IAuthenticateService, TokenAuthenticationService>();
-            services.AddScoped<ICheckUniqes, ChekUniqeSer>();
-            services.AddScoped<IUserManagementService, UserManagementService>();
-
-             
-
-
-            services.Configure<MailSettings>(Configuration.GetSection("MailSettings"));
-            services.AddControllers();
-
-            services.AddSwaggerGen(config => {
-                config.SwaggerDoc("v1", new OpenApiInfo() { Title = "WebAPI", Version = "v1" });
-                config.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-                {
-                    Name = "Authorization",
-                    In = ParameterLocation.Header,
-                    Type = SecuritySchemeType.Http,
-                    Scheme = "Bearer"
-                });
-                config.OperationFilter<AuthResponsesOperationFilter>();
-                //config.AddSecurityRequirement(new OpenApiSecurityRequirement
-                //{
-                //    {
-                //        new OpenApiSecurityScheme
-                //        {
-                //            Reference = new OpenApiReference
-                //            {
-                //                Type = ReferenceType.SecurityScheme,
-                //                Id = "Bearer"
-                //            }
-                //        },
-                //        Array.Empty<string>()
-                //    }
-                //});
-
-            });
+            services.RegisterLegacyService(Configuration);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -233,6 +100,7 @@ namespace KSEEngineeringJobs
             //    "* * * * *"
             //    );
         }
+        
         // AuthResponsesOperationFilter.cs
         public class AuthResponsesOperationFilter : IOperationFilter
         {

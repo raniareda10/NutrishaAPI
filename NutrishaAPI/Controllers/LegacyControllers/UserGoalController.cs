@@ -1,43 +1,25 @@
-﻿using AutoMapper;
+﻿using System;
+using System.Linq;
+using System.Net;
+using AutoMapper;
 using BL.Infrastructure;
-using BL.Security;
-using DL.DTO;
-using DL.DTOs.MealDTO;
-using DL.DTOs.UserMealDTO;
-using DL.DTOs.UserDTOs;
+using DL.DTOs.UserGoalDTO;
 using DL.Entities;
-using DL.MailModels;
-using HELPER;
-using Helpers;
 using LoggerService;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-using MimeKit;
-using Model.ApiModels;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Net.Mail;
-using System.Security.Claims;
-using System.Threading.Tasks;
 using NutrishaAPI.Extensions;
 
-
-namespace Api.Controllers
+namespace NutrishaAPI.Controllers.LegacyControllers
 {
     [Route("api/[controller]")]
     [ApiController]
     [EnableCors("MyPolicy")]
     //[ClaimRequirement(ClaimTypes.Role, RoleConstant.Admin)]
-    public class MealController : Controller
+    public class UserGoalController : Controller
     {
         private readonly IUnitOfWork _uow; 
         private readonly IHostingEnvironment _hostingEnvironment; 
@@ -45,7 +27,7 @@ namespace Api.Controllers
         private ILoggerManager _logger;
         private readonly BaseResponseHelper baseResponse;
 
-        public MealController(IUnitOfWork uow ,IHostingEnvironment hostingEnvironment, IMapper mapper, ILoggerManager logger)
+        public UserGoalController(IUnitOfWork uow ,IHostingEnvironment hostingEnvironment, IMapper mapper, ILoggerManager logger)
         {
             _uow = uow; 
             _hostingEnvironment = _hostingEnvironment;
@@ -58,36 +40,35 @@ namespace Api.Controllers
 
         
         [HttpGet]
-        [ProducesResponseType(typeof(MMeal), StatusCodes.Status200OK)]
-        public IActionResult GetAllUserMeal([FromQuery] MealQueryPramter MealQueryPramter)
+        [ProducesResponseType(typeof(MUserGoal), StatusCodes.Status200OK)]
+        public IActionResult GetAllUserGoal([FromQuery] UserGoalQueryPramter UserGoalQueryPramter)
         {
             try
             {
-              var Meal = _uow.MealRepository.GetAllMeal(MealQueryPramter);
-                baseResponse.data = Meal;
-                baseResponse.total_rows = Meal.Count();
+                var UserGoal = _uow.UserGoalRepository.GetAllUserGoal(UserGoalQueryPramter);
+                baseResponse.data = UserGoal;
+                baseResponse.total_rows = UserGoal.Count();
                 baseResponse.statusCode = (int)HttpStatusCode.OK;
                 baseResponse.done = true;
 
 
                 var metadata = new
                 {
-                    Meal.TotalCount,
-                    Meal.PageSize,
-                    Meal.CurrentPage,
-                    Meal.TotalPages,
-                    Meal.HasNext,
-                    Meal.HasPrevious
+                    UserGoal.TotalCount,
+                    UserGoal.PageSize,
+                    UserGoal.CurrentPage,
+                    UserGoal.TotalPages,
+                    UserGoal.HasNext,
+                    UserGoal.HasPrevious
                 };
                 Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(metadata));
-                _logger.LogInfo($"Returned {Meal.TotalCount} Meal from database.");
+                _logger.LogInfo($"Returned {UserGoal.TotalCount} UserGoal from database.");
 
                 return Ok(baseResponse);
-
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Something went wrong inside GetAllMeals action: {ex.Message}");
+                _logger.LogError($"Something went wrong inside GetAllUserGoals action: {ex.Message}");
                 baseResponse.statusCode = (int)HttpStatusCode.InternalServerError;
                 baseResponse.done = false;
                 baseResponse.message = $"Exception :{ex.Message}";
@@ -97,16 +78,16 @@ namespace Api.Controllers
 
 
 
-        [HttpGet("{id}", Name = "MealById")]
-        [ProducesResponseType(typeof(MMeal), StatusCodes.Status200OK)]
-        public IActionResult GetAllMealId(int id)
+        [HttpGet("{id}", Name = "UserGoalById")]
+        [ProducesResponseType(typeof(MUserGoal), StatusCodes.Status200OK)]
+        public IActionResult GetAllUserGoalId(int id)
         {
             try
             {
-                var Meal = _uow.MealRepository.GetById(id);
-                if (Meal == null)
+                var UserGoal = _uow.UserGoalRepository.GetById(id);
+                if (UserGoal == null)
                 {
-                    _logger.LogError($"Meal with id: {id}, hasn't been found in db.");
+                    _logger.LogError($"UserGoal with id: {id}, hasn't been found in db.");
                     baseResponse.done = false;
                     baseResponse.statusCode = (int)HttpStatusCode.NotFound;
                     baseResponse.message = "Not Found";
@@ -114,9 +95,9 @@ namespace Api.Controllers
                 }
                 else
                 {
-                    _logger.LogInfo($"Returned Meal with id: {id}");
-                 //   var MealResult = _mapper.Map<MealDTO>(Meal);
-                    baseResponse.data = Meal;
+                    _logger.LogInfo($"Returned UserGoal with id: {id}");
+                 //   var UserGoalResult = _mapper.Map<UserGoalDTO>(UserGoal);
+                    baseResponse.data = UserGoal;
                     baseResponse.statusCode = (int)HttpStatusCode.OK;
                     baseResponse.done = true;
                     return Ok(baseResponse);
@@ -124,7 +105,7 @@ namespace Api.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Something went wrong inside GetMealById action: {ex.Message}");
+                _logger.LogError($"Something went wrong inside GetUserGoalById action: {ex.Message}");
                 baseResponse.statusCode = (int)HttpStatusCode.InternalServerError;
                 baseResponse.done = false;
                 baseResponse.message = $"Exception :{ex.Message}";
@@ -138,14 +119,14 @@ namespace Api.Controllers
 
 
         [HttpPost]
-        [ProducesResponseType(typeof(MealCreatDto), StatusCodes.Status201Created)]
-        public IActionResult CreateMeal(MealCreatDto Meal)
+        [ProducesResponseType(typeof(UserGoalCreatDto), StatusCodes.Status201Created)]
+        public IActionResult CreateUserGoal(UserGoalCreatDto UserGoal)
         {
             try
             {
-                if (Meal == null)
+                if (UserGoal == null)
                 {
-                    _logger.LogError("Meal object sent from meal is null.");
+                    _logger.LogError("UserGoal object sent from userGoal is null.");
                     baseResponse.done = false;
                     baseResponse.statusCode = (int)HttpStatusCode.NotFound;
                     baseResponse.message = "object is Null";
@@ -153,25 +134,25 @@ namespace Api.Controllers
                 }
                 if (!ModelState.IsValid)
                 {
-                    _logger.LogError("Invalid Meal object sent from meal.");
+                    _logger.LogError("Invalid UserGoal object sent from userGoal.");
                     baseResponse.done = false;
                     baseResponse.statusCode = (int)HttpStatusCode.NotFound;
                     baseResponse.message = "Invalid model object";
                     return NotFound(baseResponse);
                 }
-                var MealEntity = _mapper.Map<MMeal>(Meal);
+                var UserGoalEntity = _mapper.Map<MUserGoal>(UserGoal);
 
-                _uow.MealRepository.Add(MealEntity);
+                _uow.UserGoalRepository.Add(UserGoalEntity);
                 _uow.Save();
-                var createdMeal = _mapper.Map<MealCreatDto>(MealEntity);
-                baseResponse.data = createdMeal;
+                var createdUserGoal = _mapper.Map<UserGoalCreatDto>(UserGoalEntity);
+                baseResponse.data = createdUserGoal;
                 baseResponse.statusCode = StatusCodes.Status201Created;
                 baseResponse.done = true;
-                return CreatedAtRoute("MealById", new { id = MealEntity.Id }, baseResponse);
+                return CreatedAtRoute("UserGoalById", new { id = UserGoalEntity.Id }, baseResponse);
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Something went wrong inside CreateMeal action: {ex.Message}");
+                _logger.LogError($"Something went wrong inside CreateUserGoal action: {ex.Message}");
                 baseResponse.statusCode = (int)HttpStatusCode.InternalServerError;
                 baseResponse.done = false;
                 baseResponse.message = $"Exception :{ex.Message}";
@@ -181,14 +162,14 @@ namespace Api.Controllers
 
 
         [HttpPut("{id}")]
-        [ProducesResponseType(typeof(MMeal), StatusCodes.Status200OK)]
-        public IActionResult UpdateMeal(int id, [FromBody] MealCreatDto Meal)
+        [ProducesResponseType(typeof(MUserGoal), StatusCodes.Status200OK)]
+        public IActionResult UpdateUserGoal(int id, [FromBody] UserGoalCreatDto UserGoal)
         {
             try
             {
-                if (Meal == null)
+                if (UserGoal == null)
                 {
-                    _logger.LogError("Meal object sent from meal is null.");
+                    _logger.LogError("UserGoal object sent from userGoal is null.");
                     baseResponse.done = false;
                     baseResponse.statusCode = (int)HttpStatusCode.NotFound;
                     baseResponse.message = "object is Null";
@@ -196,32 +177,32 @@ namespace Api.Controllers
                 }
                 if (!ModelState.IsValid)
                 {
-                    _logger.LogError("Invalid Meal object sent from meal.");
+                    _logger.LogError("Invalid UserGoal object sent from userGoal.");
                     baseResponse.done = false;
                     baseResponse.statusCode = (int)HttpStatusCode.NotFound;
                     baseResponse.message = "Invalid";
                     return NotFound(baseResponse);
                 }
-                var MealEntity = _uow.MealRepository.GetById(id);
-                if (MealEntity == null)
+                var UserGoalEntity = _uow.UserGoalRepository.GetById(id);
+                if (UserGoalEntity == null)
                 {
-                    _logger.LogError($"Meal with id: {id}, hasn't been found in db.");
+                    _logger.LogError($"UserGoal with id: {id}, hasn't been found in db.");
                     baseResponse.done = false;
                     baseResponse.statusCode = (int)HttpStatusCode.NotFound;
                     baseResponse.message = "object is Null";
                     return NotFound(baseResponse);
                 }
-                _mapper.Map(Meal, MealEntity);
-                _uow.MealRepository.Update(MealEntity);
+                _mapper.Map(UserGoal, UserGoalEntity);
+                _uow.UserGoalRepository.Update(UserGoalEntity);
                 _uow.Save();
-                baseResponse.data = MealEntity;
+                baseResponse.data = UserGoalEntity;
                 baseResponse.statusCode = StatusCodes.Status200OK;
                 baseResponse.done = true;
                 return Ok(baseResponse);
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Something went wrong inside UpdateMeal action: {ex.Message}");
+                _logger.LogError($"Something went wrong inside UpdateUserGoal action: {ex.Message}");
                 baseResponse.statusCode = (int)HttpStatusCode.InternalServerError;
                 baseResponse.done = false;
                 baseResponse.message = $"Exception :{ex.Message}";
@@ -232,27 +213,27 @@ namespace Api.Controllers
 
 
         [HttpDelete("{id}")]
-        [ProducesResponseType(typeof(MMeal), StatusCodes.Status200OK)]
-        public IActionResult DeleteMeal(int id)
+        [ProducesResponseType(typeof(MUserGoal), StatusCodes.Status200OK)]
+        public IActionResult DeleteUserGoal(int id)
         {
             try
             {
-                var Meal = _uow.MealRepository.GetById(id);
-                if (Meal == null)
+                var UserGoal = _uow.UserGoalRepository.GetById(id);
+                if (UserGoal == null)
                 {
-                    _logger.LogError($"Meal with id: {id}, hasn't been found in db.");
+                    _logger.LogError($"UserGoal with id: {id}, hasn't been found in db.");
                     baseResponse.done = false;
                     baseResponse.statusCode = (int)HttpStatusCode.NotFound;
                     baseResponse.message = "hasn't been found in db";
                     return NotFound(baseResponse);
                 }
 
-                //if (_repository.MealClaim.MealClaimByMeal(id).Any())
+                //if (_repository.UserGoalClaim.UserGoalClaimByUserGoal(id).Any())
                 //{
-                //    _logger.LogError($"Cannot delete Meal with id: {id}. It has related accounts. Delete those accounts first");
-                //    return BadRequest("Cannot delete Meal. It has related accounts. Delete those accounts first");
+                //    _logger.LogError($"Cannot delete UserGoal with id: {id}. It has related accounts. Delete those accounts first");
+                //    return BadRequest("Cannot delete UserGoal. It has related accounts. Delete those accounts first");
                 //}
-                _uow.MealRepository.Delete(id);
+                _uow.UserGoalRepository.Delete(id);
                 _uow.Save();
                 baseResponse.statusCode = StatusCodes.Status200OK;
                 baseResponse.done = true;
@@ -260,7 +241,7 @@ namespace Api.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Something went wrong inside DeleteMeal action: {ex.Message}");
+                _logger.LogError($"Something went wrong inside DeleteUserGoal action: {ex.Message}");
                 baseResponse.statusCode = (int)HttpStatusCode.InternalServerError;
                 baseResponse.done = false;
                 baseResponse.message = $"Exception :{ex.Message}";

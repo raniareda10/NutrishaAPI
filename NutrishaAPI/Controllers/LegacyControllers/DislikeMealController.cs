@@ -1,43 +1,25 @@
-﻿using AutoMapper;
+﻿using System;
+using System.Linq;
+using System.Net;
+using AutoMapper;
 using BL.Infrastructure;
-using BL.Security;
-using DL.DTO;
-using DL.DTOs.UserRiskDTO;
-using DL.DTOs.UserRiskDTO;
-using DL.DTOs.UserDTOs;
+using DL.DTOs.DislikeMealDTO;
 using DL.Entities;
-using DL.MailModels;
-using HELPER;
-using Helpers;
 using LoggerService;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-using MimeKit;
-using Model.ApiModels;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Net.Mail;
-using System.Security.Claims;
-using System.Threading.Tasks;
 using NutrishaAPI.Extensions;
 
-
-namespace Api.Controllers
+namespace NutrishaAPI.Controllers.LegacyControllers
 {
     [Route("api/[controller]")]
     [ApiController]
     [EnableCors("MyPolicy")]
     //[ClaimRequirement(ClaimTypes.Role, RoleConstant.Admin)]
-    public class UserRiskController : Controller
+    public class DislikeMealController : Controller
     {
         private readonly IUnitOfWork _uow; 
         private readonly IHostingEnvironment _hostingEnvironment; 
@@ -45,7 +27,7 @@ namespace Api.Controllers
         private ILoggerManager _logger;
         private readonly BaseResponseHelper baseResponse;
 
-        public UserRiskController(IUnitOfWork uow ,IHostingEnvironment hostingEnvironment, IMapper mapper, ILoggerManager logger)
+        public DislikeMealController(IUnitOfWork uow ,IHostingEnvironment hostingEnvironment, IMapper mapper, ILoggerManager logger)
         {
             _uow = uow; 
             _hostingEnvironment = _hostingEnvironment;
@@ -58,35 +40,35 @@ namespace Api.Controllers
 
         
         [HttpGet]
-        [ProducesResponseType(typeof(MUserRisk), StatusCodes.Status200OK)]
-        public IActionResult GetAllUserRisk([FromQuery] UserRiskQueryPramter UserRiskQueryPramter)
+        [ProducesResponseType(typeof(MDislikeMeal), StatusCodes.Status200OK)]
+        public IActionResult GetAllDislikeMeal([FromQuery] DislikeMealQueryPramter DislikeMealQueryPramter)
         {
             try
             {
-                var UserRisk = _uow.UserRiskRepository.GetAllUserRisk(UserRiskQueryPramter);
-                baseResponse.data = UserRisk;
-                baseResponse.total_rows = UserRisk.Count();
+                var DislikeMeal = _uow.DislikeMealRepository.GetAllDislikeMeal(DislikeMealQueryPramter);
+                baseResponse.data = DislikeMeal;
+                baseResponse.total_rows = DislikeMeal.Count();
                 baseResponse.statusCode = (int)HttpStatusCode.OK;
                 baseResponse.done = true;
 
 
                 var metadata = new
                 {
-                    UserRisk.TotalCount,
-                    UserRisk.PageSize,
-                    UserRisk.CurrentPage,
-                    UserRisk.TotalPages,
-                    UserRisk.HasNext,
-                    UserRisk.HasPrevious
+                    DislikeMeal.TotalCount,
+                    DislikeMeal.PageSize,
+                    DislikeMeal.CurrentPage,
+                    DislikeMeal.TotalPages,
+                    DislikeMeal.HasNext,
+                    DislikeMeal.HasPrevious
                 };
                 Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(metadata));
-                _logger.LogInfo($"Returned {UserRisk.TotalCount} UserRisk from database.");
+                _logger.LogInfo($"Returned {DislikeMeal.TotalCount} DislikeMeal from database.");
 
                 return Ok(baseResponse);
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Something went wrong inside GetAllUserRisks action: {ex.Message}");
+                _logger.LogError($"Something went wrong inside GetAllDislikeMeals action: {ex.Message}");
                 baseResponse.statusCode = (int)HttpStatusCode.InternalServerError;
                 baseResponse.done = false;
                 baseResponse.message = $"Exception :{ex.Message}";
@@ -96,16 +78,16 @@ namespace Api.Controllers
 
 
 
-        [HttpGet("{id}", Name = "UserRiskById")]
-        [ProducesResponseType(typeof(MUserRisk), StatusCodes.Status200OK)]
-        public IActionResult GetAllUserRiskId(int id)
+        [HttpGet("{id}", Name = "DislikeMealById")]
+        [ProducesResponseType(typeof(MDislikeMeal), StatusCodes.Status200OK)]
+        public IActionResult GetAllDislikeMealId(int id)
         {
             try
             {
-                var UserRisk = _uow.UserRiskRepository.GetById(id);
-                if (UserRisk == null)
+                var DislikeMeal = _uow.DislikeMealRepository.GetById(id);
+                if (DislikeMeal == null)
                 {
-                    _logger.LogError($"UserRisk with id: {id}, hasn't been found in db.");
+                    _logger.LogError($"DislikeMeal with id: {id}, hasn't been found in db.");
                     baseResponse.done = false;
                     baseResponse.statusCode = (int)HttpStatusCode.NotFound;
                     baseResponse.message = "Not Found";
@@ -113,9 +95,9 @@ namespace Api.Controllers
                 }
                 else
                 {
-                    _logger.LogInfo($"Returned UserRisk with id: {id}");
-                 //   var UserRiskResult = _mapper.Map<UserRiskDTO>(UserRisk);
-                    baseResponse.data = UserRisk;
+                    _logger.LogInfo($"Returned DislikeMeal with id: {id}");
+                 //   var DislikeMealResult = _mapper.Map<DislikeMealDTO>(DislikeMeal);
+                    baseResponse.data = DislikeMeal;
                     baseResponse.statusCode = (int)HttpStatusCode.OK;
                     baseResponse.done = true;
                     return Ok(baseResponse);
@@ -123,7 +105,7 @@ namespace Api.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Something went wrong inside GetUserRiskById action: {ex.Message}");
+                _logger.LogError($"Something went wrong inside GetDislikeMealById action: {ex.Message}");
                 baseResponse.statusCode = (int)HttpStatusCode.InternalServerError;
                 baseResponse.done = false;
                 baseResponse.message = $"Exception :{ex.Message}";
@@ -137,14 +119,14 @@ namespace Api.Controllers
 
 
         [HttpPost]
-        [ProducesResponseType(typeof(UserRiskCreatDto), StatusCodes.Status201Created)]
-        public IActionResult CreateUserRisk(UserRiskCreatDto UserRisk)
+        [ProducesResponseType(typeof(DislikeMealCreatDto), StatusCodes.Status201Created)]
+        public IActionResult CreateDislikeMeal(DislikeMealCreatDto DislikeMeal)
         {
             try
             {
-                if (UserRisk == null)
+                if (DislikeMeal == null)
                 {
-                    _logger.LogError("UserRisk object sent from userRisk is null.");
+                    _logger.LogError("DislikeMeal object sent from dislikeMeal is null.");
                     baseResponse.done = false;
                     baseResponse.statusCode = (int)HttpStatusCode.NotFound;
                     baseResponse.message = "object is Null";
@@ -152,25 +134,25 @@ namespace Api.Controllers
                 }
                 if (!ModelState.IsValid)
                 {
-                    _logger.LogError("Invalid UserRisk object sent from userRisk.");
+                    _logger.LogError("Invalid DislikeMeal object sent from dislikeMeal.");
                     baseResponse.done = false;
                     baseResponse.statusCode = (int)HttpStatusCode.NotFound;
                     baseResponse.message = "Invalid model object";
                     return NotFound(baseResponse);
                 }
-                var UserRiskEntity = _mapper.Map<MUserRisk>(UserRisk);
+                var DislikeMealEntity = _mapper.Map<MDislikeMeal>(DislikeMeal);
 
-                _uow.UserRiskRepository.Add(UserRiskEntity);
+                _uow.DislikeMealRepository.Add(DislikeMealEntity);
                 _uow.Save();
-                var createdUserRisk = _mapper.Map<UserRiskCreatDto>(UserRiskEntity);
-                baseResponse.data = createdUserRisk;
+                var createdDislikeMeal = _mapper.Map<DislikeMealCreatDto>(DislikeMealEntity);
+                baseResponse.data = createdDislikeMeal;
                 baseResponse.statusCode = StatusCodes.Status201Created;
                 baseResponse.done = true;
-                return CreatedAtRoute("UserRiskById", new { id = UserRiskEntity.Id }, baseResponse);
+                return CreatedAtRoute("DislikeMealById", new { id = DislikeMealEntity.Id }, baseResponse);
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Something went wrong inside CreateUserRisk action: {ex.Message}");
+                _logger.LogError($"Something went wrong inside CreateDislikeMeal action: {ex.Message}");
                 baseResponse.statusCode = (int)HttpStatusCode.InternalServerError;
                 baseResponse.done = false;
                 baseResponse.message = $"Exception :{ex.Message}";
@@ -180,14 +162,14 @@ namespace Api.Controllers
 
 
         [HttpPut("{id}")]
-        [ProducesResponseType(typeof(MUserRisk), StatusCodes.Status200OK)]
-        public IActionResult UpdateUserRisk(int id, [FromBody] UserRiskCreatDto UserRisk)
+        [ProducesResponseType(typeof(MDislikeMeal), StatusCodes.Status200OK)]
+        public IActionResult UpdateDislikeMeal(int id, [FromBody] DislikeMealCreatDto DislikeMeal)
         {
             try
             {
-                if (UserRisk == null)
+                if (DislikeMeal == null)
                 {
-                    _logger.LogError("UserRisk object sent from userRisk is null.");
+                    _logger.LogError("DislikeMeal object sent from dislikeMeal is null.");
                     baseResponse.done = false;
                     baseResponse.statusCode = (int)HttpStatusCode.NotFound;
                     baseResponse.message = "object is Null";
@@ -195,32 +177,32 @@ namespace Api.Controllers
                 }
                 if (!ModelState.IsValid)
                 {
-                    _logger.LogError("Invalid UserRisk object sent from userRisk.");
+                    _logger.LogError("Invalid DislikeMeal object sent from dislikeMeal.");
                     baseResponse.done = false;
                     baseResponse.statusCode = (int)HttpStatusCode.NotFound;
                     baseResponse.message = "Invalid";
                     return NotFound(baseResponse);
                 }
-                var UserRiskEntity = _uow.UserRiskRepository.GetById(id);
-                if (UserRiskEntity == null)
+                var DislikeMealEntity = _uow.DislikeMealRepository.GetById(id);
+                if (DislikeMealEntity == null)
                 {
-                    _logger.LogError($"UserRisk with id: {id}, hasn't been found in db.");
+                    _logger.LogError($"DislikeMeal with id: {id}, hasn't been found in db.");
                     baseResponse.done = false;
                     baseResponse.statusCode = (int)HttpStatusCode.NotFound;
                     baseResponse.message = "object is Null";
                     return NotFound(baseResponse);
                 }
-                _mapper.Map(UserRisk, UserRiskEntity);
-                _uow.UserRiskRepository.Update(UserRiskEntity);
+                _mapper.Map(DislikeMeal, DislikeMealEntity);
+                _uow.DislikeMealRepository.Update(DislikeMealEntity);
                 _uow.Save();
-                baseResponse.data = UserRiskEntity;
+                baseResponse.data = DislikeMealEntity;
                 baseResponse.statusCode = StatusCodes.Status200OK;
                 baseResponse.done = true;
                 return Ok(baseResponse);
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Something went wrong inside UpdateUserRisk action: {ex.Message}");
+                _logger.LogError($"Something went wrong inside UpdateDislikeMeal action: {ex.Message}");
                 baseResponse.statusCode = (int)HttpStatusCode.InternalServerError;
                 baseResponse.done = false;
                 baseResponse.message = $"Exception :{ex.Message}";
@@ -231,27 +213,27 @@ namespace Api.Controllers
 
 
         [HttpDelete("{id}")]
-        [ProducesResponseType(typeof(MUserRisk), StatusCodes.Status200OK)]
-        public IActionResult DeleteUserRisk(int id)
+        [ProducesResponseType(typeof(MDislikeMeal), StatusCodes.Status200OK)]
+        public IActionResult DeleteDislikeMeal(int id)
         {
             try
             {
-                var UserRisk = _uow.UserRiskRepository.GetById(id);
-                if (UserRisk == null)
+                var DislikeMeal = _uow.DislikeMealRepository.GetById(id);
+                if (DislikeMeal == null)
                 {
-                    _logger.LogError($"UserRisk with id: {id}, hasn't been found in db.");
+                    _logger.LogError($"DislikeMeal with id: {id}, hasn't been found in db.");
                     baseResponse.done = false;
                     baseResponse.statusCode = (int)HttpStatusCode.NotFound;
                     baseResponse.message = "hasn't been found in db";
                     return NotFound(baseResponse);
                 }
 
-                //if (_repository.UserRiskClaim.UserRiskClaimByUserRisk(id).Any())
+                //if (_repository.DislikeMealClaim.DislikeMealClaimByDislikeMeal(id).Any())
                 //{
-                //    _logger.LogError($"Cannot delete UserRisk with id: {id}. It has related accounts. Delete those accounts first");
-                //    return BadRequest("Cannot delete UserRisk. It has related accounts. Delete those accounts first");
+                //    _logger.LogError($"Cannot delete DislikeMeal with id: {id}. It has related accounts. Delete those accounts first");
+                //    return BadRequest("Cannot delete DislikeMeal. It has related accounts. Delete those accounts first");
                 //}
-                _uow.UserRiskRepository.Delete(id);
+                _uow.DislikeMealRepository.Delete(id);
                 _uow.Save();
                 baseResponse.statusCode = StatusCodes.Status200OK;
                 baseResponse.done = true;
@@ -259,7 +241,7 @@ namespace Api.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Something went wrong inside DeleteUserRisk action: {ex.Message}");
+                _logger.LogError($"Something went wrong inside DeleteDislikeMeal action: {ex.Message}");
                 baseResponse.statusCode = (int)HttpStatusCode.InternalServerError;
                 baseResponse.done = false;
                 baseResponse.message = $"Exception :{ex.Message}";

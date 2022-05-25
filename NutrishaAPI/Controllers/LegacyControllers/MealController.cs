@@ -1,43 +1,25 @@
-﻿using AutoMapper;
+﻿using System;
+using System.Linq;
+using System.Net;
+using AutoMapper;
 using BL.Infrastructure;
-using BL.Security;
-using DL.DTO;
-using DL.DTOs.DislikeMealDTO;
-using DL.DTOs.DislikeMealDTO;
-using DL.DTOs.UserDTOs;
+using DL.DTOs.MealDTO;
 using DL.Entities;
-using DL.MailModels;
-using HELPER;
-using Helpers;
 using LoggerService;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-using MimeKit;
-using Model.ApiModels;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Net.Mail;
-using System.Security.Claims;
-using System.Threading.Tasks;
 using NutrishaAPI.Extensions;
 
-
-namespace Api.Controllers
+namespace NutrishaAPI.Controllers.LegacyControllers
 {
     [Route("api/[controller]")]
     [ApiController]
     [EnableCors("MyPolicy")]
     //[ClaimRequirement(ClaimTypes.Role, RoleConstant.Admin)]
-    public class DislikeMealController : Controller
+    public class MealController : Controller
     {
         private readonly IUnitOfWork _uow; 
         private readonly IHostingEnvironment _hostingEnvironment; 
@@ -45,7 +27,7 @@ namespace Api.Controllers
         private ILoggerManager _logger;
         private readonly BaseResponseHelper baseResponse;
 
-        public DislikeMealController(IUnitOfWork uow ,IHostingEnvironment hostingEnvironment, IMapper mapper, ILoggerManager logger)
+        public MealController(IUnitOfWork uow ,IHostingEnvironment hostingEnvironment, IMapper mapper, ILoggerManager logger)
         {
             _uow = uow; 
             _hostingEnvironment = _hostingEnvironment;
@@ -58,35 +40,36 @@ namespace Api.Controllers
 
         
         [HttpGet]
-        [ProducesResponseType(typeof(MDislikeMeal), StatusCodes.Status200OK)]
-        public IActionResult GetAllDislikeMeal([FromQuery] DislikeMealQueryPramter DislikeMealQueryPramter)
+        [ProducesResponseType(typeof(MMeal), StatusCodes.Status200OK)]
+        public IActionResult GetAllUserMeal([FromQuery] MealQueryPramter MealQueryPramter)
         {
             try
             {
-                var DislikeMeal = _uow.DislikeMealRepository.GetAllDislikeMeal(DislikeMealQueryPramter);
-                baseResponse.data = DislikeMeal;
-                baseResponse.total_rows = DislikeMeal.Count();
+              var Meal = _uow.MealRepository.GetAllMeal(MealQueryPramter);
+                baseResponse.data = Meal;
+                baseResponse.total_rows = Meal.Count();
                 baseResponse.statusCode = (int)HttpStatusCode.OK;
                 baseResponse.done = true;
 
 
                 var metadata = new
                 {
-                    DislikeMeal.TotalCount,
-                    DislikeMeal.PageSize,
-                    DislikeMeal.CurrentPage,
-                    DislikeMeal.TotalPages,
-                    DislikeMeal.HasNext,
-                    DislikeMeal.HasPrevious
+                    Meal.TotalCount,
+                    Meal.PageSize,
+                    Meal.CurrentPage,
+                    Meal.TotalPages,
+                    Meal.HasNext,
+                    Meal.HasPrevious
                 };
                 Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(metadata));
-                _logger.LogInfo($"Returned {DislikeMeal.TotalCount} DislikeMeal from database.");
+                _logger.LogInfo($"Returned {Meal.TotalCount} Meal from database.");
 
                 return Ok(baseResponse);
+
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Something went wrong inside GetAllDislikeMeals action: {ex.Message}");
+                _logger.LogError($"Something went wrong inside GetAllMeals action: {ex.Message}");
                 baseResponse.statusCode = (int)HttpStatusCode.InternalServerError;
                 baseResponse.done = false;
                 baseResponse.message = $"Exception :{ex.Message}";
@@ -96,16 +79,16 @@ namespace Api.Controllers
 
 
 
-        [HttpGet("{id}", Name = "DislikeMealById")]
-        [ProducesResponseType(typeof(MDislikeMeal), StatusCodes.Status200OK)]
-        public IActionResult GetAllDislikeMealId(int id)
+        [HttpGet("{id}", Name = "MealById")]
+        [ProducesResponseType(typeof(MMeal), StatusCodes.Status200OK)]
+        public IActionResult GetAllMealId(int id)
         {
             try
             {
-                var DislikeMeal = _uow.DislikeMealRepository.GetById(id);
-                if (DislikeMeal == null)
+                var Meal = _uow.MealRepository.GetById(id);
+                if (Meal == null)
                 {
-                    _logger.LogError($"DislikeMeal with id: {id}, hasn't been found in db.");
+                    _logger.LogError($"Meal with id: {id}, hasn't been found in db.");
                     baseResponse.done = false;
                     baseResponse.statusCode = (int)HttpStatusCode.NotFound;
                     baseResponse.message = "Not Found";
@@ -113,9 +96,9 @@ namespace Api.Controllers
                 }
                 else
                 {
-                    _logger.LogInfo($"Returned DislikeMeal with id: {id}");
-                 //   var DislikeMealResult = _mapper.Map<DislikeMealDTO>(DislikeMeal);
-                    baseResponse.data = DislikeMeal;
+                    _logger.LogInfo($"Returned Meal with id: {id}");
+                 //   var MealResult = _mapper.Map<MealDTO>(Meal);
+                    baseResponse.data = Meal;
                     baseResponse.statusCode = (int)HttpStatusCode.OK;
                     baseResponse.done = true;
                     return Ok(baseResponse);
@@ -123,7 +106,7 @@ namespace Api.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Something went wrong inside GetDislikeMealById action: {ex.Message}");
+                _logger.LogError($"Something went wrong inside GetMealById action: {ex.Message}");
                 baseResponse.statusCode = (int)HttpStatusCode.InternalServerError;
                 baseResponse.done = false;
                 baseResponse.message = $"Exception :{ex.Message}";
@@ -137,14 +120,14 @@ namespace Api.Controllers
 
 
         [HttpPost]
-        [ProducesResponseType(typeof(DislikeMealCreatDto), StatusCodes.Status201Created)]
-        public IActionResult CreateDislikeMeal(DislikeMealCreatDto DislikeMeal)
+        [ProducesResponseType(typeof(MealCreatDto), StatusCodes.Status201Created)]
+        public IActionResult CreateMeal(MealCreatDto Meal)
         {
             try
             {
-                if (DislikeMeal == null)
+                if (Meal == null)
                 {
-                    _logger.LogError("DislikeMeal object sent from dislikeMeal is null.");
+                    _logger.LogError("Meal object sent from meal is null.");
                     baseResponse.done = false;
                     baseResponse.statusCode = (int)HttpStatusCode.NotFound;
                     baseResponse.message = "object is Null";
@@ -152,25 +135,25 @@ namespace Api.Controllers
                 }
                 if (!ModelState.IsValid)
                 {
-                    _logger.LogError("Invalid DislikeMeal object sent from dislikeMeal.");
+                    _logger.LogError("Invalid Meal object sent from meal.");
                     baseResponse.done = false;
                     baseResponse.statusCode = (int)HttpStatusCode.NotFound;
                     baseResponse.message = "Invalid model object";
                     return NotFound(baseResponse);
                 }
-                var DislikeMealEntity = _mapper.Map<MDislikeMeal>(DislikeMeal);
+                var MealEntity = _mapper.Map<MMeal>(Meal);
 
-                _uow.DislikeMealRepository.Add(DislikeMealEntity);
+                _uow.MealRepository.Add(MealEntity);
                 _uow.Save();
-                var createdDislikeMeal = _mapper.Map<DislikeMealCreatDto>(DislikeMealEntity);
-                baseResponse.data = createdDislikeMeal;
+                var createdMeal = _mapper.Map<MealCreatDto>(MealEntity);
+                baseResponse.data = createdMeal;
                 baseResponse.statusCode = StatusCodes.Status201Created;
                 baseResponse.done = true;
-                return CreatedAtRoute("DislikeMealById", new { id = DislikeMealEntity.Id }, baseResponse);
+                return CreatedAtRoute("MealById", new { id = MealEntity.Id }, baseResponse);
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Something went wrong inside CreateDislikeMeal action: {ex.Message}");
+                _logger.LogError($"Something went wrong inside CreateMeal action: {ex.Message}");
                 baseResponse.statusCode = (int)HttpStatusCode.InternalServerError;
                 baseResponse.done = false;
                 baseResponse.message = $"Exception :{ex.Message}";
@@ -180,14 +163,14 @@ namespace Api.Controllers
 
 
         [HttpPut("{id}")]
-        [ProducesResponseType(typeof(MDislikeMeal), StatusCodes.Status200OK)]
-        public IActionResult UpdateDislikeMeal(int id, [FromBody] DislikeMealCreatDto DislikeMeal)
+        [ProducesResponseType(typeof(MMeal), StatusCodes.Status200OK)]
+        public IActionResult UpdateMeal(int id, [FromBody] MealCreatDto Meal)
         {
             try
             {
-                if (DislikeMeal == null)
+                if (Meal == null)
                 {
-                    _logger.LogError("DislikeMeal object sent from dislikeMeal is null.");
+                    _logger.LogError("Meal object sent from meal is null.");
                     baseResponse.done = false;
                     baseResponse.statusCode = (int)HttpStatusCode.NotFound;
                     baseResponse.message = "object is Null";
@@ -195,32 +178,32 @@ namespace Api.Controllers
                 }
                 if (!ModelState.IsValid)
                 {
-                    _logger.LogError("Invalid DislikeMeal object sent from dislikeMeal.");
+                    _logger.LogError("Invalid Meal object sent from meal.");
                     baseResponse.done = false;
                     baseResponse.statusCode = (int)HttpStatusCode.NotFound;
                     baseResponse.message = "Invalid";
                     return NotFound(baseResponse);
                 }
-                var DislikeMealEntity = _uow.DislikeMealRepository.GetById(id);
-                if (DislikeMealEntity == null)
+                var MealEntity = _uow.MealRepository.GetById(id);
+                if (MealEntity == null)
                 {
-                    _logger.LogError($"DislikeMeal with id: {id}, hasn't been found in db.");
+                    _logger.LogError($"Meal with id: {id}, hasn't been found in db.");
                     baseResponse.done = false;
                     baseResponse.statusCode = (int)HttpStatusCode.NotFound;
                     baseResponse.message = "object is Null";
                     return NotFound(baseResponse);
                 }
-                _mapper.Map(DislikeMeal, DislikeMealEntity);
-                _uow.DislikeMealRepository.Update(DislikeMealEntity);
+                _mapper.Map(Meal, MealEntity);
+                _uow.MealRepository.Update(MealEntity);
                 _uow.Save();
-                baseResponse.data = DislikeMealEntity;
+                baseResponse.data = MealEntity;
                 baseResponse.statusCode = StatusCodes.Status200OK;
                 baseResponse.done = true;
                 return Ok(baseResponse);
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Something went wrong inside UpdateDislikeMeal action: {ex.Message}");
+                _logger.LogError($"Something went wrong inside UpdateMeal action: {ex.Message}");
                 baseResponse.statusCode = (int)HttpStatusCode.InternalServerError;
                 baseResponse.done = false;
                 baseResponse.message = $"Exception :{ex.Message}";
@@ -231,27 +214,27 @@ namespace Api.Controllers
 
 
         [HttpDelete("{id}")]
-        [ProducesResponseType(typeof(MDislikeMeal), StatusCodes.Status200OK)]
-        public IActionResult DeleteDislikeMeal(int id)
+        [ProducesResponseType(typeof(MMeal), StatusCodes.Status200OK)]
+        public IActionResult DeleteMeal(int id)
         {
             try
             {
-                var DislikeMeal = _uow.DislikeMealRepository.GetById(id);
-                if (DislikeMeal == null)
+                var Meal = _uow.MealRepository.GetById(id);
+                if (Meal == null)
                 {
-                    _logger.LogError($"DislikeMeal with id: {id}, hasn't been found in db.");
+                    _logger.LogError($"Meal with id: {id}, hasn't been found in db.");
                     baseResponse.done = false;
                     baseResponse.statusCode = (int)HttpStatusCode.NotFound;
                     baseResponse.message = "hasn't been found in db";
                     return NotFound(baseResponse);
                 }
 
-                //if (_repository.DislikeMealClaim.DislikeMealClaimByDislikeMeal(id).Any())
+                //if (_repository.MealClaim.MealClaimByMeal(id).Any())
                 //{
-                //    _logger.LogError($"Cannot delete DislikeMeal with id: {id}. It has related accounts. Delete those accounts first");
-                //    return BadRequest("Cannot delete DislikeMeal. It has related accounts. Delete those accounts first");
+                //    _logger.LogError($"Cannot delete Meal with id: {id}. It has related accounts. Delete those accounts first");
+                //    return BadRequest("Cannot delete Meal. It has related accounts. Delete those accounts first");
                 //}
-                _uow.DislikeMealRepository.Delete(id);
+                _uow.MealRepository.Delete(id);
                 _uow.Save();
                 baseResponse.statusCode = StatusCodes.Status200OK;
                 baseResponse.done = true;
@@ -259,7 +242,7 @@ namespace Api.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Something went wrong inside DeleteDislikeMeal action: {ex.Message}");
+                _logger.LogError($"Something went wrong inside DeleteMeal action: {ex.Message}");
                 baseResponse.statusCode = (int)HttpStatusCode.InternalServerError;
                 baseResponse.done = false;
                 baseResponse.message = $"Exception :{ex.Message}";

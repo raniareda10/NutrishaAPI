@@ -1,42 +1,27 @@
-﻿using AutoMapper;
+﻿using System;
+using System.Linq;
+using System.Net;
+using AutoMapper;
 using BL.Infrastructure;
-using BL.Security;
-using DL.DTO;
-using DL.DTOs.JourneyPlanDTO;
-using DL.DTOs.UserDTOs;
+using DL.DTOs.FrequencyDTO;
 using DL.Entities;
-using DL.MailModels;
-using HELPER;
-using Helpers;
 using LoggerService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-using MimeKit;
-using Model.ApiModels;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net.Mail;
-using System.Security.Claims;
-using System.Threading.Tasks;
-using System.Net;
 using NutrishaAPI.Extensions;
 
-namespace Api.Controllers
+namespace NutrishaAPI.Controllers.LegacyControllers
 {
     [Route("api/[controller]")]
     [ApiController]
     [EnableCors("MyPolicy")]
     //[ClaimRequirement(ClaimTypes.Role, RoleConstant.Admin)]
    // [AllowAnonymous]
-    public class JourneyPlanController : Controller
+    public class FrequencyController : Controller
     {
         private readonly IUnitOfWork _uow; 
         private readonly IHostingEnvironment _hostingEnvironment; 
@@ -44,7 +29,7 @@ namespace Api.Controllers
         private ILoggerManager _logger;
         private readonly BaseResponseHelper baseResponse;
 
-        public JourneyPlanController(IUnitOfWork uow ,IHostingEnvironment hostingEnvironment, IMapper mapper, ILoggerManager logger)
+        public FrequencyController(IUnitOfWork uow ,IHostingEnvironment hostingEnvironment, IMapper mapper, ILoggerManager logger)
         {
             _uow = uow; 
             _hostingEnvironment = _hostingEnvironment;
@@ -57,36 +42,36 @@ namespace Api.Controllers
 
         [AllowAnonymous]
         [HttpGet]
-        [ProducesResponseType(typeof(MJourneyPlan), StatusCodes.Status200OK)]
-        public IActionResult GetAllJourneyPlan([FromQuery] JourneyPlanQueryPramter JourneyPlanQueryPramter)
+        [ProducesResponseType(typeof(MFrequency), StatusCodes.Status200OK)]
+        public IActionResult GetAllFrequency([FromQuery] FrequencyQueryPramter FrequencyQueryPramter)
         {
             try
             {
-                var JourneyPlan = _uow.JourneyPlanRepository.GetAllJourneyPlan(JourneyPlanQueryPramter);
-                baseResponse.data = JourneyPlan;
-                baseResponse.total_rows = JourneyPlan.Count();
+                var Frequency = _uow.FrequencyRepository.GetAllFrequency(FrequencyQueryPramter);
+                baseResponse.data = Frequency;
+                baseResponse.total_rows = Frequency.Count();
                 baseResponse.statusCode = (int)HttpStatusCode.OK;
                 baseResponse.done = true;
 
 
                 var metadata = new
                 {
-                    JourneyPlan.TotalCount,
-                    JourneyPlan.PageSize,
-                    JourneyPlan.CurrentPage,
-                    JourneyPlan.TotalPages,
-                    JourneyPlan.HasNext,
-                    JourneyPlan.HasPrevious
+                    Frequency.TotalCount,
+                    Frequency.PageSize,
+                    Frequency.CurrentPage,
+                    Frequency.TotalPages,
+                    Frequency.HasNext,
+                    Frequency.HasPrevious
                 };
                 Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(metadata));
-                _logger.LogInfo($"Returned {JourneyPlan.TotalCount} JourneyPlan from database.");
+                _logger.LogInfo($"Returned {Frequency.TotalCount} Frequency from database.");
 
                 return Ok(baseResponse);
 
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Something went wrong inside GetAllJourneyPlans action: {ex.Message}");
+                _logger.LogError($"Something went wrong inside GetAllFrequencys action: {ex.Message}");
                 baseResponse.statusCode = (int)HttpStatusCode.InternalServerError;
                 baseResponse.done = false;
                 baseResponse.message = $"Exception :{ex.Message}";
@@ -96,16 +81,16 @@ namespace Api.Controllers
 
 
 
-        [HttpGet("{id}", Name = "JourneyPlanById")]
-        [ProducesResponseType(typeof(MJourneyPlan), StatusCodes.Status200OK)]
-        public IActionResult GetAllJourneyPlanId(int id)
+        [HttpGet("{id}", Name = "FrequencyById")]
+        [ProducesResponseType(typeof(MFrequency), StatusCodes.Status200OK)]
+        public IActionResult GetAllFrequencyId(int id)
         {
             try
             {
-                var JourneyPlan = _uow.JourneyPlanRepository.GetById(id);
-                if (JourneyPlan == null)
+                var Frequency = _uow.FrequencyRepository.GetById(id);
+                if (Frequency == null)
                 {
-                    _logger.LogError($"JourneyPlan with id: {id}, hasn't been found in db.");
+                    _logger.LogError($"Frequency with id: {id}, hasn't been found in db.");
                     baseResponse.done = false;
                     baseResponse.statusCode = (int)HttpStatusCode.NotFound;
                     baseResponse.message = "Not Found";
@@ -113,9 +98,9 @@ namespace Api.Controllers
                 }
                 else
                 {
-                    _logger.LogInfo($"Returned JourneyPlan with id: {id}");
-                    //var JourneyPlanResult = _mapper.Map<JourneyPlanDTO>(JourneyPlan);
-                    baseResponse.data = JourneyPlan;
+                    _logger.LogInfo($"Returned Frequency with id: {id}");
+                    //var FrequencyResult = _mapper.Map<FrequencyDTO>(Frequency);
+                    baseResponse.data = Frequency;
                     baseResponse.total_rows = 1;
                     baseResponse.statusCode = (int)HttpStatusCode.OK;
                     baseResponse.done = true;
@@ -124,7 +109,7 @@ namespace Api.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Something went wrong inside GetJourneyPlanById action: {ex.Message}");
+                _logger.LogError($"Something went wrong inside GetFrequencyById action: {ex.Message}");
                 baseResponse.statusCode = (int)HttpStatusCode.InternalServerError;
                 baseResponse.done = false;
                 baseResponse.message = $"Exception :{ex.Message}";

@@ -1,43 +1,25 @@
-﻿using AutoMapper;
+﻿using System;
+using System.Linq;
+using System.Net;
+using AutoMapper;
 using BL.Infrastructure;
-using BL.Security;
-using DL.DTO;
-using DL.DTOs.UserAllergyDTO;
-using DL.DTOs.UserAllergyDTO;
-using DL.DTOs.UserDTOs;
+using DL.DTOs.UserMealDTO;
 using DL.Entities;
-using DL.MailModels;
-using HELPER;
-using Helpers;
 using LoggerService;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-using MimeKit;
-using Model.ApiModels;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Net.Mail;
-using System.Security.Claims;
-using System.Threading.Tasks;
 using NutrishaAPI.Extensions;
 
-
-namespace Api.Controllers
+namespace NutrishaAPI.Controllers.LegacyControllers
 {
     [Route("api/[controller]")]
     [ApiController]
     [EnableCors("MyPolicy")]
     //[ClaimRequirement(ClaimTypes.Role, RoleConstant.Admin)]
-    public class UserAllergyController : Controller
+    public class UserMealController : Controller
     {
         private readonly IUnitOfWork _uow; 
         private readonly IHostingEnvironment _hostingEnvironment; 
@@ -45,7 +27,7 @@ namespace Api.Controllers
         private ILoggerManager _logger;
         private readonly BaseResponseHelper baseResponse;
 
-        public UserAllergyController(IUnitOfWork uow ,IHostingEnvironment hostingEnvironment, IMapper mapper, ILoggerManager logger)
+        public UserMealController(IUnitOfWork uow ,IHostingEnvironment hostingEnvironment, IMapper mapper, ILoggerManager logger)
         {
             _uow = uow; 
             _hostingEnvironment = _hostingEnvironment;
@@ -58,35 +40,35 @@ namespace Api.Controllers
 
         
         [HttpGet]
-        [ProducesResponseType(typeof(MUserAllergy), StatusCodes.Status200OK)]
-        public IActionResult GetAllUserAllergy([FromQuery] UserAllergyQueryPramter UserAllergyQueryPramter)
+        [ProducesResponseType(typeof(MUserMeal), StatusCodes.Status200OK)]
+        public IActionResult GetAllUserMeal([FromQuery] UserMealQueryPramter UserMealQueryPramter)
         {
             try
             {
-                var UserAllergy = _uow.UserAllergyRepository.GetAllUserAllergy(UserAllergyQueryPramter);
-                baseResponse.data = UserAllergy;
-                baseResponse.total_rows = UserAllergy.Count();
+                var UserMeal = _uow.UserMealRepository.GetAllUserMeal(UserMealQueryPramter);
+                baseResponse.data = UserMeal;
+                baseResponse.total_rows = UserMeal.Count();
                 baseResponse.statusCode = (int)HttpStatusCode.OK;
                 baseResponse.done = true;
 
 
                 var metadata = new
                 {
-                    UserAllergy.TotalCount,
-                    UserAllergy.PageSize,
-                    UserAllergy.CurrentPage,
-                    UserAllergy.TotalPages,
-                    UserAllergy.HasNext,
-                    UserAllergy.HasPrevious
+                    UserMeal.TotalCount,
+                    UserMeal.PageSize,
+                    UserMeal.CurrentPage,
+                    UserMeal.TotalPages,
+                    UserMeal.HasNext,
+                    UserMeal.HasPrevious
                 };
                 Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(metadata));
-                _logger.LogInfo($"Returned {UserAllergy.TotalCount} UserAllergy from database.");
+                _logger.LogInfo($"Returned {UserMeal.TotalCount} UserMeal from database.");
 
                 return Ok(baseResponse);
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Something went wrong inside GetAllUserAllergys action: {ex.Message}");
+                _logger.LogError($"Something went wrong inside GetAllUserMeals action: {ex.Message}");
                 baseResponse.statusCode = (int)HttpStatusCode.InternalServerError;
                 baseResponse.done = false;
                 baseResponse.message = $"Exception :{ex.Message}";
@@ -96,16 +78,16 @@ namespace Api.Controllers
 
 
 
-        [HttpGet("{id}", Name = "UserAllergyById")]
-        [ProducesResponseType(typeof(MUserAllergy), StatusCodes.Status200OK)]
-        public IActionResult GetAllUserAllergyId(int id)
+        [HttpGet("{id}", Name = "UserMealById")]
+        [ProducesResponseType(typeof(MUserMeal), StatusCodes.Status200OK)]
+        public IActionResult GetAllUserMealId(int id)
         {
             try
             {
-                var UserAllergy = _uow.UserAllergyRepository.GetById(id);
-                if (UserAllergy == null)
+                var UserMeal = _uow.UserMealRepository.GetById(id);
+                if (UserMeal == null)
                 {
-                    _logger.LogError($"UserAllergy with id: {id}, hasn't been found in db.");
+                    _logger.LogError($"UserMeal with id: {id}, hasn't been found in db.");
                     baseResponse.done = false;
                     baseResponse.statusCode = (int)HttpStatusCode.NotFound;
                     baseResponse.message = "Not Found";
@@ -113,9 +95,9 @@ namespace Api.Controllers
                 }
                 else
                 {
-                    _logger.LogInfo($"Returned UserAllergy with id: {id}");
-                 //   var UserAllergyResult = _mapper.Map<UserAllergyDTO>(UserAllergy);
-                    baseResponse.data = UserAllergy;
+                    _logger.LogInfo($"Returned UserMeal with id: {id}");
+                 //   var UserMealResult = _mapper.Map<UserMealDTO>(UserMeal);
+                    baseResponse.data = UserMeal;
                     baseResponse.statusCode = (int)HttpStatusCode.OK;
                     baseResponse.done = true;
                     return Ok(baseResponse);
@@ -123,7 +105,7 @@ namespace Api.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Something went wrong inside GetUserAllergyById action: {ex.Message}");
+                _logger.LogError($"Something went wrong inside GetUserMealById action: {ex.Message}");
                 baseResponse.statusCode = (int)HttpStatusCode.InternalServerError;
                 baseResponse.done = false;
                 baseResponse.message = $"Exception :{ex.Message}";
@@ -137,14 +119,14 @@ namespace Api.Controllers
 
 
         [HttpPost]
-        [ProducesResponseType(typeof(UserAllergyCreatDto), StatusCodes.Status201Created)]
-        public IActionResult CreateUserAllergy(UserAllergyCreatDto UserAllergy)
+        [ProducesResponseType(typeof(UserMealCreatDto), StatusCodes.Status201Created)]
+        public IActionResult CreateUserMeal(UserMealCreatDto UserMeal)
         {
             try
             {
-                if (UserAllergy == null)
+                if (UserMeal == null)
                 {
-                    _logger.LogError("UserAllergy object sent from userAllergy is null.");
+                    _logger.LogError("UserMeal object sent from userMeal is null.");
                     baseResponse.done = false;
                     baseResponse.statusCode = (int)HttpStatusCode.NotFound;
                     baseResponse.message = "object is Null";
@@ -152,25 +134,25 @@ namespace Api.Controllers
                 }
                 if (!ModelState.IsValid)
                 {
-                    _logger.LogError("Invalid UserAllergy object sent from userAllergy.");
+                    _logger.LogError("Invalid UserMeal object sent from userMeal.");
                     baseResponse.done = false;
                     baseResponse.statusCode = (int)HttpStatusCode.NotFound;
                     baseResponse.message = "Invalid model object";
                     return NotFound(baseResponse);
                 }
-                var UserAllergyEntity = _mapper.Map<MUserAllergy>(UserAllergy);
+                var UserMealEntity = _mapper.Map<MUserMeal>(UserMeal);
 
-                _uow.UserAllergyRepository.Add(UserAllergyEntity);
+                _uow.UserMealRepository.Add(UserMealEntity);
                 _uow.Save();
-                var createdUserAllergy = _mapper.Map<UserAllergyCreatDto>(UserAllergyEntity);
-                baseResponse.data = createdUserAllergy;
+                var createdUserMeal = _mapper.Map<UserMealCreatDto>(UserMealEntity);
+                baseResponse.data = createdUserMeal;
                 baseResponse.statusCode = StatusCodes.Status201Created;
                 baseResponse.done = true;
-                return CreatedAtRoute("UserAllergyById", new { id = UserAllergyEntity.Id }, baseResponse);
+                return CreatedAtRoute("UserMealById", new { id = UserMealEntity.Id }, baseResponse);
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Something went wrong inside CreateUserAllergy action: {ex.Message}");
+                _logger.LogError($"Something went wrong inside CreateUserMeal action: {ex.Message}");
                 baseResponse.statusCode = (int)HttpStatusCode.InternalServerError;
                 baseResponse.done = false;
                 baseResponse.message = $"Exception :{ex.Message}";
@@ -180,14 +162,14 @@ namespace Api.Controllers
 
 
         [HttpPut("{id}")]
-        [ProducesResponseType(typeof(MUserAllergy), StatusCodes.Status200OK)]
-        public IActionResult UpdateUserAllergy(int id, [FromBody] UserAllergyCreatDto UserAllergy)
+        [ProducesResponseType(typeof(MUserMeal), StatusCodes.Status200OK)]
+        public IActionResult UpdateUserMeal(int id, [FromBody] UserMealCreatDto UserMeal)
         {
             try
             {
-                if (UserAllergy == null)
+                if (UserMeal == null)
                 {
-                    _logger.LogError("UserAllergy object sent from userAllergy is null.");
+                    _logger.LogError("UserMeal object sent from userMeal is null.");
                     baseResponse.done = false;
                     baseResponse.statusCode = (int)HttpStatusCode.NotFound;
                     baseResponse.message = "object is Null";
@@ -195,32 +177,32 @@ namespace Api.Controllers
                 }
                 if (!ModelState.IsValid)
                 {
-                    _logger.LogError("Invalid UserAllergy object sent from userAllergy.");
+                    _logger.LogError("Invalid UserMeal object sent from userMeal.");
                     baseResponse.done = false;
                     baseResponse.statusCode = (int)HttpStatusCode.NotFound;
                     baseResponse.message = "Invalid";
                     return NotFound(baseResponse);
                 }
-                var UserAllergyEntity = _uow.UserAllergyRepository.GetById(id);
-                if (UserAllergyEntity == null)
+                var UserMealEntity = _uow.UserMealRepository.GetById(id);
+                if (UserMealEntity == null)
                 {
-                    _logger.LogError($"UserAllergy with id: {id}, hasn't been found in db.");
+                    _logger.LogError($"UserMeal with id: {id}, hasn't been found in db.");
                     baseResponse.done = false;
                     baseResponse.statusCode = (int)HttpStatusCode.NotFound;
                     baseResponse.message = "object is Null";
                     return NotFound(baseResponse);
                 }
-                _mapper.Map(UserAllergy, UserAllergyEntity);
-                _uow.UserAllergyRepository.Update(UserAllergyEntity);
+                _mapper.Map(UserMeal, UserMealEntity);
+                _uow.UserMealRepository.Update(UserMealEntity);
                 _uow.Save();
-                baseResponse.data = UserAllergyEntity;
+                baseResponse.data = UserMealEntity;
                 baseResponse.statusCode = StatusCodes.Status200OK;
                 baseResponse.done = true;
                 return Ok(baseResponse);
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Something went wrong inside UpdateUserAllergy action: {ex.Message}");
+                _logger.LogError($"Something went wrong inside UpdateUserMeal action: {ex.Message}");
                 baseResponse.statusCode = (int)HttpStatusCode.InternalServerError;
                 baseResponse.done = false;
                 baseResponse.message = $"Exception :{ex.Message}";
@@ -231,27 +213,27 @@ namespace Api.Controllers
 
 
         [HttpDelete("{id}")]
-        [ProducesResponseType(typeof(MUserAllergy), StatusCodes.Status200OK)]
-        public IActionResult DeleteUserAllergy(int id)
+        [ProducesResponseType(typeof(MUserMeal), StatusCodes.Status200OK)]
+        public IActionResult DeleteUserMeal(int id)
         {
             try
             {
-                var UserAllergy = _uow.UserAllergyRepository.GetById(id);
-                if (UserAllergy == null)
+                var UserMeal = _uow.UserMealRepository.GetById(id);
+                if (UserMeal == null)
                 {
-                    _logger.LogError($"UserAllergy with id: {id}, hasn't been found in db.");
+                    _logger.LogError($"UserMeal with id: {id}, hasn't been found in db.");
                     baseResponse.done = false;
                     baseResponse.statusCode = (int)HttpStatusCode.NotFound;
                     baseResponse.message = "hasn't been found in db";
                     return NotFound(baseResponse);
                 }
 
-                //if (_repository.UserAllergyClaim.UserAllergyClaimByUserAllergy(id).Any())
+                //if (_repository.UserMealClaim.UserMealClaimByUserMeal(id).Any())
                 //{
-                //    _logger.LogError($"Cannot delete UserAllergy with id: {id}. It has related accounts. Delete those accounts first");
-                //    return BadRequest("Cannot delete UserAllergy. It has related accounts. Delete those accounts first");
+                //    _logger.LogError($"Cannot delete UserMeal with id: {id}. It has related accounts. Delete those accounts first");
+                //    return BadRequest("Cannot delete UserMeal. It has related accounts. Delete those accounts first");
                 //}
-                _uow.UserAllergyRepository.Delete(id);
+                _uow.UserMealRepository.Delete(id);
                 _uow.Save();
                 baseResponse.statusCode = StatusCodes.Status200OK;
                 baseResponse.done = true;
@@ -259,7 +241,7 @@ namespace Api.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Something went wrong inside DeleteUserAllergy action: {ex.Message}");
+                _logger.LogError($"Something went wrong inside DeleteUserMeal action: {ex.Message}");
                 baseResponse.statusCode = (int)HttpStatusCode.InternalServerError;
                 baseResponse.done = false;
                 baseResponse.message = $"Exception :{ex.Message}";

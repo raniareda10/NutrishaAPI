@@ -1,14 +1,15 @@
-﻿using AutoMapper;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
+using AutoMapper;
 using BL.Infrastructure;
 using BL.Security;
 using DL.DTO;
 using DL.DTOs.UserDTOs;
 using DL.Entities;
 using DL.MailModels;
-using FireSharp.Config;
-using FireSharp.Interfaces;
-using FireSharp.Response;
-using Microsoft.EntityFrameworkCore;
 using HELPER;
 using Helpers;
 using Microsoft.AspNetCore.Authorization;
@@ -16,25 +17,12 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-using MimeKit;
-using Model.ApiModels;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Net.Mail;
-using System.Security.Claims;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
-using Firebase.Database;
-using Firebase.Database;
-using Firebase.Database.Query;
+using Microsoft.Extensions.Options;
+using Model.ApiModels;
 using NutrishaAPI.Extensions;
 
-namespace Api.Controllers
+namespace NutrishaAPI.Controllers.LegacyControllers
 {
     [Route("api/[controller]")]
     [ApiController]
