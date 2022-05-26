@@ -24,17 +24,11 @@ using DL.DTOs.UserMealDTO;
 using DL.DTOs.DislikeMealDTO;
 using DL.DTOs.MealIngredientDTO;
 using DL.DTOs.MealDTO;
-using DL.DTOs.ArticleDTO;
-using DL.DTOs.ArticleCommentDTO;
-using DL.DTOs.PollDTO;
-using DL.DTOs.ArticleLikeDTO;
 using DL.DTOs.VideoDTO;
-using DL.DTOs.BlogTypeDTO;
 using DL.DTOs.UserPollAnswerDTO;
 using DL.DTOs.SplashDTO;
 using DL.DTOs.PollAnswerDTO;
 using DL.DTOs.AttachmentTypeDTO;
-using DL.DTOs.ArticleAttachmentDTO;
 using DL.DTOs.MediaTypeDTO;
 
 namespace DL.Mapping
@@ -71,23 +65,14 @@ namespace DL.Mapping
             CreateMap<MMealType, MealTypeCreatDto>().ReverseMap();
             CreateMap<MIngredient, IngredientCreatDto>().ReverseMap();
             CreateMap<MFoodSteps, FoodStepsCreatDto>().ReverseMap();
-            CreateMap<MArticleAttachment, ArticleAttachmentCreatDto>().ReverseMap();
             CreateMap<MMeal, MealCreatDto>().ReverseMap();
             CreateMap<MMealSteps, MealStepsCreatDto>().ReverseMap();
             CreateMap<MMealIngredient, MealIngredientCreatDto>().ReverseMap();
             CreateMap<MUserMeal, UserMealCreatDto>().ReverseMap();
             CreateMap<MDislikeMeal, DislikeMealCreatDto>().ReverseMap();
-            CreateMap<MArticle, ArticleCreatDto>().ReverseMap();
 
-            CreateMap<MArticleComment, ArticleCommentCreatDto>().ReverseMap();
-            CreateMap<MArticleLike, ArticleLikeCreatDto>().ReverseMap();
-            CreateMap<MArticleCommentLike, ArticleCommentLikeCreatDto>().ReverseMap();
-            CreateMap<MPoll, PollCreatDto>().ReverseMap();
             CreateMap<MVideo, VideoCreatDto>().ReverseMap();
-            CreateMap<MBlogType, BlogTypeCreatDto>().ReverseMap();
             CreateMap<MMediaType, MediaTypeCreatDto>().ReverseMap();
-            CreateMap<MUserPollAnswer, UserPollAnswerCreatDto>().ReverseMap();
-            CreateMap<MPollAnswer, PollAnswerCreatDto>().ReverseMap();
             CreateMap<MAttachmentType, AttachmentTypeCreatDto>().ReverseMap();
             CreateMap<MSplash, SplashCreatDto>().ReverseMap();
         }

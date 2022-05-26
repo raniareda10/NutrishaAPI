@@ -5,23 +5,72 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DL.EntitiesV1.Blogs;
+using DL.EntitiesV1.Blogs.Polls;
+using DL.EntitiesV1.Reactions;
+using Newtonsoft.Json;
 
 namespace DL.DBContext
 {
     public class AppDBContext : DbContext
     {
-
+        
         public AppDBContext(DbContextOptions<AppDBContext> options)
         : base(options)
         {
             ChangeTracker.LazyLoadingEnabled = false;
         }
 
+
+        #region Blogs
+
+        public DbSet<Blog> Blogs { get; set; }
+        public DbSet<Article> Articles { get; set; }
+        #endregion
+        
+        #region Polls
+        public DbSet<Poll> Polls { get; set; }
+        public DbSet<PollQuestion> PollQuestions { get; set; }
+        public DbSet<PollAnswer> PollAnswers { get; set; }
+        #endregion
+
+        #region Reactions
+
+        public DbSet<Reaction> Reactions { get; set; }
+        #endregion
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-
             modelBuilder.Entity<MUser>().HasIndex(p => new {  p.Mobile }).IsUnique();
+            ConfigureBlogs(modelBuilder);
         }
+
+        private void ConfigureBlogs(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Blog>()
+                .Property(b => b.Media)
+                .HasConversion(
+                    media => JsonConvert.SerializeObject(media, new JsonSerializerSettings()
+                    {
+                        NullValueHandling = NullValueHandling.Ignore
+                    }),
+                    media => JsonConvert.DeserializeObject<IList<MediaFile>>(media)
+                );
+
+            modelBuilder.Entity<Blog>()
+                .Property(b => b.Totals)
+                .HasConversion(
+                    totals => JsonConvert.SerializeObject(totals, new JsonSerializerSettings()
+                    {
+                        NullValueHandling = NullValueHandling.Ignore
+                    }),
+                    totals => JsonConvert.DeserializeObject<IDictionary<string, int>>(totals)
+                );
+
+        }
+
+
+        #region Legacy Entities
+
         public virtual DbSet<MUser> MUser { get; set; }
         public virtual DbSet<MRole> MRoles { get; set; }
         public virtual DbSet<MUserRoles> MUserRoles { get; set; }
@@ -54,21 +103,14 @@ namespace DL.DBContext
         public virtual DbSet<MUserMeal> MUserMeal { get; set; }
         public virtual DbSet<MMealSteps> MMealSteps { get; set; }
 
-        public virtual DbSet<MArticle> MArticle { get; set; }
-        public virtual DbSet<MArticleComment> MArticleComment { get; set; }
-        public virtual DbSet<MArticleLike> MArticleLike { get; set; }
-        public virtual DbSet<MArticleCommentLike> MArticleCommentLike { get; set; }
-        public virtual DbSet<MPoll> MPoll { get; set; }
         public virtual DbSet<MVideo> MVideo { get; set; }
         public virtual DbSet<MBlogType> MBlogType { get; set; }
         public virtual DbSet<MMediaType> MMediaType { get; set; }
-        public virtual DbSet<MArticleAttachment> MArticleAttachment { get; set; }
         public virtual DbSet<MAttachmentType> MAttachmentType { get; set; }
-        public virtual DbSet<MPollAnswer> MPollAnswer { get; set; }
 
-        public virtual DbSet<MUserPollAnswer> MUserPollAnswer { get; set; }
         public virtual DbSet<SecUser> SecUser { get; set; }
         public virtual DbSet<MSplash> MSplash { get; set; }
 
+        #endregion
     }
 }

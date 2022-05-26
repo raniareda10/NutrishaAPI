@@ -140,7 +140,7 @@ namespace NutrishaAPI.ServicesRegistrations
 
 
             services.Configure<MailSettings>(configuration.GetSection("MailSettings"));
-            services.AddControllers();
+            
 
             services.AddSwaggerGen(config => {
                 config.SwaggerDoc("v1", new OpenApiInfo() { Title = "WebAPI", Version = "v1" });

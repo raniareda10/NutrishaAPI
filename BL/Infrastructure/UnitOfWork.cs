@@ -46,18 +46,9 @@ namespace BL.Infrastructure
         public MealStepsRepository MealStepsRepository => new MealStepsRepository(_ctx);
         public MealIngredientRepository MealIngredientRepository => new MealIngredientRepository(_ctx);
         public UserMealRepository UserMealRepository => new UserMealRepository(_ctx);
-        public ArticleRepository ArticleRepository => new ArticleRepository(_ctx);
-        public ArticleCommentRepository ArticleCommentRepository => new ArticleCommentRepository(_ctx);
-        public ArticleAttachmentRepository ArticleAttachmentRepository => new ArticleAttachmentRepository(_ctx);
-        public ArticleLikeRepository ArticleLikeRepository => new ArticleLikeRepository(_ctx);
-        public ArticleCommentLikeRepository ArticleCommentLikeRepository => new ArticleCommentLikeRepository(_ctx);
-        public PollRepository PollRepository => new PollRepository(_ctx);
         public VideoRepository VideoRepository => new VideoRepository(_ctx);
-        public BlogTypeRepository BlogTypeRepository => new BlogTypeRepository(_ctx);
         public MediaTypeRepository MediaTypeRepository => new MediaTypeRepository(_ctx);
-        public UserPollAnswerRepository UserPollAnswerRepository => new UserPollAnswerRepository(_ctx);
         public AttachmentTypeRepository AttachmentTypeRepository => new AttachmentTypeRepository(_ctx);
-        public PollAnswerRepository PollAnswerRepository => new PollAnswerRepository(_ctx);
         public SecUserRepository SecUserRepository => new SecUserRepository(_ctx);
 
         public void Dispose()

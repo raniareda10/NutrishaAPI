@@ -298,7 +298,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
 
                     {
                         var Erorrs = _checkUniq.CheckUniqeValue(new DL.DTOs.SharedDTO.UniqeDTO { Mobile = request.Mobile, Email = request.Email });
-                        if (Erorrs.Count() > 0)
+                        if (Erorrs.Count > 0)
                         {
                             baseResponse.data = "";
                             baseResponse.statusCode = (int)HttpStatusCode.BadRequest;
