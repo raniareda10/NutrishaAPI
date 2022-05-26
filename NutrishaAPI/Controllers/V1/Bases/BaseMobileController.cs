@@ -7,7 +7,7 @@ using NutrishaAPI.Responses;
 namespace NutrishaAPI.Controllers.V1.Bases
 {
     [ApiController]
-    [Route("api/v1/{controller}")]
+    [Route("mobile/api/v1/{controller}")]
     public class BaseMobileController : ControllerBase
     {
         protected IActionResult EmptyResult()
