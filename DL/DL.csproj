@@ -32,6 +32,7 @@
 
   <ItemGroup>
     <Folder Include="Entities\Blogs\Polls" />
+    <Folder Include="Mappers" />
     <Folder Include="Migrations\" />
   </ItemGroup>
 

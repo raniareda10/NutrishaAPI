@@ -59,7 +59,8 @@ namespace KSEEngineeringJobs
         {
             services.RegisterLegacyService(Configuration);
             services.RegisterDataAccessServices();
-
+            services.RegisterCurrentUserServices();
+            
             services.AddControllers()
                 .AddNewtonsoftJson(options =>
                     options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);

@@ -4,24 +4,30 @@ using System.Threading.Tasks;
 using DL.CommonModels.Paging;
 using DL.DBContext;
 using DL.DtosV1.Blogs;
+using DL.DtosV1.Polls;
+using DL.EntitiesV1.Blogs;
 using DL.EntitiesV1.Reactions;
 using DL.Enums;
 using DL.Extensions;
+using DL.Services.Helpers;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
 
-namespace DL.EntitiesV1.Blogs
+namespace DL.Services.Blogs
 {
     public class BlogTimelineService
     {
         private readonly AppDBContext _dbContext;
+        private readonly ICurrentUserService _currentUserService;
 
-        public BlogTimelineService(AppDBContext DbContext)
+        public BlogTimelineService(
+            AppDBContext DbContext,
+            ICurrentUserService currentUserService)
         {
             _dbContext = DbContext;
+            _currentUserService = currentUserService;
         }
 
-        
+
         public async Task<PagedResult<object>> GetTimelineAsync(BlogTimelinePagedModel model)
         {
             // TODO Enhance Query By Remove Joins And Convert Additional Data To JSON Objects
@@ -40,9 +46,13 @@ namespace DL.EntitiesV1.Blogs
                 .ToPagedListAsync(model);
 
             var result = new List<object>(blogs.Data.Count);
+            
+            // TODO Enhance Loop 1 Time Only    
             result.AddRange(await BuildArticlesAsync(blogs.Data.Where(b => b.EntityType == EntityType.Article)));
             result.AddRange(await BuildPollsAsync(blogs.Data.Where(b => b.EntityType == EntityType.Poll)));
-
+            result.AddRange(blogs.Data.Where(b => b.EntityType == EntityType.BlogVideo).Select(
+                b => new BlogTimelineResult<object>(b)));
+            
             return new PagedResult<object>()
             {
                 Data = result,
@@ -52,13 +62,12 @@ namespace DL.EntitiesV1.Blogs
 
         private async Task<IEnumerable<BlogTimelineResult<PollTimelineResult>>> BuildPollsAsync(IEnumerable<Blog> polls)
         {
-            long userId = 10;
             var pollsList = polls.ToList();
             var pollsIds = pollsList.Select(a => a.Id).ToList();
 
             var userAnswers = await _dbContext.PollAnswers.Where(answer =>
                     pollsIds.Contains(answer.PollQuestion.PollId) &&
-                    answer.UserId == userId
+                    answer.UserId == _currentUserService.UserId
                 )
                 .Select(a => new
                 {
@@ -76,8 +85,7 @@ namespace DL.EntitiesV1.Blogs
                     item.AdditionalData.SelectedAnswerId = selectedAnswerId;
                 }
 
-                item.AdditionalData.Questions = blog.Poll.Questions;
-
+                item.AdditionalData.Questions = blog.Poll.Questions.Select(PollQuestionDto.FromPollQuestion);
                 list.Add(item);
             }
 
@@ -87,10 +95,12 @@ namespace DL.EntitiesV1.Blogs
         private async Task<IEnumerable<BlogTimelineResult<ArticleTimelineResult>>> BuildArticlesAsync(
             IEnumerable<Blog> articles)
         {
-            long userId = 10;
             var articlesList = articles.ToList();
             var articlesIds = articlesList.Select(a => a.Id).ToList();
-            var reactions = await GetReactionsOnEntitiesAsync(articlesIds, userId);
+            var reactions = await _dbContext
+                .Reactions
+                .GetReactionsOnEntitiesAsync(articlesIds, _currentUserService.UserId);
+            
             var list = new List<BlogTimelineResult<ArticleTimelineResult>>(articlesList.Count);
             foreach (var blog in articlesList)
             {
@@ -101,25 +111,10 @@ namespace DL.EntitiesV1.Blogs
                 }
 
                 item.AdditionalData.Description = blog.Article.Description;
-                item.AdditionalData.HasCommented = false;
-                item.AdditionalData.HasCommented = false;
-                item.AdditionalData.Totals = blog.Totals;
-
                 list.Add(item);
             }
 
             return list;
-        }
-
-        private async Task<Dictionary<long, ReactionType>> GetReactionsOnEntitiesAsync(IList<long> entityIds,
-            long userId)
-        {
-            return await _dbContext.Reactions
-                .Where(r =>
-                    r.UserId == userId &&
-                    entityIds.Contains(r.EntityId)
-                )
-                .ToDictionaryAsync(r => r.EntityId, r => r.ReactionType);
         }
     }
 }

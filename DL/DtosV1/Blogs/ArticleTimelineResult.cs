@@ -7,8 +7,7 @@ namespace DL.DtosV1.Blogs
     public class ArticleTimelineResult
     {
         public string Description { get; set; }
-        public IDictionary<string, int> Totals { get; set; }
-        public bool HasCommented { get; set; }
+        // public bool HasCommented { get; set; }
         public ReactionType? ReactionType { get; set; }
     }
 }

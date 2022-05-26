@@ -1296,11 +1296,46 @@ namespace DL.Migrations
                     b.Property<long>("PollId")
                         .HasColumnType("bigint");
 
+                    b.Property<int>("SelectedCount")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("PollId");
 
                     b.ToTable("PollQuestions");
+                });
+
+            modelBuilder.Entity("DL.EntitiesV1.Comments.Comment", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .UseIdentityColumn();
+
+                    b.Property<string>("Content")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("EntityId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("EntityType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Totals")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Comments");
                 });
 
             modelBuilder.Entity("DL.EntitiesV1.Reactions.Reaction", b =>
@@ -1585,6 +1620,17 @@ namespace DL.Migrations
                         .IsRequired();
 
                     b.Navigation("Poll");
+                });
+
+            modelBuilder.Entity("DL.EntitiesV1.Comments.Comment", b =>
+                {
+                    b.HasOne("DL.Entities.MUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("DL.EntitiesV1.Reactions.Reaction", b =>

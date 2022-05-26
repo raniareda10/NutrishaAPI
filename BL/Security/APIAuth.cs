@@ -168,9 +168,9 @@ namespace BL.Security
                 List<Claim> ClaimList = new List<Claim>();
                 foreach (var item in Roles)
                 {
-                ClaimList.Add(new Claim(ClaimTypes.Role, item.Name));
-
-                }
+                    ClaimList.Add(new Claim(ClaimTypes.Role, item.Name));
+                }   
+                ClaimList.Add(new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()));
                 if (request.Email != null && request.Email != string.Empty)
                 {
                     ClaimList.Add(new Claim(ClaimTypes.Name, request.Email));

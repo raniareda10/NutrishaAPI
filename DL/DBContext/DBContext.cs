@@ -7,7 +7,10 @@ using System.Text;
 using System.Threading.Tasks;
 using DL.EntitiesV1.Blogs;
 using DL.EntitiesV1.Blogs.Polls;
+using DL.EntitiesV1.Comments;
+using DL.EntitiesV1.Media;
 using DL.EntitiesV1.Reactions;
+using DL.EntityTypeBuilders;
 using Newtonsoft.Json;
 
 namespace DL.DBContext
@@ -25,6 +28,7 @@ namespace DL.DBContext
         #region Blogs
 
         public DbSet<Blog> Blogs { get; set; }
+        public DbSet<BlogTag> BlogTag { get; set; }
         public DbSet<Article> Articles { get; set; }
         #endregion
         
@@ -37,6 +41,12 @@ namespace DL.DBContext
         #region Reactions
 
         public DbSet<Reaction> Reactions { get; set; }
+        #endregion
+        
+        #region Comments
+
+        public DbSet<Comment> Comments { get; set; }
+        
         #endregion
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -57,15 +67,10 @@ namespace DL.DBContext
                 );
 
             modelBuilder.Entity<Blog>()
-                .Property(b => b.Totals)
-                .HasConversion(
-                    totals => JsonConvert.SerializeObject(totals, new JsonSerializerSettings()
-                    {
-                        NullValueHandling = NullValueHandling.Ignore
-                    }),
-                    totals => JsonConvert.DeserializeObject<IDictionary<string, int>>(totals)
-                );
-
+                .ApplyTotalToJson();
+            
+            modelBuilder.Entity<Comment>()
+                .ApplyTotalToJson();
         }
 
 

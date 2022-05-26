@@ -4,6 +4,7 @@
     {
         Article = 0,
         Poll = 1,
-        Video = 2,
+        BlogVideo = 2,
+        Comment = 3
     }
 }
