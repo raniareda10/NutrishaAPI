@@ -16,7 +16,7 @@ namespace NutrishaAPI.Controllers.V1
             _blogTagService = blogTagService;
         }
 
-        [Route("GetAll")]
+        [HttpGet("GetAll")]
         public async Task<IActionResult> GetAllAsync()
         {
             return ListResult(await _blogTagService.GetAllTags());

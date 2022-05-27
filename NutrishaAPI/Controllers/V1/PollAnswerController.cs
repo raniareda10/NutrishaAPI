@@ -18,7 +18,7 @@ namespace NutrishaAPI.Controllers.V1
             _pollAnswerService = pollAnswerService;
         }
         
-        [Route("Post")]
+        [HttpPost("Post")]
         public async Task<IActionResult> PostReactionAsync(PostAnswerDto postAnswerDto)
         {
             var result = await _pollAnswerService.PostAnswerAsync(postAnswerDto);
