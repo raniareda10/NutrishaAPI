@@ -50,7 +50,7 @@ namespace DL.Services.Polls
 
             var answer = new PollAnswer()
             {
-                Created = DateTime.Now,
+                Created = DateTime.UtcNow,
                 UserId = _currentUserService.UserId,
                 PollId = postAnswerDto.PollId,
                 PollQuestionId = postAnswerDto.SelectedQuestionId

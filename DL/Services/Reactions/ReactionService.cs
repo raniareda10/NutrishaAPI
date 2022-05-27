@@ -3,18 +3,14 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using DL.DBContext;
-using DL.DtosV1.Comments;
 using DL.DtosV1.Reactions;
-using DL.EntitiesV1.Blogs;
 using DL.EntitiesV1.Reactions;
 using DL.Enums;
-using DL.HelperInterfaces;
 using DL.ResultModels;
 using DL.Services.Helpers;
 using Microsoft.EntityFrameworkCore;
-using Org.BouncyCastle.Asn1.X509;
 
-namespace DL.Services.Reations
+namespace DL.Services.Reactions
 {
     public class ReactionService
     {
@@ -52,19 +48,17 @@ namespace DL.Services.Reations
                 result.Errors.Add(ErrorMessages.NoEntityWithThisId);
                 return result;
             }
-
-            var reverseType = await TryDeleteReverseReactionIfExistsAsync(UpdateReactionDto);
-
+            
             var reaction = new Reaction()
             {
-                Created = DateTime.Now,
+                Created = DateTime.UtcNow,
                 EntityId = UpdateReactionDto.EntityId,
                 EntityType = UpdateReactionDto.EntityType,
                 ReactionType = UpdateReactionDto.ReactionType,
                 UserId = _currentUserService.UserId
             };
 
-            var totals = await UpdateAndGetTotalsAsync(UpdateReactionDto, reverseType);
+            var totals = await UpdateAndGetTotalsAsync(UpdateReactionDto);
             
             await _dbContext.Reactions.AddAsync(reaction);
             await _dbContext.SaveChangesAsync();
@@ -117,21 +111,7 @@ namespace DL.Services.Reations
         }
 
         #endregion
-
-        private async Task<ReactionType?> TryDeleteReverseReactionIfExistsAsync(UpdateReactionDto UpdateReactionDto)
-        {
-            ReactionType? deletedReactionType = GetReverseReaction(UpdateReactionDto.ReactionType);
-
-            if (!deletedReactionType.HasValue) return deletedReactionType;
-
-            if (await TryDeleteReactionAsync(UpdateReactionDto.EntityId, deletedReactionType.Value))
-            {
-                return deletedReactionType;
-            }
-
-            return null;
-        }
-
+        
         private async Task<bool> TryDeleteReactionAsync(long EntityId, ReactionType ReactionType)
         {
             var reaction = await _dbContext.Reactions.FirstOrDefaultAsync(
@@ -156,45 +136,13 @@ namespace DL.Services.Reations
                 r.ReactionType == UpdateReactionDto.ReactionType;
         }
 
-        private ReactionType? GetReverseReaction(ReactionType reactionType)
-        {
-            ReactionType? reverseReaction = null;
-            switch (reactionType)
-            {
-                case ReactionType.Like:
-                {
-                    reverseReaction = ReactionType.DisLike;
-                    break;
-                }
-                case ReactionType.DisLike:
-                    reverseReaction = ReactionType.Like;
-                    break;
-            }
-
-            return reverseReaction;
-        }
-
-        private async Task<IDictionary<string, int>> UpdateAndGetTotalsAsync(UpdateReactionDto UpdateReactionDto,
-            ReactionType? reverseType)
+        private async Task<IDictionary<string, int>> UpdateAndGetTotalsAsync(UpdateReactionDto UpdateReactionDto)
         {
             var entityWithTotals = await _dbContext.GetEntityWithTotalAsync(UpdateReactionDto);
 
-            UpdateTotalsWithReverse(
-                entityWithTotals,
-                UpdateReactionDto.ReactionType,
-                reverseType);
-            return entityWithTotals.Totals;
-        }
-
-
-        private void UpdateTotalsWithReverse<T>(T entityWithTotals, ReactionType increase, ReactionType? decrease)
-            where T : ITotal
-        {
-            var keyToIncrease = increase.MapToTotalKey();
+            var keyToIncrease = UpdateReactionDto.ReactionType.MapToTotalKey();
             entityWithTotals.Totals[keyToIncrease]++;
-            if (!decrease.HasValue) return;
-
-            entityWithTotals.Totals[decrease.Value.MapToTotalKey()]--;
+            return entityWithTotals.Totals;
         }
     }
 }

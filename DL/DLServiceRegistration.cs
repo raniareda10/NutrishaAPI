@@ -2,7 +2,7 @@
 using DL.Services.Blogs;
 using DL.Services.Comments;
 using DL.Services.Polls;
-using DL.Services.Reations;
+using DL.Services.Reactions;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace DL

@@ -17,7 +17,7 @@ namespace DL.DtosV1.Comments
         {
             return new Comment()
             {
-                Created = DateTime.Now,
+                Created = DateTime.UtcNow,
                 Content = Content,
                 EntityId = EntityId,
                 EntityType = EntityType,

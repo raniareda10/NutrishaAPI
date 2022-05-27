@@ -83,8 +83,7 @@ namespace NutrishaAPI.Controllers.V1
                 Subject = "Subject " + id,
                 OwnerId = 1
             };
-
-
+            
             var random = new Random();
             if (id % 2 == 0)
             {
@@ -110,7 +109,6 @@ namespace NutrishaAPI.Controllers.V1
                 {
                     {TotalKeys.Likes, i},
                     {TotalKeys.Comments, i},
-                    {TotalKeys.DisLikes, i}
                 };
                 blogs.Article = new Article()
                 {
@@ -128,7 +126,7 @@ namespace NutrishaAPI.Controllers.V1
                         random.Next(1, 5)).Select(i => new PollQuestion()
                     {
                         Content = "PollQuestion" + i,
-                        Created = DateTime.Now,
+                        Created = DateTime.UtcNow,
                     }).ToList()
                 };
             }

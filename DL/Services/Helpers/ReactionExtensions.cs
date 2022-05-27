@@ -30,8 +30,8 @@ namespace DL.Services.Helpers
             {
                 case ReactionType.Like:
                     return TotalKeys.Likes;
-                case ReactionType.DisLike:
-                    return TotalKeys.DisLikes;
+                // case ReactionType.DisLike:
+                //     return TotalKeys.DisLikes;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(ReactionType), type, null);
             }

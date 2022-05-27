@@ -1,4 +1,5 @@
 ﻿using System;
+using DL.DtosV1.Users;
 using DL.EntitiesV1.Comments;
 using DL.EntitiesV1.Reactions;
 
@@ -10,7 +11,7 @@ namespace DL.DtosV1.Comments
         public DateTime Created { get; set; }
         public string Content { get; set; }
 
-        public object Owner { get; set; }
+        public OwnerDto Owner { get; set; }
         public ReactionType? ReactionType { get; set; }
         
         public static CommentDto FromCommentEntity(Comment c)
@@ -18,9 +19,10 @@ namespace DL.DtosV1.Comments
             return new CommentDto()
             {
                 Id = c.Id,
-                Owner = new
+                Owner = new OwnerDto()
                 {
                     Id = c.UserId,
+                    Name = c.User?.Name,
                     ImageUrl = c.User?.PersonalImage
                 },
                 Created = c.Created,
