@@ -1,6 +1,7 @@
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace DL.EntitiesV1.Blogs
+namespace DL.EntitiesV1.Blogs.Articles
 {
     public class Article
     {

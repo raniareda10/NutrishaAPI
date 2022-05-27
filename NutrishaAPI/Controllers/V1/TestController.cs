@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using DL.DBContext;
 using DL.EntitiesV1.Blogs;
+using DL.EntitiesV1.Blogs.Articles;
 using DL.EntitiesV1.Blogs.Polls;
 using DL.EntitiesV1.Media;
 using DL.Enums;
@@ -112,7 +113,7 @@ namespace NutrishaAPI.Controllers.V1
                 };
                 blogs.Article = new Article()
                 {
-                    Description = "Description " + id
+                    Description = $@"Description {id} <a href='facebook.com'>Facebook</a>"
                 };
             }
             else

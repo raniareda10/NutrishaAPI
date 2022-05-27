@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DL.EntitiesV1.Blogs;
+using DL.EntitiesV1.Blogs.Articles;
 using DL.EntitiesV1.Blogs.Polls;
 using DL.EntitiesV1.Comments;
 using DL.EntitiesV1.Media;

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Text;
 using AutoMapper;
 using BL.Infrastructure;
@@ -151,6 +152,7 @@ namespace NutrishaAPI.ServicesRegistrations
                     Type = SecuritySchemeType.Http,
                     Scheme = "Bearer"
                 });
+                config.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
                 config.OperationFilter<Startup.AuthResponsesOperationFilter>();
                 //config.AddSecurityRequirement(new OpenApiSecurityRequirement
                 //{

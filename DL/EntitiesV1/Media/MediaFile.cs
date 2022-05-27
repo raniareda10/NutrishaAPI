@@ -4,6 +4,7 @@
     {
         public MediaType MediaType { get; set; }
         public string Url { get; set; }
+        public string Thumbnail { get; set; }
         public string[] Flags { get; set; }
     }
 }
