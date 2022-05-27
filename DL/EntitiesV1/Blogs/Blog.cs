@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using DL.Entities;
+using DL.EntitiesV1.Blogs.Articles;
 using DL.EntitiesV1.Blogs.Polls;
 using DL.EntitiesV1.Media;
 using DL.Enums;
