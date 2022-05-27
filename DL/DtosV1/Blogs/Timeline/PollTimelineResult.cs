@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
 using DL.DtosV1.Polls;
-using DL.EntitiesV1.Blogs.Polls;
 
-namespace DL.DtosV1.Blogs
+namespace DL.DtosV1.Blogs.Timeline
 {
     public class PollTimelineResult
     {

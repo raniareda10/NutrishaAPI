@@ -1,8 +1,6 @@
-﻿using System.Collections.Generic;
-using DL.EntitiesV1.Reactions;
-using Org.BouncyCastle.Bcpg.OpenPgp;
+﻿using DL.EntitiesV1.Reactions;
 
-namespace DL.DtosV1.Blogs
+namespace DL.DtosV1.Blogs.Timeline
 {
     public class ArticleTimelineResult
     {

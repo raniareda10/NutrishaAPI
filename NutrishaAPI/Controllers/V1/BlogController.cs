@@ -14,11 +14,11 @@ namespace NutrishaAPI.Controllers.V1
     [Authorize]
     public class BlogController : BaseMobileController
     {
-        private readonly BlogTimelineService _blogTimelineService;
+        private readonly BlogService _blogService;
 
-        public BlogController(BlogTimelineService blogTimelineService)
+        public BlogController(BlogService BlogService)
         {
-            _blogTimelineService = blogTimelineService;
+            _blogService = BlogService;
         }
 
         [HttpGet("GetPagedList")]
@@ -27,15 +27,15 @@ namespace NutrishaAPI.Controllers.V1
             if (!model.IsValidPagedModel())
                 return InvalidResult(ErrorMessages.InvalidParameters);
 
-            return PagedResult(await _blogTimelineService.GetTimelineAsync(model));
+            return PagedResult(await _blogService.GetTimelineAsync(model));
         }
-        
+
         [HttpGet("GetById")]
         public async Task<IActionResult> GetByIdAsync([FromQuery] long id, EntityType entityType)
         {
-            return id == 0 ? 
-                InvalidResult(ErrorMessages.InvalidId) : 
-                Ok();
+            if (id == 0) return InvalidResult(ErrorMessages.InvalidId);
+            
+            return ObjectResult( await _blogService.GetBlogByIdAsync(id, entityType));
         }
     }
 }

@@ -4,26 +4,31 @@ using System.Threading.Tasks;
 using DL.CommonModels.Paging;
 using DL.DBContext;
 using DL.DtosV1.Blogs;
+using DL.DtosV1.Blogs.Timeline;
 using DL.DtosV1.Polls;
 using DL.EntitiesV1.Blogs;
 using DL.EntitiesV1.Reactions;
 using DL.Enums;
 using DL.Extensions;
+using DL.Services.Blogs.BlogDetails;
 using DL.Services.Helpers;
 using Microsoft.EntityFrameworkCore;
 
 namespace DL.Services.Blogs
 {
-    public class BlogTimelineService
+    public class BlogService
     {
         private readonly AppDBContext _dbContext;
+        private readonly BlogDetailsFactory _blogDetailsFactory;
         private readonly ICurrentUserService _currentUserService;
 
-        public BlogTimelineService(
+        public BlogService(
             AppDBContext DbContext,
+            BlogDetailsFactory blogDetailsFactory,
             ICurrentUserService currentUserService)
         {
             _dbContext = DbContext;
+            _blogDetailsFactory = blogDetailsFactory;
             _currentUserService = currentUserService;
         }
 
@@ -60,6 +65,11 @@ namespace DL.Services.Blogs
             };
         }
 
+        public async Task<object> GetBlogByIdAsync(long id, EntityType entityType)
+        {
+            return await _blogDetailsFactory.GetBlogDetailsService(entityType).GetByIdAsync(id);
+        }
+        
         private async Task<IEnumerable<BlogTimelineResult<PollTimelineResult>>> BuildPollsAsync(IEnumerable<Blog> polls)
         {
             var pollsList = polls.ToList();

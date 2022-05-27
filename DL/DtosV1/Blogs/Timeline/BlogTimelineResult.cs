@@ -4,7 +4,7 @@ using DL.EntitiesV1.Blogs;
 using DL.EntitiesV1.Media;
 using DL.Enums;
 
-namespace DL.DtosV1.Blogs
+namespace DL.DtosV1.Blogs.Timeline
 {
     public class BlogTimelineResult<T> where T : new()
     {

@@ -23,16 +23,16 @@ namespace NutrishaAPI.Controllers.V1
     public class TestController : BaseMobileController
     {
         private readonly AppDBContext _dbContext;
-        private readonly BlogTimelineService _timelineService;
+        private readonly BlogService _service;
         private readonly IWebHostEnvironment _webHostEnvironment;
 
         public TestController(
             AppDBContext DbContext,
-            BlogTimelineService TimelineService,
+            BlogService Service,
             IWebHostEnvironment webHostEnvironment)
         {
             _dbContext = DbContext;
-            _timelineService = TimelineService;
+            _service = Service;
             _webHostEnvironment = webHostEnvironment;
         }
 
