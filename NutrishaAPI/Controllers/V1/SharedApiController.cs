@@ -6,8 +6,7 @@ using NutrishaAPI.Responses;
 
 namespace NutrishaAPI.Controllers.V1
 {
-    [ApiController]
-    public class SharedApiController : ControllerBase
+    public class SharedApiController : ApiController
     {
         protected IActionResult EmptyResult()
         {
