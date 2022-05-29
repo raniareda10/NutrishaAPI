@@ -1,12 +1,11 @@
 ﻿using System.Threading.Tasks;
 using DL.DtosV1.Polls;
-using DL.DtosV1.Reactions;
 using DL.Services.Polls;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using NutrishaAPI.Controllers.V1.Bases;
+using NutrishaAPI.Controllers.V1.Mobile.Bases;
 
-namespace NutrishaAPI.Controllers.V1
+namespace NutrishaAPI.Controllers.V1.Mobile
 {
     [Authorize]
     public class PollAnswerController : BaseMobileController

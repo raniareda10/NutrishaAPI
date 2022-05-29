@@ -1,18 +1,20 @@
-﻿using System.Collections.Generic;
+﻿using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 using System.Linq;
 using DL.CommonModels.Paging;
-using Microsoft.AspNetCore.Mvc;
 using NutrishaAPI.Responses;
 
-namespace NutrishaAPI.Controllers.V1.Bases
+namespace NutrishaAPI.Controllers.V1
 {
     [ApiController]
-    [Route("mobile/api/v1/[controller]")]
-    public class BaseMobileController : ControllerBase
+    public class SharedApiController : ControllerBase
     {
         protected IActionResult EmptyResult()
         {
-            return Ok(new BaseResponse<object>());
+            return Ok(new BaseResponse<object>()
+            {
+                StatusCode = 200
+            });
         }
         protected IActionResult PagedResult<T>(PagedResult<T> pagedResult)
         {
@@ -20,6 +22,7 @@ namespace NutrishaAPI.Controllers.V1.Bases
             {
                 Data = pagedResult.Data,
                 TotalRows = pagedResult.TotalRows,
+                StatusCode = 200
             });
         }
         
@@ -28,15 +31,17 @@ namespace NutrishaAPI.Controllers.V1.Bases
             return Ok(new BaseResponse<IEnumerable<T>>()
             {
                 Data = data,
+                StatusCode = 200
             });
         }
         
         
-        protected IActionResult ObjectResult<T>(T data)
+        protected IActionResult ItemResult<T>(T data)
         {
             return Ok(new BaseResponse<T>()
             {
                 Data = data,
+                StatusCode = 200
             });
         }
         
@@ -46,7 +51,8 @@ namespace NutrishaAPI.Controllers.V1.Bases
             return BadRequest(new BaseResponse<object>()
             {
                 Done = false,
-                ErrorMessage = error
+                ErrorMessage = error,
+                StatusCode = 400
             });
         }
         protected IActionResult InvalidResult(IEnumerable<string> errors)
@@ -54,7 +60,8 @@ namespace NutrishaAPI.Controllers.V1.Bases
             return BadRequest(new BaseResponse<object>()
             {
                 Done = false,
-                ErrorMessage = errors.First()
+                ErrorMessage = errors.First(),
+                StatusCode = 400
             });
         }
     }

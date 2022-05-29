@@ -50,7 +50,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Validations\Comments" />
     <Folder Include="wwwroot\Files\Documents\" />
   </ItemGroup>
 

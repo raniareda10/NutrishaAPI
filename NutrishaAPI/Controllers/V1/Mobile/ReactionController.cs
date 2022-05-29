@@ -4,10 +4,10 @@ using DL.ResultModels;
 using DL.Services.Reactions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using NutrishaAPI.Controllers.V1.Bases;
+using NutrishaAPI.Controllers.V1.Mobile.Bases;
 using NutrishaAPI.Validations.Shared;
 
-namespace NutrishaAPI.Controllers.V1
+namespace NutrishaAPI.Controllers.V1.Mobile
 {
     [Authorize]
     public class ReactionController : BaseMobileController
@@ -31,7 +31,7 @@ namespace NutrishaAPI.Controllers.V1
 
             if (result.Success)
             {
-                return ObjectResult(result.Data);
+                return ItemResult(result.Data);
             }
 
             return InvalidResult(result.Errors);
@@ -49,7 +49,7 @@ namespace NutrishaAPI.Controllers.V1
             var result = await _reactionService.DeleteReactionAsync(UpdateReactionDto);
             if (result.Success)
             {
-                return ObjectResult(result.Data);
+                return ItemResult(result.Data);
             }
 
             return InvalidResult(result.Errors);

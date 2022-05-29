@@ -61,7 +61,7 @@ namespace DL.Services.Comments
 
             if (comment == null)
             {
-                result.Errors.Add(ErrorMessages.InvalidParameters);
+                result.Errors.Add(ErrorMessages.InvalidId);
                 return result;
             }
 

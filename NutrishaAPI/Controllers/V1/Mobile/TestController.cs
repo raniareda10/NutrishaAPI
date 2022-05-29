@@ -12,11 +12,10 @@ using DL.Services.Blogs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using NutrishaAPI.Attributes;
-using NutrishaAPI.Controllers.V1.Bases;
+using NutrishaAPI.Controllers.V1.Mobile.Bases;
 
-namespace NutrishaAPI.Controllers.V1
+namespace NutrishaAPI.Controllers.V1.Mobile
 {
     [ApiController]
     [Route("api/v1/{controller}")]

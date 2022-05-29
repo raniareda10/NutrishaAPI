@@ -2,9 +2,9 @@
 using DL.Services.Blogs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using NutrishaAPI.Controllers.V1.Bases;
+using NutrishaAPI.Controllers.V1.Mobile.Bases;
 
-namespace NutrishaAPI.Controllers.V1
+namespace NutrishaAPI.Controllers.V1.Mobile
 {
     [Authorize]
     public class BlogTagController : BaseMobileController

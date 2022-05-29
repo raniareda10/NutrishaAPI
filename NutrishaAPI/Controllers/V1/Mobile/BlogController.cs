@@ -1,15 +1,14 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using DL.EntitiesV1.Blogs;
 using DL.Enums;
 using DL.ResultModels;
 using DL.Services.Blogs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using NutrishaAPI.Controllers.V1.Bases;
+using NutrishaAPI.Controllers.V1.Mobile.Bases;
 using NutrishaAPI.Validations.Shared;
 
-namespace NutrishaAPI.Controllers.V1
+namespace NutrishaAPI.Controllers.V1.Mobile
 {
     [Authorize]
     public class BlogController : BaseMobileController
@@ -35,7 +34,7 @@ namespace NutrishaAPI.Controllers.V1
         {
             if (id == 0) return InvalidResult(ErrorMessages.InvalidId);
             
-            return ObjectResult( await _blogService.GetBlogByIdAsync(id, entityType));
+            return ItemResult( await _blogService.GetBlogByIdAsync(id, entityType));
         }
     }
 }

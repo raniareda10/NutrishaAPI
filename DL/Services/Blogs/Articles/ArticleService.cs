@@ -33,6 +33,7 @@ namespace DL.Services.Blogs.Articles
                     Description = b.Article.Description,
                     Totals = b.Totals,
                     Media = b.Media,
+                    Created = b.Created,
                     Owner = new OwnerDto()
                     {
                         Id = b.Owner.Id,

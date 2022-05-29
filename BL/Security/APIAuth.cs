@@ -15,6 +15,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
+using BL.Security.Enums;
 
 namespace BL.Security
 {
@@ -171,6 +172,7 @@ namespace BL.Security
                     ClaimList.Add(new Claim(ClaimTypes.Role, item.Name));
                 }   
                 ClaimList.Add(new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()));
+                ClaimList.Add(new Claim(ApplicationClaimTypes.IsAdmin, user.IsAdmin.ToString()));
                 if (request.Email != null && request.Email != string.Empty)
                 {
                     ClaimList.Add(new Claim(ClaimTypes.Name, request.Email));

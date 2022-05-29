@@ -54,5 +54,6 @@ namespace DL.Entities
         public decimal? Age { get; set; } = 0;
         public bool IsDataComplete { get; set; } = false;
         public bool IsAccountVerified { get; set; } = false;
+        public bool IsAdmin { get; set; }
     }
 }
