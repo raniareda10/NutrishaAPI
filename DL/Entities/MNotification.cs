@@ -17,7 +17,7 @@ namespace DL.Entities
         [MinLength(3), MaxLength(250)]
         public string Message { get; set; }
         [Required]
-        public DateTime Date { get; set; } = DateTime.Now;
+        public DateTime Date { get; set; } = DateTime.UtcNow;
         public bool IsSeen { get; set; }
         public int? SourceId { get; set; }
         public int? NotificationTypeId { get; set; }

@@ -18,7 +18,7 @@ namespace DL.DTOs.UserMealDTO
         public string Notes { get; set; }
 
         [Required]
-        public DateTime Date { get; set; } = DateTime.Now;
+        public DateTime Date { get; set; } = DateTime.UtcNow;
         public bool Eaten { get; set; }
         public bool Taken { get; set; }
     }

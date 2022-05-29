@@ -5,7 +5,7 @@ using System.Text;
 
 namespace DL.Entities
 {
-   public class MUserGoal:BaseDomain
+    public class MUserGoal:BaseDomain
     {
       
         public int UserId { get; set; }
@@ -13,7 +13,7 @@ namespace DL.Entities
         public int GoalId { get; set; }
         public MGoal Goal { get; set; }
         [Required]
-        public DateTime Date { get; set; } = DateTime.Now;
+        public DateTime Date { get; set; } = DateTime.UtcNow;
         public bool Done { get; set; } = false;
         public string Notes { get; set; }
     }

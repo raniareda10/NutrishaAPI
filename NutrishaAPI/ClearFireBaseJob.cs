@@ -17,7 +17,7 @@ namespace NutrishaAPIAPI
         }
         public async Task ClearOfferAsync()
         {
-            var date = DateTime.Now;
+            var date = DateTime.UtcNow;
             var LstUserId = _uow.UserRepository.GetAll().Where(c => c.OfferId != null && c.OfferTime != null && c.OfferTime.Value.AddMinutes(1) < date).Select(c => c.Id);
             foreach (var userId in LstUserId)
             {

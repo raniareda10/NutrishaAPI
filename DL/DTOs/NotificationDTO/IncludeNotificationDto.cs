@@ -9,7 +9,7 @@ namespace DL.DTOs.NotificationDTO
    public class IncludeNotificationDto
     {
         public string Message { get; set; }
-        public DateTime Date { get; set; } = DateTime.Now;
+        public DateTime Date { get; set; } = DateTime.UtcNow;
         public string Description { get; set; }
         public bool IsSeen { get; set; }
 

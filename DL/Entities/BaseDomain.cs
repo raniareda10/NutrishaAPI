@@ -12,7 +12,7 @@ namespace DL.Entities
         /// </summary>
         public string Description { get; set; } = string.Empty;
         /// 
-        public DateTime CreatedOn { get; set; } = DateTime.Now;
+        public DateTime CreatedOn { get; set; } = DateTime.UtcNow;
         /// <summary>
         /// Is That Entity Active Variable
         /// </summary>
@@ -20,7 +20,7 @@ namespace DL.Entities
         /// <summary>
         /// UpdatedOn Date
         /// </summary>
-        public DateTime? UpdatedOn { get; set; } = DateTime.Now;
+        public DateTime? UpdatedOn { get; set; } = DateTime.UtcNow;
         /// <summary>
         /// CreatedBy User
         /// </summary>

@@ -11,7 +11,7 @@ namespace DL.Entities
         public int Id { get; set; }
         public int UserId { get; set; }
         public int VirfeyCode { get; set; }
-        public DateTime Date { get; set; } = DateTime.Now;
+        public DateTime Date { get; set; } = DateTime.UtcNow;
         public string Mobile { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public bool IsOtpVerfiy { get; set; } = true;

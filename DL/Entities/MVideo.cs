@@ -19,7 +19,7 @@ namespace DL.Entities
         public string Link { get; set; }
         public string CoverImage { get; set; }
         [Required]
-        public DateTime CreatedTime { get; set; } = DateTime.Now;
+        public DateTime CreatedTime { get; set; } = DateTime.UtcNow;
         public string Notes { get; set; }
         [Required]
         public int SecUserId { get; set; }

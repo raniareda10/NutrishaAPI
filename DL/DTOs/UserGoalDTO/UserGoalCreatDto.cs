@@ -9,7 +9,7 @@ namespace DL.DTOs.UserGoalDTO
     {
        
         [Required]
-        public DateTime Date { get; set; } = DateTime.Now;
+        public DateTime Date { get; set; } = DateTime.UtcNow;
         public bool Done { get; set; } = false;
 
         [Required]

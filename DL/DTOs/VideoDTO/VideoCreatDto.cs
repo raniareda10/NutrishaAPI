@@ -16,7 +16,7 @@ namespace DL.DTOs.VideoDTO
         [Required]
         public IFormFile Video { get; set; }
         [Required]
-        public DateTime Date { get; set; } = DateTime.Now;
+        public DateTime Date { get; set; } = DateTime.UtcNow;
         public string Notes { get; set; }
         public int SecUserId { get; set; }
     }
