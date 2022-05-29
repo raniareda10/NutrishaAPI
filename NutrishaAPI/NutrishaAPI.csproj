@@ -50,6 +50,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="wwwroot" />
+    <Content Remove="wwwroot\**" />
   </ItemGroup>
 </Project>
