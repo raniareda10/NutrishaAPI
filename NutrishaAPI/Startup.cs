@@ -38,6 +38,7 @@ using MailReader;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using Hangfire;
 using Hangfire.MemoryStorage;
+using NutrishaAPI.Middlewares;
 using NutrishaAPI.ServicesRegistrations;
 using NutrishaAPIAPI;
 
@@ -72,14 +73,7 @@ namespace KSEEngineeringJobs
             IRecurringJobManager recurringJobManager,
             IServiceProvider serviceProvider)
         {
-            if (env.IsDevelopment() || env.IsProduction())
-            {
-                app.UseDeveloperExceptionPage();
-                app.UseSwagger();
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Api v1"));
-            }
-
-            app.UseDeveloperExceptionPage();
+            app.UseMiddleware<ExceptionMiddleware>();
             // app.UseElmah();
             app.UseSwagger();
             app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Api v1"));

@@ -50,11 +50,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="wwwroot\Files\Documents\" />
+    <None Remove="wwwroot" />
   </ItemGroup>
-
-  <ItemGroup>
-    <_ContentIncludedByDefault Remove="wwwroot\css\style.css" />
-  </ItemGroup>
-
 </Project>
