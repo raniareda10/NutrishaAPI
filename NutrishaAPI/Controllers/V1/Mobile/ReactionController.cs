@@ -38,8 +38,9 @@ namespace NutrishaAPI.Controllers.V1.Mobile
         }
         
         
-        [HttpDelete("Delete")]
-        public async Task<IActionResult> DeleteReactionAsync(UpdateReactionDto UpdateReactionDto)
+        // Server Limitation HttpDelete Not Allowed
+        [HttpPost("Delete")]
+        public async Task<IActionResult> DeleteReactionAsync([FromBody] UpdateReactionDto UpdateReactionDto)
         {
             if (!UpdateReactionDto.IsValidEntityId())
             {

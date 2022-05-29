@@ -42,8 +42,10 @@ namespace NutrishaAPI.Controllers.V1.Mobile.Comments
 
             return PagedResult(await _commentService.GetPagedListAsync(model));
         }
-        [HttpDelete("Delete")]
-        public async Task<IActionResult> DeleteCommentAsync(long id)
+        
+        // Server Limitation HttpDelete Not Allowed
+        [HttpPost("Delete")]
+        public async Task<IActionResult> DeleteCommentAsync([FromQuery] long id)
         {
             if (id < 1) return InvalidResult(ErrorMessages.InvalidId);
             
