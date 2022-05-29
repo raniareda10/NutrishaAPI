@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Model.ApiModels;
@@ -72,8 +73,8 @@ namespace NutrishaAPI.Controllers.LegacyControllers
         {
             if (!ModelState.IsValid)
             { return BadRequest(ModelState); }
+            
             var user = _authService.AuthenticateUser(request, out string token);
-         
             if (user == null)
             {
                 baseResponse.done = false;
@@ -86,76 +87,71 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                 {
                     baseResponse.message = " mobile and password combination isn’t correct";
                 }
-                    return BadRequest(baseResponse);
+                return BadRequest(baseResponse);
             }
-    
-            if (user != null )
+            
+            // if (!user.IsAccountVerified)
+            // {
+            //     baseResponse.done = false;
+            //     baseResponse.statusCode = (int)HttpStatusCode.BadRequest;                  
+            //     baseResponse.message = "Account Not Verfied";                   
+            //     return BadRequest(baseResponse);
+            // }
+            //
+
+            user.Password = null;
+            string dbConn = configuration.GetSection("Setting").GetSection("FilePath").Value;
+            if (user.PersonalImage != null && user.PersonalImage != string.Empty)
             {
-                if (user.IsAccountVerified)
-                {
-
-                    ////////
-                    user.Password = null;
-                    string dbConn = configuration.GetSection("Setting").GetSection("FilePath").Value;
-                    if (user.PersonalImage != null && user.PersonalImage != string.Empty)
-                    {
-                        user.PersonalImage = dbConn + $"https://api.nutrisha.app/Files/Documents/{user.Id}/{user.PersonalImage}";
-                    }
-                    else
-                    {
-                        user.PersonalImage = string.Empty;
-                    }
-                    if (user.NationalID != null && user.NationalID != string.Empty)
-                    {
-                        user.NationalID = dbConn + $"https://api.nutrisha.app/Files/Documents/{user.Id}/{user.NationalID}";
-                    }
-                    else
-                    {
-                        user.NationalID = string.Empty;
-                    }
-
-                    // user.VehicleTypeName = item.VehicleType.Name;
-                    var muser = _uow.UserRepository.GetMany(c => c.Id == user.Id).FirstOrDefault();
-                    if (request.DeviceTypeId != null && !string.IsNullOrEmpty(request.DeviceToken))
-                    {
-                        muser.DeviceToken = request.DeviceToken;
-                        muser.DeviceTypeId = request.DeviceTypeId;
-
-                        user.DeviceToken = request.DeviceToken;
-                        user.DeviceTypeId = request.DeviceTypeId;
-                    }
-                    if (!string.IsNullOrEmpty(request.Language))
-                    {
-                        muser.Language = request.Language;
-                        user.Language = request.Language;
-                    }
-                    _uow.UserRepository.Update(muser);
-                    _uow.Save();
-                    var verfiyCode = _uow.VerfiyCodeRepository.GetMany(c => c.Email == request.Email || c.Mobile == request.Mobile).FirstOrDefault();
-                    if (verfiyCode != null)
-                    {
-                        user.VerfiyCode = verfiyCode.VirfeyCode;
-                    }
-
-                    var AllUser = _mapper.Map<AllUserDTO>(user);
-
-                    baseResponse.data = new
-                    {
-                        AllUser,
-                        token
-                    };
-                    baseResponse.statusCode = StatusCodes.Status200OK;
-                    baseResponse.done = true;
-                    return Ok(baseResponse);
-                }
-                else
-                {
-                    baseResponse.done = false;
-                    baseResponse.statusCode = (int)HttpStatusCode.BadRequest;                  
-                    baseResponse.message = "Account Not Verfied";                   
-                    return BadRequest(baseResponse);
-                }
+                user.PersonalImage = dbConn + $"https://api.nutrisha.app/Files/Documents/{user.Id}/{user.PersonalImage}";
             }
+            else
+            {
+                user.PersonalImage = string.Empty;
+            }
+            if (user.NationalID != null && user.NationalID != string.Empty)
+            {
+                user.NationalID = dbConn + $"https://api.nutrisha.app/Files/Documents/{user.Id}/{user.NationalID}";
+            }
+            else
+            {
+                user.NationalID = string.Empty;
+            }
+
+            // user.VehicleTypeName = item.VehicleType.Name;
+            var muser = _uow.UserRepository.GetMany(c => c.Id == user.Id).FirstOrDefault();
+            if (request.DeviceTypeId != null && !string.IsNullOrEmpty(request.DeviceToken))
+            {
+                muser.DeviceToken = request.DeviceToken;
+                muser.DeviceTypeId = request.DeviceTypeId;
+
+                user.DeviceToken = request.DeviceToken;
+                user.DeviceTypeId = request.DeviceTypeId;
+            }
+            if (!string.IsNullOrEmpty(request.Language))
+            {
+                muser.Language = request.Language;
+                user.Language = request.Language;
+            }
+            _uow.UserRepository.Update(muser);
+            _uow.Save();
+            var verfiyCode = _uow.VerfiyCodeRepository.GetMany(c => c.Email == request.Email || c.Mobile == request.Mobile).FirstOrDefault();
+            if (verfiyCode != null)
+            {
+                user.VerfiyCode = verfiyCode.VirfeyCode;
+            }
+
+            var AllUser = _mapper.Map<AllUserDTO>(user);
+
+            baseResponse.data = new
+            {
+                AllUser,
+                token
+            };
+            baseResponse.statusCode = StatusCodes.Status200OK;
+            baseResponse.done = true;
+            return Ok(baseResponse);
+        
             baseResponse.done = false;
             baseResponse.statusCode = (int)HttpStatusCode.BadRequest;
             if (!string.IsNullOrEmpty(request.Email))
@@ -290,133 +286,107 @@ namespace NutrishaAPI.Controllers.LegacyControllers
         [ProducesResponseType(typeof(UserWithTokenDTO), StatusCodes.Status200OK)]
         public IActionResult Register(UserDTO request)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid) return BadRequest("Invalid Username or Password");
+            var isEmptyEmail = string.IsNullOrEmpty(request.Email);
+            var isEmptyMobile = string.IsNullOrEmpty(request.Mobile);
+            if (isEmptyEmail && isEmptyMobile)
             {
-                try
+                baseResponse.data = "";
+                baseResponse.statusCode = (int)HttpStatusCode.NotFound;
+                baseResponse.done = false;
+                baseResponse.message = "Must Insert Email or Mobile";
+                return Ok(baseResponse);
+            }
+
+            if (!isEmptyEmail && !isEmptyMobile)
+            {
+                baseResponse.data = "";
+                baseResponse.statusCode = (int)HttpStatusCode.NotFound;
+                baseResponse.done = false;
+                baseResponse.message = "Only Email or Mobile.";
+                return Ok(baseResponse);
+            }
+            var isEmailRegistration = !string.IsNullOrWhiteSpace(request.Email);
+            try
+            {
+                var tempUser = _uow.UserRepository
+                    .GetAll()
+                    .FirstOrDefault(
+                        isEmailRegistration
+                            ? u => u.Email == request.Email
+                            : u => u.Mobile == request.Mobile
+                            );
+
+                if (tempUser?.IsAccountVerified == true)
                 {
-                    if ((request.Email != null && request.Email != string.Empty) || (request.Mobile != null && request.Mobile != string.Empty))
-
-                    {
-                        var Erorrs = _checkUniq.CheckUniqeValue(new DL.DTOs.SharedDTO.UniqeDTO { Mobile = request.Mobile, Email = request.Email });
-                        if (Erorrs.Count > 0)
-                        {
-                            baseResponse.data = "";
-                            baseResponse.statusCode = (int)HttpStatusCode.BadRequest;
-                            baseResponse.done = false;
-                            baseResponse.message = "Email or Mobile Already Exist";
-                            return Ok(baseResponse);
-
-                        }
-                        int userId = 0;
-                        if (request.Email != null && request.Email != string.Empty)
-                        {
-                            var  User = _uow.UserRepository.GetMany(a => a.Email == request.Email).FirstOrDefault();
-                            if (User == null)
-                            {
-                                User = _mapper.Map<DL.Entities.MUser>(request);
-                                User.IsActive = true;
-                                User.Password = EncryptANDDecrypt.EncryptText(request.Password);
-                                _uow.UserRepository.Add(User);
-                                _uow.Save();
-                                userId = User.Id;
-
-                            }
-                            else
-                            {
-                                User.IsActive = true;
-                                User.Password = EncryptANDDecrypt.EncryptText(request.Password);
-                                _uow.UserRepository.Update(User);
-                                _uow.Save();
-                                userId = User.Id;
-                            }
-                        }
-                        else if (request.Mobile != null && request.Mobile != string.Empty)
-                        {
-                          var  User = _uow.UserRepository.GetMany(a => a.Mobile == request.Mobile).FirstOrDefault();
-                            if (User == null)
-                            {
-                                User = _mapper.Map<DL.Entities.MUser>(request);
-                                User.IsActive = true;
-                                User.Password = EncryptANDDecrypt.EncryptText(request.Password);
-                                _uow.UserRepository.Add(User);
-                                _uow.Save();
-                                userId = User.Id;
-                            }
-                            else
-                            {
-                                User.IsActive = true;
-                                User.Password = EncryptANDDecrypt.EncryptText(request.Password);
-                                _uow.UserRepository.Update(User);
-                                _uow.Save();
-                                userId = User.Id;
-                            }
-                        }
-                 
-                     
-                    
-                        if (request.Email != null && request.Email != string.Empty)
-                        {
-                            var verfiyCode = _uow.VerfiyCodeRepository.GetMany(c => c.Email == request.Email).FirstOrDefault();
-                            if (verfiyCode != null)
-                            {
-                                int num = new Random().Next(1000, 9999);
-                                verfiyCode.VirfeyCode = num;
-                                verfiyCode.Date = DateTime.Now.AddMinutes(5);
-                                _uow.VerfiyCodeRepository.Update(verfiyCode);
-                                _uow.Save();
-                                _mailService.SendWelcomeEmailAsync(new WelcomeRequest { ToEmail = request.Email, UserName = request.Email, Id = 0, VerifyCode = num.ToString() });
-
-                            }
-                            else
-                            {
-                                int num = new Random().Next(1000, 9999);
-                                verfiyCode = new MVerfiyCode { Date = DateTime.Now.AddMinutes(5), Email = request.Email, VirfeyCode = num };
-                                _uow.VerfiyCodeRepository.Add(verfiyCode);
-                                _uow.Save();
-                                _mailService.SendWelcomeEmailAsync(new WelcomeRequest { ToEmail = request.Email, UserName = request.Email, Id = 0, VerifyCode = num.ToString() });
-
-                            }
-                        }
-                        if (request.Mobile != null && request.Mobile != string.Empty)
-                        {
-                            VerifyCodeHelper verifyCodeHelper = new VerifyCodeHelper(_uow, _SMS);
-                            verifyCodeHelper.SendOTP(request.Mobile, userId);
-                        }
-                        var userLogin = new ApiLoginModelDTO();
-                        userLogin.Email = request.Email;
-                        userLogin.Mobile = request.Mobile;
-                        userLogin.Password = request.Password;
-                        var user = _authService.AuthenticateUser(userLogin, out string token);
-                      
-                        var AllUser = _mapper.Map<AllUserDTO>(user);
-                        baseResponse.data = new
-                        {
-                            AllUser,
-                            token
-                        };
-                        baseResponse.statusCode = StatusCodes.Status200OK;
-                        baseResponse.done = true;
-                        return Ok(baseResponse);
-                    }
-                    else
-                    {
-                        baseResponse.data = "";
-                        baseResponse.statusCode = (int)HttpStatusCode.NotFound;
-                        baseResponse.done = false;
-                        baseResponse.message = "Must Insert Email or Mobile";
-                        return Ok(baseResponse);
-                    }
-                }
-                catch (Exception ex)
-                {
-
-                    baseResponse.statusCode = (int)HttpStatusCode.BadRequest;
+                    baseResponse.data = "";
+                    baseResponse.statusCode = (int)HttpStatusCode.NotFound;
                     baseResponse.done = false;
-                    baseResponse.message = $"Exception :{ex.Message}";
-
-                    return StatusCode((int)HttpStatusCode.BadRequest, baseResponse);
+                    baseResponse.message = "Email Or Mobile Number Already Exists.";
+                    return Ok(baseResponse);
                 }
 
+                if (tempUser == null)
+                {
+                    tempUser = _mapper.Map<DL.Entities.MUser>(request);
+                    tempUser.IsActive = true;
+                    tempUser.Password = EncryptANDDecrypt.EncryptText(request.Password);
+                    _uow.UserRepository.Add(tempUser);
+                    _uow.Save();
+                }
+                
+                // if (!string.IsNullOrEmpty(request.Email))
+                // {
+                //     var verfiyCode = _uow.VerfiyCodeRepository.GetMany(c => c.Email == request.Email).FirstOrDefault();
+                //     if (verfiyCode != null)
+                //     {
+                //         int num = new Random().Next(1000, 9999);
+                //         verfiyCode.VirfeyCode = num;
+                //         verfiyCode.Date = DateTime.Now.AddMinutes(5);
+                //         _uow.VerfiyCodeRepository.Update(verfiyCode);
+                //         _uow.Save();
+                //         _mailService.SendWelcomeEmailAsync(new WelcomeRequest { ToEmail = request.Email, UserName = request.Email, Id = 0, VerifyCode = num.ToString() });
+                //
+                //     }
+                //     else
+                //     {
+                //         int num = new Random().Next(1000, 9999);
+                //         verfiyCode = new MVerfiyCode { Date = DateTime.Now.AddMinutes(5), Email = request.Email, VirfeyCode = num };
+                //         _uow.VerfiyCodeRepository.Add(verfiyCode);
+                //         _uow.Save();
+                //         _mailService.SendWelcomeEmailAsync(new WelcomeRequest { ToEmail = request.Email, UserName = request.Email, Id = 0, VerifyCode = num.ToString() });
+                //
+                //     }
+                // }
+                // if (!string.IsNullOrEmpty(request.Mobile))
+                // {
+                //     VerifyCodeHelper verifyCodeHelper = new VerifyCodeHelper(_uow, _SMS);
+                //     verifyCodeHelper.SendOTP(request.Mobile, userId);
+                // }
+                var userLogin = new ApiLoginModelDTO();
+                userLogin.Email = request.Email;
+                userLogin.Mobile = request.Mobile;
+                userLogin.Password = request.Password;
+                var user = _authService.AuthenticateUser(userLogin, out string token);
+                var AllUser = _mapper.Map<AllUserDTO>(user);
+                baseResponse.data = new
+                {
+                    AllUser,
+                    token
+                };
+                baseResponse.statusCode = StatusCodes.Status200OK;
+                baseResponse.done = true;
+                return Ok(baseResponse);
+            }
+
+            catch (Exception ex)
+            {
+
+                baseResponse.statusCode = (int)HttpStatusCode.BadRequest;
+                baseResponse.done = false;
+                baseResponse.message = $"Exception :{ex.Message}";
+
+                return StatusCode((int)HttpStatusCode.BadRequest, baseResponse);
             }
             return BadRequest("Invalid Username or Password");
         }
@@ -1021,127 +991,6 @@ namespace NutrishaAPI.Controllers.LegacyControllers
 
         }
 
-
-
-        //[AllowAnonymous]
-        //[HttpPost, Route("ForgetPassword")]
-        //[ProducesResponseType(typeof(AllUserDTO), StatusCodes.Status200OK)]
-        //public IActionResult ForgetPasswordPost(ForgetPasswordDTO forgetPasswordDTO)
-        //{
-        //    // var IdDec = EncryptANDDecrypt.DecryptText(forgetPasswordDTO.EncId);
-        //    if (!string.IsNullOrEmpty(forgetPasswordDTO.Email))
-        //    {
-        //        var verfiyCode = _uow.VerfiyCodeRepository.GetMany(c => c.Email == forgetPasswordDTO.Email).FirstOrDefault();
-
-        //        var user = _uow.UserRepository.GetMany(a => a.Email == forgetPasswordDTO.Email).FirstOrDefault();
-        //        if (user != null)
-        //        {
-
-        //            if (verfiyCode != null)
-        //            {
-        //                if (verfiyCode.Date > DateTime.Now)
-        //                {
-        //                    user.Password = EncryptANDDecrypt.EncryptText(forgetPasswordDTO.NewPassword);
-        //                    _uow.UserRepository.Update(user);
-        //                    _uow.Save();
-        //                    user.VerfiyCode = forgetPasswordDTO.VerifyCode;
-        //                    user.Password = null;
-        //                    string dbConn = configuration.GetSection("Setting").GetSection("FilePath").Value;
-        //                    if (user.PersonalImage != null && user.PersonalImage != string.Empty)
-        //                    {
-        //                        user.PersonalImage = dbConn + $"https://api.nutrisha.app/Files/Documents/{user.Id}/{user.PersonalImage}";
-        //                    }
-        //                    else
-        //                    {
-        //                        user.PersonalImage = string.Empty;
-        //                    }
-        //                    if (user.NationalID != null && user.NationalID != string.Empty)
-        //                    {
-        //                        user.NationalID = dbConn + $"https://api.nutrisha.app/Files/Documents/{user.Id}/{user.NationalID}";
-        //                    }
-        //                    else
-        //                    {
-        //                        user.NationalID = string.Empty;
-        //                    }
-        //                    var AllUser = _mapper.Map<AllUserDTO>(user);
-
-        //                    baseResponse.data = AllUser;
-        //                    baseResponse.statusCode = (int)HttpStatusCode.OK;  // Errors.Success;
-        //                    baseResponse.done = true;
-        //                    baseResponse.message = "Password has changed successfully";
-        //                    return Ok(baseResponse);
-        //                }
-        //                else
-        //                {
-        //                    baseResponse.data = "";
-        //                    baseResponse.statusCode = (int)HttpStatusCode.BadRequest;
-        //                    baseResponse.done = false;
-        //                    baseResponse.message = "asking the user to reset the pass again";
-        //                }
-        //            }
-        //        }
-
-        //    }
-        //    if (!string.IsNullOrEmpty(forgetPasswordDTO.Mobile))
-        //    {
-        //        var verfiyCode = _uow.VerfiyCodeRepository.GetMany(c => c.Mobile == forgetPasswordDTO.Mobile).FirstOrDefault();
-        //        var user = _uow.UserRepository.GetMany(c => c.Mobile == forgetPasswordDTO.Mobile).FirstOrDefault();
-        //        if (user != null)
-        //        {
-        //            if (verfiyCode != null)
-        //            {
-        //                if (verfiyCode.Date > DateTime.Now)
-        //                {
-        //                    user.Password = EncryptANDDecrypt.EncryptText(forgetPasswordDTO.NewPassword);
-        //            _uow.UserRepository.Update(user);
-        //            _uow.Save();
-        //            user.VerfiyCode = forgetPasswordDTO.VerifyCode;
-        //                    user.Password = null;
-        //                    string dbConn = configuration.GetSection("Setting").GetSection("FilePath").Value;
-        //                    if (user.PersonalImage != null && user.PersonalImage != string.Empty)
-        //                    {
-        //                        user.PersonalImage = dbConn + $"https://api.nutrisha.app/Files/Documents/{user.Id}/{user.PersonalImage}";
-        //                    }
-        //                    else
-        //                    {
-        //                        user.PersonalImage = string.Empty;
-        //                    }
-        //                    if (user.NationalID != null && user.NationalID != string.Empty)
-        //                    {
-        //                        user.NationalID = dbConn + $"https://api.nutrisha.app/Files/Documents/{user.Id}/{user.NationalID}";
-        //                    }
-        //                    else
-        //                    {
-        //                        user.NationalID = string.Empty;
-        //                    }
-        //                    var AllUser = _mapper.Map<AllUserDTO>(user);
-
-        //                    baseResponse.data = AllUser;
-        //                    baseResponse.statusCode = (int)HttpStatusCode.OK;  // Errors.Success;
-        //            baseResponse.done = true;
-        //            baseResponse.message = "Password has changed successfully";
-        //            return Ok(baseResponse);
-        //                }
-        //                else
-        //                {
-        //                    baseResponse.data = "";
-        //                    baseResponse.statusCode = (int)HttpStatusCode.BadRequest;
-        //                    baseResponse.done = false;
-        //                    baseResponse.message = "asking the user to reset the pass again";
-        //                }
-        //            }
-        //        }
-
-        //    }
-        //    baseResponse.data = "";
-        //    baseResponse.statusCode = (int)HttpStatusCode.BadRequest;
-        //    baseResponse.done = false;
-        //    baseResponse.message = "Wrong credentials";
-
-        //    return StatusCode((int)HttpStatusCode.BadRequest, baseResponse);
-        //}
-
-
         [AllowAnonymous]
         [HttpPost, Route("ForgetPasswordByEmail")]
         [ProducesResponseType(typeof(AllUserDTO), StatusCodes.Status200OK)]
@@ -1156,11 +1005,34 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                 if (user != null)
                 {
 
+                    if (!user.IsAccountVerified)
+                    {
+                        
+                        baseResponse.data = "";
+                        baseResponse.statusCode = (int)HttpStatusCode.BadRequest;
+                        baseResponse.done = false;
+                        baseResponse.message = "please verify your account first.";
+                        return BadRequest(baseResponse);
+                        
+                    }
                     if (verfiyCode != null)
                     {
+                        
+                        // BAD CODE?? I know i just a fixer :) no time to refactor # TAWFIQ #
                         if (verfiyCode.Date > DateTime.Now)
                         {
-                            user.Password = EncryptANDDecrypt.EncryptText(forgetPasswordDTO.NewPassword);
+                            var oldPassword = user.Password;
+                            var newPassword = EncryptANDDecrypt.EncryptText(forgetPasswordDTO.NewPassword);
+                            if (oldPassword == newPassword)
+                            {
+                                baseResponse.data = "";
+                                baseResponse.statusCode = (int)HttpStatusCode.BadRequest;
+                                baseResponse.done = false;
+                                baseResponse.message = "new password shouldn't be one of your old passwords.";
+                                return BadRequest(baseResponse);
+                            }
+
+                            user.Password = newPassword;
                             _uow.UserRepository.Update(user);
                             _uow.Save();
                             user.VerfiyCode = forgetPasswordDTO.VerifyCode;
@@ -1286,8 +1158,125 @@ namespace NutrishaAPI.Controllers.LegacyControllers
             }
             return BadRequest();
         }
-
-
         
+        
+
+        //[AllowAnonymous]
+        //[HttpPost, Route("ForgetPassword")]
+        //[ProducesResponseType(typeof(AllUserDTO), StatusCodes.Status200OK)]
+        //public IActionResult ForgetPasswordPost(ForgetPasswordDTO forgetPasswordDTO)
+        //{
+        //    // var IdDec = EncryptANDDecrypt.DecryptText(forgetPasswordDTO.EncId);
+        //    if (!string.IsNullOrEmpty(forgetPasswordDTO.Email))
+        //    {
+        //        var verfiyCode = _uow.VerfiyCodeRepository.GetMany(c => c.Email == forgetPasswordDTO.Email).FirstOrDefault();
+
+        //        var user = _uow.UserRepository.GetMany(a => a.Email == forgetPasswordDTO.Email).FirstOrDefault();
+        //        if (user != null)
+        //        {
+
+        //            if (verfiyCode != null)
+        //            {
+        //                if (verfiyCode.Date > DateTime.Now)
+        //                {
+        //                    user.Password = EncryptANDDecrypt.EncryptText(forgetPasswordDTO.NewPassword);
+        //                    _uow.UserRepository.Update(user);
+        //                    _uow.Save();
+        //                    user.VerfiyCode = forgetPasswordDTO.VerifyCode;
+        //                    user.Password = null;
+        //                    string dbConn = configuration.GetSection("Setting").GetSection("FilePath").Value;
+        //                    if (user.PersonalImage != null && user.PersonalImage != string.Empty)
+        //                    {
+        //                        user.PersonalImage = dbConn + $"https://api.nutrisha.app/Files/Documents/{user.Id}/{user.PersonalImage}";
+        //                    }
+        //                    else
+        //                    {
+        //                        user.PersonalImage = string.Empty;
+        //                    }
+        //                    if (user.NationalID != null && user.NationalID != string.Empty)
+        //                    {
+        //                        user.NationalID = dbConn + $"https://api.nutrisha.app/Files/Documents/{user.Id}/{user.NationalID}";
+        //                    }
+        //                    else
+        //                    {
+        //                        user.NationalID = string.Empty;
+        //                    }
+        //                    var AllUser = _mapper.Map<AllUserDTO>(user);
+
+        //                    baseResponse.data = AllUser;
+        //                    baseResponse.statusCode = (int)HttpStatusCode.OK;  // Errors.Success;
+        //                    baseResponse.done = true;
+        //                    baseResponse.message = "Password has changed successfully";
+        //                    return Ok(baseResponse);
+        //                }
+        //                else
+        //                {
+        //                    baseResponse.data = "";
+        //                    baseResponse.statusCode = (int)HttpStatusCode.BadRequest;
+        //                    baseResponse.done = false;
+        //                    baseResponse.message = "asking the user to reset the pass again";
+        //                }
+        //            }
+        //        }
+
+        //    }
+        //    if (!string.IsNullOrEmpty(forgetPasswordDTO.Mobile))
+        //    {
+        //        var verfiyCode = _uow.VerfiyCodeRepository.GetMany(c => c.Mobile == forgetPasswordDTO.Mobile).FirstOrDefault();
+        //        var user = _uow.UserRepository.GetMany(c => c.Mobile == forgetPasswordDTO.Mobile).FirstOrDefault();
+        //        if (user != null)
+        //        {
+        //            if (verfiyCode != null)
+        //            {
+        //                if (verfiyCode.Date > DateTime.Now)
+        //                {
+        //                    user.Password = EncryptANDDecrypt.EncryptText(forgetPasswordDTO.NewPassword);
+        //            _uow.UserRepository.Update(user);
+        //            _uow.Save();
+        //            user.VerfiyCode = forgetPasswordDTO.VerifyCode;
+        //                    user.Password = null;
+        //                    string dbConn = configuration.GetSection("Setting").GetSection("FilePath").Value;
+        //                    if (user.PersonalImage != null && user.PersonalImage != string.Empty)
+        //                    {
+        //                        user.PersonalImage = dbConn + $"https://api.nutrisha.app/Files/Documents/{user.Id}/{user.PersonalImage}";
+        //                    }
+        //                    else
+        //                    {
+        //                        user.PersonalImage = string.Empty;
+        //                    }
+        //                    if (user.NationalID != null && user.NationalID != string.Empty)
+        //                    {
+        //                        user.NationalID = dbConn + $"https://api.nutrisha.app/Files/Documents/{user.Id}/{user.NationalID}";
+        //                    }
+        //                    else
+        //                    {
+        //                        user.NationalID = string.Empty;
+        //                    }
+        //                    var AllUser = _mapper.Map<AllUserDTO>(user);
+
+        //                    baseResponse.data = AllUser;
+        //                    baseResponse.statusCode = (int)HttpStatusCode.OK;  // Errors.Success;
+        //            baseResponse.done = true;
+        //            baseResponse.message = "Password has changed successfully";
+        //            return Ok(baseResponse);
+        //                }
+        //                else
+        //                {
+        //                    baseResponse.data = "";
+        //                    baseResponse.statusCode = (int)HttpStatusCode.BadRequest;
+        //                    baseResponse.done = false;
+        //                    baseResponse.message = "asking the user to reset the pass again";
+        //                }
+        //            }
+        //        }
+
+        //    }
+        //    baseResponse.data = "";
+        //    baseResponse.statusCode = (int)HttpStatusCode.BadRequest;
+        //    baseResponse.done = false;
+        //    baseResponse.message = "Wrong credentials";
+
+        //    return StatusCode((int)HttpStatusCode.BadRequest, baseResponse);
+        //}
     }
 }
