@@ -1,4 +1,6 @@
-﻿using DL.DtosV1.Polls;
+﻿using System.Net.Mime;
+using DL.DtosV1.Polls;
+using Microsoft.AspNetCore.Mvc;
 using NutrishaAPI.Controllers.V1.Admin.V1;
 using NutrishaAPI.Validations.Models;
 using NutrishaAPI.Validations.Shared;
@@ -7,11 +9,14 @@ namespace NutrishaAPI.Validations.Polls
 {
     public static class PollValidator
     {
+        public const int MaxQuestionLength = 120;
         public static ValidationResult IsValid(this PostPollDto postPollDto)
         {
             var result = new ValidationResult();
-            if (string.IsNullOrWhiteSpace(postPollDto.Question))
+            if (string.IsNullOrWhiteSpace(postPollDto.Question) || 
+                postPollDto.Question.Length >  MaxQuestionLength)
             {
+                result.AddError("Please Provide Valid Question.");
                 return result;
             }
             
