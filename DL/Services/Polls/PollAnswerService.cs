@@ -66,7 +66,9 @@ namespace DL.Services.Polls
 
         private async Task<bool> IsAlreadyAnswered(long pollId)
         {
-            return await _dbContext.PollAnswers.AnyAsync(a => a.PollId == pollId);
+            return await _dbContext.PollAnswers.AnyAsync(
+                a => a.PollId == pollId && 
+                     a.UserId == _currentUserService.UserId);
         }
     }
 }
