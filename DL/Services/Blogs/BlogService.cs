@@ -7,6 +7,7 @@ using DL.DtosV1.Blogs;
 using DL.DtosV1.Blogs.Timeline;
 using DL.DtosV1.Polls;
 using DL.EntitiesV1.Blogs;
+using DL.EntitiesV1.Blogs.Polls;
 using DL.EntitiesV1.Reactions;
 using DL.Enums;
 using DL.Extensions;
@@ -47,20 +48,24 @@ namespace DL.Services.Blogs
                 blogsQuery = blogsQuery.Where(b => b.TagId == model.TagId.Value);
             }
 
-            var blogs = await blogsQuery.OrderByDescending(b => b.Created)
+            var blogs = await blogsQuery
+                .OrderByDescending(b => b.Created)
                 .ToPagedListAsync(model);
 
-            var result = new List<object>(blogs.Data.Count);
-            
+            var result = blogs.Data
+                .Select(d => new BlogMapper<BlogTimelineResult<dynamic>>
+                {
+                    Blog = d,
+                    Data = new BlogTimelineResult<dynamic>(d)
+                }).ToList();
+
             // TODO Enhance Loop 1 Time Only    
-            result.AddRange(await BuildArticlesAsync(blogs.Data.Where(b => b.EntityType == EntityType.Article)));
-            result.AddRange(await BuildPollsAsync(blogs.Data.Where(b => b.EntityType == EntityType.Poll)));
-            result.AddRange(blogs.Data.Where(b => b.EntityType == EntityType.BlogVideo).Select(
-                b => new BlogTimelineResult<object>(b)));
-            
+            await BuildArticlesAsync(result.Where(b => b.Blog.EntityType == EntityType.Article));
+            await BuildPollsAsync(result.Where(b => b.Blog.EntityType == EntityType.Poll));
+
             return new PagedResult<object>()
             {
-                Data = result,
+                Data = result.Select(d => (dynamic) d.Data).ToList(),
                 TotalRows = blogs.TotalRows
             };
         }
@@ -69,11 +74,11 @@ namespace DL.Services.Blogs
         {
             return await _blogDetailsFactory.GetBlogDetailsService(entityType).GetByIdAsync(id);
         }
-        
-        private async Task<IEnumerable<BlogTimelineResult<PollTimelineResult>>> BuildPollsAsync(IEnumerable<Blog> polls)
+
+        private async Task BuildPollsAsync(IEnumerable<BlogMapper<BlogTimelineResult<dynamic>>> polls)
         {
             var pollsList = polls.ToList();
-            var pollsIds = pollsList.Select(a => a.Id).ToList();
+            var pollsIds = pollsList.Select(a => a.Blog.Id).ToList();
 
             var userAnswers = await _dbContext.PollAnswers.Where(answer =>
                     pollsIds.Contains(answer.PollQuestion.PollId) &&
@@ -86,45 +91,46 @@ namespace DL.Services.Blogs
                 })
                 .ToDictionaryAsync(a => a.PollId, a => a.PollQuestionId);
 
-            var list = new List<BlogTimelineResult<PollTimelineResult>>(pollsList.Count);
             foreach (var blog in pollsList)
             {
-                var item = new BlogTimelineResult<PollTimelineResult>(blog);
-                if (userAnswers.TryGetValue(blog.Id, out var selectedAnswerId))
+                var additionalData = new PollTimelineResult();
+                if (userAnswers.TryGetValue(blog.Blog.Id, out var selectedAnswerId))
                 {
-                    item.AdditionalData.SelectedAnswerId = selectedAnswerId;
+                    additionalData.SelectedAnswerId = selectedAnswerId;
                 }
 
-                item.AdditionalData.Questions = blog.Poll.Questions.Select(PollQuestionDto.FromPollQuestion);
-                list.Add(item);
+                var questions = blog.Blog.Poll.Questions as IEnumerable<PollQuestion>;
+                additionalData.Questions = questions.Select(PollQuestionDto.FromPollQuestion);
+                blog.Data.AdditionalData = additionalData;
             }
-
-            return list;
         }
 
-        private async Task<IEnumerable<BlogTimelineResult<ArticleTimelineResult>>> BuildArticlesAsync(
-            IEnumerable<Blog> articles)
+        private async Task BuildArticlesAsync(
+            IEnumerable<BlogMapper<BlogTimelineResult<dynamic>>> articles)
         {
             var articlesList = articles.ToList();
-            var articlesIds = articlesList.Select(a => a.Id).ToList();
+            var articlesIds = articlesList.Select(a => a.Blog.Id).ToList();
             var reactions = await _dbContext
                 .Reactions
                 .GetReactionsOnEntitiesAsync(articlesIds, _currentUserService.UserId);
-            
-            var list = new List<BlogTimelineResult<ArticleTimelineResult>>(articlesList.Count);
+
             foreach (var blog in articlesList)
             {
-                var item = new BlogTimelineResult<ArticleTimelineResult>(blog);
-                if (reactions.TryGetValue(blog.Id, out var reactionType))
+                var additionalData = new ArticleTimelineResult();
+                if (reactions.TryGetValue(blog.Blog.Id, out var reactionType))
                 {
-                    item.AdditionalData.ReactionType = reactionType;
+                    additionalData.ReactionType = reactionType;
                 }
 
-                item.AdditionalData.Description = blog.Article.Description;
-                list.Add(item);
+                additionalData.Description = blog.Blog.Article.Description;
+                blog.Data.AdditionalData = additionalData;
             }
+        }
 
-            return list;
+        private class BlogMapper<T>
+        {
+            public Blog Blog { get; set; }
+            public T Data { get; set; }
         }
     }
 }

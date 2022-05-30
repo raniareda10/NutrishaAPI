@@ -18,13 +18,14 @@ using NutrishaAPI.Controllers.V1.Mobile.Bases;
 namespace NutrishaAPI.Controllers.V1.Mobile
 {
     [ApiController]
-    [Route("api/v1/{controller}")]
+    [Route("api/v1/[controller]")]
     public class TestController : BaseMobileController
     {
         private readonly AppDBContext _dbContext;
         private readonly BlogService _service;
         private readonly IWebHostEnvironment _webHostEnvironment;
 
+        private Random _random = new Random();
         public TestController(
             AppDBContext DbContext,
             BlogService Service,
@@ -49,11 +50,11 @@ namespace NutrishaAPI.Controllers.V1.Mobile
             blogs.AddRange(
                 Enumerable.Range(0, 5).Select(id => new Blog()
                 {
-                    Created = DateTime.UtcNow,
+                    Created = DateTime.UtcNow.AddDays(_random.Next(-10, 10)),
                     Subject = "Blog Video " + id,
                     OwnerId = 1,
+                    TagId = _random.Next(1, 3),
                     EntityType = EntityType.BlogVideo,
-                    TagId = 3,
                     Totals = new Dictionary<string, int>()
                     {
                         {
@@ -79,9 +80,10 @@ namespace NutrishaAPI.Controllers.V1.Mobile
         {
             var blogs = new Blog()
             {
-                Created = DateTime.UtcNow,
+                Created = DateTime.UtcNow.AddDays(_random.Next(-10, 10)),
                 Subject = "Subject " + id,
-                OwnerId = 1
+                OwnerId = 1,
+                TagId = _random.Next(1, 3),
             };
             
             var random = new Random();
@@ -103,12 +105,11 @@ namespace NutrishaAPI.Controllers.V1.Mobile
                         MediaType = MediaType.Youtube,
                     }
                 };
-                blogs.TagId = 1;
                 blogs.EntityType = EntityType.Article;
                 blogs.Totals = new Dictionary<string, int>()
                 {
-                    {TotalKeys.Likes, i},
-                    {TotalKeys.Comments, i},
+                    {TotalKeys.Likes, 0},
+                    {TotalKeys.Comments, 0},
                 };
                 blogs.Article = new Article()
                 {
@@ -121,12 +122,10 @@ namespace NutrishaAPI.Controllers.V1.Mobile
             else
             {
                 var lId = (int) id;
-                blogs.TagId = 2;
                 blogs.EntityType = EntityType.Poll;
                 blogs.Poll = new Poll()
                 {
-                    Questions = Enumerable.Range(lId * 2, lId * 4).Take(
-                        random.Next(1, 5)).Select(i => new PollQuestion()
+                    Questions = Enumerable.Range(2, 5).Select(i => new PollQuestion()
                     {
                         Content = "PollQuestion" + i,
                         Created = DateTime.UtcNow,
