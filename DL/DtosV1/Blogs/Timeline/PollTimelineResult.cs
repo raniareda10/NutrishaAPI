@@ -6,6 +6,7 @@ namespace DL.DtosV1.Blogs.Timeline
     public class PollTimelineResult
     {
         public long? SelectedAnswerId { get; set; }
+        public string BackgroundColor { get; set; }
         public IEnumerable<PollQuestionDto> Questions { get; set; }
     }
 }

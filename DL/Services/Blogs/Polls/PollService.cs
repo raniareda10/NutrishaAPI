@@ -5,6 +5,7 @@ using DL.DBContext;
 using DL.DtosV1.Polls;
 using DL.EntitiesV1.Blogs;
 using DL.EntitiesV1.Blogs.Polls;
+using DL.Enums;
 using DL.ResultModels;
 
 namespace DL.Services.Blogs.Polls
@@ -22,29 +23,29 @@ namespace DL.Services.Blogs.Polls
             _currentUserService = currentUserService;
         }
         
-        public async Task<PayloadServiceResult<long>> PostAsync(PostPollDto postPollDto)
+        public async Task<long> PostAsync(PostPollDto postPollDto)
         {
             var blog = new Blog()
             {
                 Created = DateTime.UtcNow,
                 OwnerId = _currentUserService.UserId,
-                TagId = postPollDto.TagId,
+                Subject = postPollDto.Question,
                 Poll = new Poll()
                 {
                     Questions = postPollDto.Answers.Select(answer => new PollQuestion()
                     {
                         Created = DateTime.UtcNow,
                         Content = answer
-                    }).ToList()
-                }
+                    }).ToList(),
+                    BackgroundColor = postPollDto.BackgroundColor
+                },
+                EntityType = EntityType.Poll
             };
 
             await _dbContext.AddAsync(blog);
             await _dbContext.SaveChangesAsync();
-            return new PayloadServiceResult<long>()
-            {
-                Data = blog.Id
-            };
+            
+            return blog.Id;
         }
     }
 }

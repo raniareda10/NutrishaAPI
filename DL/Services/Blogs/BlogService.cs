@@ -99,6 +99,7 @@ namespace DL.Services.Blogs
                     additionalData.SelectedAnswerId = selectedAnswerId;
                 }
 
+                additionalData.BackgroundColor = blog.Blog.Poll.BackgroundColor;
                 var questions = blog.Blog.Poll.Questions as IEnumerable<PollQuestion>;
                 additionalData.Questions = questions.Select(PollQuestionDto.FromPollQuestion);
                 blog.Data.AdditionalData = additionalData;

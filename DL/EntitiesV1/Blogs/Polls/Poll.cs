@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace DL.EntitiesV1.Blogs.Polls
 {
@@ -9,5 +10,6 @@ namespace DL.EntitiesV1.Blogs.Polls
         public Blog Blog { get; set; }
 
         public IList<PollQuestion> Questions { get; set; }
+        public string BackgroundColor { get; set; }
     }
 }

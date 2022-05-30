@@ -6,6 +6,6 @@ namespace DL.DtosV1.Polls
     {
         public string Question { get; set; }
         public List<string> Answers { get; set; }
-        public long TagId { get; set; }
+        public string BackgroundColor { get; set; }
     }
 }

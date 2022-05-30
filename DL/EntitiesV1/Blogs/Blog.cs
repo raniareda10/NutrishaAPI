@@ -22,7 +22,7 @@ namespace DL.EntitiesV1.Blogs
         public MUser Owner { get; set; }
         public IList<MediaFile> Media { get; set; }
 
-        public long TagId { get; set; }
+        public long? TagId { get; set; }
         public BlogTag Tag { get; set; }
     }
 }

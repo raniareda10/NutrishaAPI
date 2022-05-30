@@ -9,7 +9,7 @@ namespace DL.DtosV1.Blogs.Timeline
     public class BlogTimelineResult<T> where T : new()
     {
         public long Id { get; set; }
-        public long TagId { get; set; }
+        public long? TagId { get; set; }
         public EntityType EntityType { get; set; }
         public DateTime Created { get; set; }
         public string Subject { get; set; }

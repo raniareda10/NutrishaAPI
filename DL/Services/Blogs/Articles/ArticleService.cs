@@ -2,9 +2,13 @@
 using System.Linq;
 using System.Threading.Tasks;
 using DL.DBContext;
+using DL.DtosV1.Articles;
 using DL.DtosV1.Blogs.Details;
 using DL.DtosV1.Users;
+using DL.EntitiesV1.Blogs;
+using DL.EntitiesV1.Reactions;
 using DL.Enums;
+using DL.StorageServices;
 using Microsoft.EntityFrameworkCore;
 
 namespace DL.Services.Blogs.Articles
@@ -13,18 +17,21 @@ namespace DL.Services.Blogs.Articles
     {
         private readonly AppDBContext _dbContext;
         private readonly ICurrentUserService _currentUserService;
+        private readonly IStorageService _storageService;
 
         public ArticleService(
             AppDBContext dbContext,
-            ICurrentUserService currentUserService)
+            ICurrentUserService currentUserService,
+            IStorageService storageService)
         {
             _dbContext = dbContext;
             _currentUserService = currentUserService;
+            _storageService = storageService;
         }
         
         public async Task<object> GetByIdAsync(long id)
         {
-            var blog = await _dbContext.Blogs
+            var article = await _dbContext.Blogs
                 .Include(b => b.Article)
                 .Select(b => new ArticleDetails
                 {
@@ -43,15 +50,29 @@ namespace DL.Services.Blogs.Articles
                 })
                 .FirstOrDefaultAsync(b => b.Id == id);
 
-            blog.ReactionType = await _dbContext.Reactions
+            article.ReactionType = await _dbContext.Reactions
                 .Where(r => 
                     r.EntityId == id &&
                     r.EntityType == EntityType.Article &&
                     r.UserId == _currentUserService.UserId)
-                .Select(r => r.ReactionType)
+                .Select(r => r.ReactionType as ReactionType?)
                 .FirstOrDefaultAsync();
 
-            return blog;
+            return article;
+        }
+
+        public async Task<long> PostAsync(PostArticleDto postArticleDto)
+        {
+            var article = postArticleDto.ToArticle(_currentUserService.UserId);
+            await _dbContext.AddAsync(article);
+            await _dbContext.SaveChangesAsync();
+
+            article.Media = await _storageService.UploadAsync(
+                postArticleDto,
+                article.Id.ToString(), EntityType.Article);
+            await _dbContext.SaveChangesAsync();
+            
+            return article.Id;
         }
     }
 
