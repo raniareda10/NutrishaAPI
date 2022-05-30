@@ -53,7 +53,9 @@ namespace DL.Services.Helpers
                     throw new ArgumentException("Not Supported Yet");
             }
 
-            dbContext.Update(entityWithTotals);
+            if (entityWithTotals != null)
+                dbContext.Update(entityWithTotals);
+            
             return entityWithTotals;
         }
     }

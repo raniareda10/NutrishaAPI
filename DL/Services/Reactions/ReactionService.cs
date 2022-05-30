@@ -72,6 +72,15 @@ namespace DL.Services.Reactions
         {
             var result = new PayloadServiceResult<IDictionary<string, int>>();
 
+            var entityWithTotal = await _dbContext
+                .GetEntityWithTotalAsync(UpdateReactionDto);
+            
+            if (entityWithTotal == null)
+            {
+                result.Errors.Add(ErrorMessages.NoEntityWithThisId);
+                return result;
+            }
+            
             var isDeleted = await TryDeleteReactionAsync(UpdateReactionDto.EntityId, UpdateReactionDto.ReactionType);
             if (!isDeleted)
             {
@@ -79,17 +88,9 @@ namespace DL.Services.Reactions
                 return result;
             }
 
-            var totals = await _dbContext
-                .GetEntityWithTotalAsync(UpdateReactionDto);
-            if (totals == null)
-            {
-                result.Errors.Add(ErrorMessages.InvalidId);
-                return result;
-            }
-            totals.Totals[UpdateReactionDto.ReactionType.MapToTotalKey()]--;
-
+            entityWithTotal.Totals[UpdateReactionDto.ReactionType.MapToTotalKey()]--;
             await _dbContext.SaveChangesAsync();
-            result.Data = totals.Totals;
+            result.Data = entityWithTotal.Totals;
             return result;
         }
 
