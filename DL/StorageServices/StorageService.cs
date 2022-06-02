@@ -25,7 +25,7 @@ namespace DL.StorageServices
             _hostDomain = configuration["Domain"];
         }
         public async Task<IList<MediaFile>> UploadAsync(IMedia model,
-            string entityId,
+            // string entityId,
             EntityType entityType)
         {
             var filesCount = model.Files?.Count ?? 0;
@@ -50,7 +50,7 @@ namespace DL.StorageServices
             if (filesCount == 0) return mediaFiles;
             _currentDirectory = Directory.GetCurrentDirectory() + "/wwwroot";
             
-            var path = $"/{entityType}-{entityId}";
+            var path = $"/{entityType}-{Guid.NewGuid()}";
             Directory.CreateDirectory($"{_currentDirectory}{path}");
             foreach (var fileModel in model.Files)
             {

@@ -22,11 +22,17 @@ namespace NutrishaAPI.Validations.Articles
             }
 
 
-            if (model.Files.Count < 1)
+            if (!model.IsValidFiles())
+            {
+                result.AddError("Please Add Valid Files");
+                return result;
+            }
+            if (model.Files == null || model.Files.Count < 1)
             {
                 result.AddError("Please Add Cover Image.");
                 return result;
             }
+            
             if (model.Files.All(f => f.Flags?.Contains(MediaFlags.CoverImage) == false))
             {
                 result.AddError("Please Add Cover Image.");

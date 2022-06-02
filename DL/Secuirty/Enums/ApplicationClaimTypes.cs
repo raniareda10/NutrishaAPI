@@ -1,4 +1,4 @@
-﻿namespace BL.Security.Enums
+﻿namespace DL.Secuirty.Enums
 {
     public class ApplicationClaimTypes
     {

@@ -2,17 +2,16 @@
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
-using Microsoft.AspNetCore.Http;
 
-namespace BL.Security
+namespace DL.Services
 {
-    public static class EncryptANDDecrypt
+    public class PasswordHasher
     {
         private static readonly string encryptionPassword = "Ent3r your oWn S@lt v@lu# h#r3 Ya Mo3alem";
 
         private static readonly byte[] salt = Encoding.ASCII.GetBytes("Ent3r your oWn S@lt v@lu# h#r3 Ya Mo3alem");
 
-        public static string EncryptText(string textToEncrypt)
+        public static string HashPassword(string textToEncrypt)
         {
             var algorithm = GetAlgorithm(encryptionPassword);
 
@@ -24,30 +23,12 @@ namespace BL.Security
             }
             return Convert.ToBase64String(encryptedBytes);
         }
-        public static string DecryptText(string encryptedText)
-        {
-            try
-            {
-                var algorithm = GetAlgorithm(encryptionPassword);
-
-                byte[] descryptedBytes;
-                using (ICryptoTransform decryptor = algorithm.CreateDecryptor(algorithm.Key, algorithm.IV))
-                {
-                    byte[] encryptedBytes = Convert.FromBase64String(encryptedText);
-                    descryptedBytes = InMemoryCrypt(encryptedBytes, decryptor);
-                }
-                return Encoding.UTF8.GetString(descryptedBytes);
-            }
-            catch(Exception ex)
-            {
-                return "#";
-            }
-        }
-
+        
         public static bool IsEqual(string source, string hashed)
         {
-            return  EncryptText(source) == hashed;
+            return  HashPassword(source) == hashed;
         }
+        
         private static byte[] InMemoryCrypt(byte[] data, ICryptoTransform transform)
         {
             try

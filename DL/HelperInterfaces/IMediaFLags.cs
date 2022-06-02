@@ -1,7 +1,9 @@
-﻿namespace DL.HelperInterfaces
+﻿using System.Collections.Generic;
+
+namespace DL.HelperInterfaces
 {
     public interface IMediaFLags
     {
-        public string[] Flags { get; set; }
+        public HashSet<string> Flags { get; set; }
     }
 }

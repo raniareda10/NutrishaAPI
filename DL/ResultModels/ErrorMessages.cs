@@ -7,5 +7,6 @@
         public const string NoEntityWithThisId = "No Entity With This Id.";
 
         public const string InvalidSubject = "Please provide valid subject.";
+        public const string WrongCredential = "Please provide correct Credential";
     }
 }

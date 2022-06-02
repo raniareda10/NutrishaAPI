@@ -63,15 +63,13 @@ namespace DL.Services.Blogs.Articles
 
         public async Task<long> PostAsync(PostArticleDto postArticleDto)
         {
+            var media = await _storageService.UploadAsync(
+                postArticleDto, EntityType.Article);
             var article = postArticleDto.ToArticle(_currentUserService.UserId);
+            article.Media = media;
+            
             await _dbContext.AddAsync(article);
             await _dbContext.SaveChangesAsync();
-
-            article.Media = await _storageService.UploadAsync(
-                postArticleDto,
-                article.Id.ToString(), EntityType.Article);
-            await _dbContext.SaveChangesAsync();
-            
             return article.Id;
         }
     }

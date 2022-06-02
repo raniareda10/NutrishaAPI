@@ -14,4 +14,8 @@
     <ProjectReference Include="..\DL\DL.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Security\Enums" />
+  </ItemGroup>
+
 </Project>

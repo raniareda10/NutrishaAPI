@@ -1,4 +1,5 @@
-﻿using DL.HelperInterfaces;
+﻿using System.Collections.Generic;
+using DL.HelperInterfaces;
 
 namespace DL.DtosV1.Storage
 {
@@ -6,6 +7,6 @@ namespace DL.DtosV1.Storage
     {
         public string Url { get; set; }
 
-        public string[] Flags { get; set; }
+        public HashSet<string> Flags { get; set; }
     }
 }

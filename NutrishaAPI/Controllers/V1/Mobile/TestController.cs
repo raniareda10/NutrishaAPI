@@ -97,7 +97,7 @@ namespace NutrishaAPI.Controllers.V1.Mobile
                         Url =
                             "https://s.yimg.com/uu/api/res/1.2/ekskmjxgAnWNr1JBsx8JYQ--~B/Zmk9ZmlsbDtoPTQyMjt3PTY3NTthcHBpZD15dGFjaHlvbg--/https://s.yimg.com/os/creatr-uploaded-images/2022-02/cd55c580-86d1-11ec-89b7-2a64fca23029.cf.jpg",
                         MediaType = MediaType.Image,
-                        Flags = new string[] {MediaFlags.CoverImage}
+                        Flags = new HashSet<string>() {MediaFlags.CoverImage}
                     },
                     new MediaFile()
                     {

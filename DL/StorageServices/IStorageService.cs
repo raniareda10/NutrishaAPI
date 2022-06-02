@@ -10,8 +10,7 @@ namespace DL.StorageServices
 {
     public interface IStorageService
     {
-        Task<IList<MediaFile>> UploadAsync(IMedia model, 
-            string entityId,
+        Task<IList<MediaFile>> UploadAsync(IMedia model,
             EntityType entityType);
     }
 }

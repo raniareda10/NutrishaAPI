@@ -23,7 +23,6 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Article
         [HttpPost("Post")]
         public async Task<IActionResult> PostAsync([FromForm()] PostArticleDto postArticleDto)
         {
-            var q = HttpContext;
             var validationResult = postArticleDto.IsValid();
             if (!validationResult.Success)
             {
