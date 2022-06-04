@@ -45,7 +45,7 @@ namespace DL.Services.Reactions
 
             if (!await _dbContext.IsEntityExistsAsync(UpdateReactionDto.EntityId, UpdateReactionDto.EntityType))
             {
-                result.Errors.Add(ErrorMessages.NoEntityWithThisId);
+                result.Errors.Add(NonLocalizedErrorMessages.NoEntityWithThisId);
                 return result;
             }
             
@@ -77,7 +77,7 @@ namespace DL.Services.Reactions
             
             if (entityWithTotal == null)
             {
-                result.Errors.Add(ErrorMessages.NoEntityWithThisId);
+                result.Errors.Add(NonLocalizedErrorMessages.NoEntityWithThisId);
                 return result;
             }
             

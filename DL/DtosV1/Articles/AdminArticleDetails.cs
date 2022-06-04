@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using DL.DtosV1.Blogs;
+using DL.DtosV1.Blogs.Details;
 using DL.DtosV1.Users;
 using DL.EntitiesV1.Media;
 using DL.EntitiesV1.Reactions;
-using DL.HelperInterfaces;
 
-namespace DL.DtosV1.Blogs.Details
+namespace DL.DtosV1.Articles
 {
-    public class ArticleDetails : ITotal
+    public class AdminArticleDetails
     {
         public long Id { get; set; }
         public IDictionary<string, int> Totals { get; set; }
@@ -15,7 +16,7 @@ namespace DL.DtosV1.Blogs.Details
         public string Description { get; set; }
         public OwnerDto Owner { get; set; }
         public string Subject { get; set; }
-        public ReactionType? ReactionType { get; set; }
         public IList<MediaFile> Media { get; set; }
+        public BlogTagDto Tag { get; set; }
     }
 }

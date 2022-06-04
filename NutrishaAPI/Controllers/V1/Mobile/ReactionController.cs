@@ -24,7 +24,7 @@ namespace NutrishaAPI.Controllers.V1.Mobile
         {
             if (!UpdateReactionDto.IsValidEntityId())
             {
-                return InvalidResult(ErrorMessages.InvalidParameters);
+                return InvalidResult(NonLocalizedErrorMessages.InvalidParameters);
             }
             
             var result = await _reactionService.PostReactionAsync(UpdateReactionDto);
@@ -44,7 +44,7 @@ namespace NutrishaAPI.Controllers.V1.Mobile
         {
             if (!UpdateReactionDto.IsValidEntityId())
             {
-                return InvalidResult(ErrorMessages.InvalidParameters);
+                return InvalidResult(NonLocalizedErrorMessages.InvalidParameters);
             }
             
             var result = await _reactionService.DeleteReactionAsync(UpdateReactionDto);

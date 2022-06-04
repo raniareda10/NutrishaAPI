@@ -38,7 +38,7 @@ namespace NutrishaAPI.Controllers.V1.Mobile.Comments
         public async Task<IActionResult> GetPagedListAsync([FromQuery] GetCommentsModel model)
         {
             if (!model.IsValidPagedModel() || !model.IsValidEntityId())
-                return InvalidResult(ErrorMessages.InvalidParameters);
+                return InvalidResult(NonLocalizedErrorMessages.InvalidParameters);
 
             return PagedResult(await _commentService.GetPagedListAsync(model));
         }
@@ -47,7 +47,7 @@ namespace NutrishaAPI.Controllers.V1.Mobile.Comments
         [HttpPost("Delete")]
         public async Task<IActionResult> DeleteCommentAsync([FromQuery] long id)
         {
-            if (id < 1) return InvalidResult(ErrorMessages.InvalidId);
+            if (id < 1) return InvalidResult(NonLocalizedErrorMessages.InvalidId);
             
             var result = await _commentService.DeleteCommentAsync(id);
             return result.Success ? EmptyResult() : InvalidResult(result.Errors);

@@ -43,7 +43,7 @@ namespace DL.Services.Users.Admins
             if (currentUser == null ||
                 !PasswordHasher.IsEqual(adminLoginDto.Password, currentUser.Password))
             {
-                result.Errors.Add(ErrorMessages.WrongCredential);
+                result.Errors.Add(NonLocalizedErrorMessages.WrongCredential);
                 return result;
             }
 

@@ -24,7 +24,7 @@ namespace NutrishaAPI.Controllers.V1.Mobile
         public async Task<IActionResult> GetPagedListAsync([FromQuery] BlogTimelinePagedModel model)
         {
             if (!model.IsValidPagedModel())
-                return InvalidResult(ErrorMessages.InvalidParameters);
+                return InvalidResult(NonLocalizedErrorMessages.InvalidParameters);
 
             return PagedResult(await _blogService.GetTimelineAsync(model));
         }
@@ -32,7 +32,7 @@ namespace NutrishaAPI.Controllers.V1.Mobile
         [HttpGet("GetById")]
         public async Task<IActionResult> GetByIdAsync([FromQuery] long id, EntityType entityType)
         {
-            if (id == 0) return InvalidResult(ErrorMessages.InvalidId);
+            if (id == 0) return InvalidResult(NonLocalizedErrorMessages.InvalidId);
             
             return ItemResult( await _blogService.GetBlogByIdAsync(id, entityType));
         }

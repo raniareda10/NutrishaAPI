@@ -17,7 +17,7 @@ namespace NutrishaAPI.Validations.Articles
             var result = new ValidationResult();
             if (string.IsNullOrWhiteSpace(model.Subject) || model.Subject.Length > MaxSubjectCharacters)
             {
-                result.AddError(ErrorMessages.InvalidSubject);
+                result.AddError(NonLocalizedErrorMessages.InvalidSubject);
                 return result;
             }
 

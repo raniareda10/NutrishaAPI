@@ -15,7 +15,7 @@ namespace NutrishaAPI.Validations.Comments
 
             if (!postCommentDto.IsValidEntityId())
             {
-                result.AddError(ErrorMessages.InvalidId);
+                result.AddError(NonLocalizedErrorMessages.InvalidId);
                 return result;
             }
 

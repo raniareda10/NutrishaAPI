@@ -32,7 +32,7 @@ namespace DL.Services.Comments
             var result = new PayloadServiceResult<CommentDto>();
             if (!await _dbContext.IsEntityExistsAsync(postCommentDto.EntityId, postCommentDto.EntityType))
             {
-                result.Errors.Add(ErrorMessages.InvalidParameters);
+                result.Errors.Add(NonLocalizedErrorMessages.InvalidParameters);
                 return result;
             }
 
@@ -61,7 +61,7 @@ namespace DL.Services.Comments
 
             if (comment == null)
             {
-                result.Errors.Add(ErrorMessages.InvalidId);
+                result.Errors.Add(NonLocalizedErrorMessages.InvalidId);
                 return result;
             }
 

@@ -11,8 +11,10 @@ namespace NutrishaAPI.Services
         {
             UserId = int.Parse(httpContextAccessor.HttpContext.User.Claims
                 .FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value);
+            Locale = httpContextAccessor.HttpContext.Request.Headers["Accept-Language"].ToString() ?? "en";
         }
 
         public int UserId { get; set; }
+        public string Locale { get; set; }
     }
 }

@@ -17,13 +17,13 @@ namespace NutrishaAPI.Validations.Users
             var result = new ValidationResult();
             if (string.IsNullOrWhiteSpace(loginModel.Email) || string.IsNullOrWhiteSpace(loginModel.Password))
             {
-                result.AddError(ErrorMessages.WrongCredential);
+                result.AddError(NonLocalizedErrorMessages.WrongCredential);
                 return result;
             }
 
             if (!loginModel.Email.IsValidEmail())
             {
-                result.AddError(ErrorMessages.WrongCredential);
+                result.AddError(NonLocalizedErrorMessages.WrongCredential);
                 return result;
             }
 

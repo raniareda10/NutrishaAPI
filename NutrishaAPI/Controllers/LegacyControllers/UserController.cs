@@ -9,6 +9,7 @@ using BL.Security;
 using DL.DTO;
 using DL.DTOs.UserDTOs;
 using DL.Entities;
+using DL.ErrorMessages;
 using DL.MailModels;
 using HELPER;
 using Helpers;
@@ -40,10 +41,14 @@ namespace NutrishaAPI.Controllers.LegacyControllers
         private readonly IHostingEnvironment _hostingEnvironment;
         private readonly BaseResponseHelper baseResponse;
         private readonly IMapper _mapper;
+        private readonly string _locale;
 
         private readonly IMailService _mailService;
+
         public UserController(ISMS SMS, ICheckUniqes checkUniq, IMailService mailService, IMapper mapper,
-            IHostingEnvironment hostingEnvironment, IUnitOfWork uow, IAuthenticateService authService, IConfiguration iConfig,
+            IHostingEnvironment hostingEnvironment, IUnitOfWork uow, IAuthenticateService authService,
+            IConfiguration iConfig,
+            IHttpContextAccessor httpContextAccessor,
             IOptions<TokenManagement> tokenManagement)
         {
             _SMS = SMS;
@@ -55,8 +60,8 @@ namespace NutrishaAPI.Controllers.LegacyControllers
             _mailService = mailService;
             baseResponse = new BaseResponseHelper();
             configuration = iConfig;
+            _locale = httpContextAccessor.HttpContext.Request.Headers["Accept-Language"];
         }
-
 
 
         /// <summary>
@@ -72,24 +77,28 @@ namespace NutrishaAPI.Controllers.LegacyControllers
         public async Task<IActionResult> LogIn(ApiLoginModelDTO request)
         {
             if (!ModelState.IsValid)
-            { return BadRequest(ModelState); }
-            
+            {
+                return BadRequest(ModelState);
+            }
+
             var user = _authService.AuthenticateUser(request, out string token);
             if (user == null)
             {
                 baseResponse.done = false;
-                baseResponse.statusCode = (int)HttpStatusCode.BadRequest;
+                baseResponse.statusCode = (int) HttpStatusCode.BadRequest;
                 if (!string.IsNullOrEmpty(request.Email))
                 {
                     baseResponse.message = " email and password combination isn’t correct";
                 }
+
                 if (!string.IsNullOrEmpty(request.Mobile))
                 {
                     baseResponse.message = " mobile and password combination isn’t correct";
                 }
+
                 return BadRequest(baseResponse);
             }
-            
+
             // if (!user.IsAccountVerified)
             // {
             //     baseResponse.done = false;
@@ -103,12 +112,14 @@ namespace NutrishaAPI.Controllers.LegacyControllers
             string dbConn = configuration.GetSection("Setting").GetSection("FilePath").Value;
             if (user.PersonalImage != null && user.PersonalImage != string.Empty)
             {
-                user.PersonalImage = dbConn + $"https://api.nutrisha.app/Files/Documents/{user.Id}/{user.PersonalImage}";
+                user.PersonalImage =
+                    dbConn + $"https://api.nutrisha.app/Files/Documents/{user.Id}/{user.PersonalImage}";
             }
             else
             {
                 user.PersonalImage = string.Empty;
             }
+
             if (user.NationalID != null && user.NationalID != string.Empty)
             {
                 user.NationalID = dbConn + $"https://api.nutrisha.app/Files/Documents/{user.Id}/{user.NationalID}";
@@ -128,14 +139,17 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                 user.DeviceToken = request.DeviceToken;
                 user.DeviceTypeId = request.DeviceTypeId;
             }
+
             if (!string.IsNullOrEmpty(request.Language))
             {
                 muser.Language = request.Language;
                 user.Language = request.Language;
             }
+
             _uow.UserRepository.Update(muser);
             _uow.Save();
-            var verfiyCode = _uow.VerfiyCodeRepository.GetMany(c => c.Email == request.Email || c.Mobile == request.Mobile).FirstOrDefault();
+            var verfiyCode = _uow.VerfiyCodeRepository
+                .GetMany(c => c.Email == request.Email || c.Mobile == request.Mobile).FirstOrDefault();
             if (verfiyCode != null)
             {
                 user.VerfiyCode = verfiyCode.VirfeyCode;
@@ -151,19 +165,20 @@ namespace NutrishaAPI.Controllers.LegacyControllers
             baseResponse.statusCode = StatusCodes.Status200OK;
             baseResponse.done = true;
             return Ok(baseResponse);
-        
+
             baseResponse.done = false;
-            baseResponse.statusCode = (int)HttpStatusCode.BadRequest;
+            baseResponse.statusCode = (int) HttpStatusCode.BadRequest;
             if (!string.IsNullOrEmpty(request.Email))
             {
                 baseResponse.message = " email and password combination isn’t correct";
             }
+
             if (!string.IsNullOrEmpty(request.Mobile))
             {
                 baseResponse.message = " mobile and password combination isn’t correct";
             }
-            return BadRequest(baseResponse);
 
+            return BadRequest(baseResponse);
         }
 
 
@@ -182,7 +197,6 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                     Mobile = item.Mobile,
                     Email = item.Email,
                     Id = item.Id,
-      
                 };
 
 
@@ -192,11 +206,14 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                 {
                     userDTO.PersonalImage = dbConn + $"/Files/Documents/{item.Id}/{item.PersonalImage}";
                 }
+
                 if (item.NationalID != null && item.NationalID != string.Empty)
                 {
                     userDTO.NationalID = dbConn + $"/Files/Documents/{item.Id}/{item.NationalID}";
                 }
-                var verfiyCode = _uow.VerfiyCodeRepository.GetMany(c => c.Email == userDTO.Email || c.Mobile == userDTO.Mobile).FirstOrDefault();
+
+                var verfiyCode = _uow.VerfiyCodeRepository
+                    .GetMany(c => c.Email == userDTO.Email || c.Mobile == userDTO.Mobile).FirstOrDefault();
                 if (verfiyCode != null)
                 {
                     userDTO.VerfiyCode = verfiyCode.VirfeyCode;
@@ -204,15 +221,14 @@ namespace NutrishaAPI.Controllers.LegacyControllers
 
                 AllUser.Add(userDTO);
             }
+
             //var AllUser = _mapper.Map<List<AllUserDTO>>(lstUser);
             baseResponse.data = AllUser;
             baseResponse.total_rows = AllUser.Count();
-            baseResponse.statusCode = (int)HttpStatusCode.OK;  // Errors.Success;
+            baseResponse.statusCode = (int) HttpStatusCode.OK; // Errors.Success;
             baseResponse.done = true;
             return Ok(baseResponse);
         }
-
-
 
 
         //[ClaimRequirement(ClaimTypes.Role, RoleConstant.AddRole)]
@@ -226,9 +242,6 @@ namespace NutrishaAPI.Controllers.LegacyControllers
         //}
 
 
-
-
-
         ////   [ClaimRequirement(ClaimTypes.Role, RoleConstant.AddUserRole)]
         //[HttpPost, Route("AddUserRole")]
         //public IActionResult AddUserRole(int UserId, int RoleId)
@@ -240,43 +253,44 @@ namespace NutrishaAPI.Controllers.LegacyControllers
         //}
 
 
-
-
         //[ClaimRequirement(ClaimTypes.Role, RoleConstant.GetUser)]
         [HttpGet, Route("GetUser")]
         [ProducesResponseType(typeof(AllUserDTO), StatusCodes.Status200OK)]
         public IActionResult GetUser(int id)
         {
             var item = _uow.UserRepository.GetMany(dt => dt.Id == id).FirstOrDefault();
-         //   var vehicleType = _mapper.Map<DL.DTOs.VehicleTypeDTO.VehicleTypeCreatDto>(item.VehicleType);
+            //   var vehicleType = _mapper.Map<DL.DTOs.VehicleTypeDTO.VehicleTypeCreatDto>(item.VehicleType);
             AllUserDTO userDTO = new AllUserDTO()
-                {
-                    Name = item.Name,
-                    Mobile = item.Mobile,
-                   Email = item.Email,
+            {
+                Name = item.Name,
+                Mobile = item.Mobile,
+                Email = item.Email,
                 Id = item.Id,
-             
-                };
+            };
 
 
-                // Return the file. A byte array can also be used instead of a stream
-                string dbConn = configuration.GetSection("Setting").GetSection("FilePath").Value;
+            // Return the file. A byte array can also be used instead of a stream
+            string dbConn = configuration.GetSection("Setting").GetSection("FilePath").Value;
             if (item.PersonalImage != null && item.PersonalImage != string.Empty)
             {
                 userDTO.PersonalImage = dbConn + $"/Files/Documents/{item.Id}/{item.PersonalImage}";
             }
+
             if (item.NationalID != null && item.NationalID != string.Empty)
             {
                 userDTO.NationalID = dbConn + $"/Files/Documents/{item.Id}/{item.NationalID}";
             }
-            var verfiyCode = _uow.VerfiyCodeRepository.GetMany(c => c.Email == userDTO.Email || c.Mobile == userDTO.Mobile).FirstOrDefault();
+
+            var verfiyCode = _uow.VerfiyCodeRepository
+                .GetMany(c => c.Email == userDTO.Email || c.Mobile == userDTO.Mobile).FirstOrDefault();
             if (verfiyCode != null)
             {
                 userDTO.VerfiyCode = verfiyCode.VirfeyCode;
             }
+
             //var AllUser = _mapper.Map<List<AllUserDTO>>(lstUser);
             baseResponse.data = userDTO;
-            baseResponse.statusCode = (int)HttpStatusCode.OK;  // Errors.Success;
+            baseResponse.statusCode = (int) HttpStatusCode.OK; // Errors.Success;
             baseResponse.done = true;
             return Ok(baseResponse);
         }
@@ -292,7 +306,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
             if (isEmptyEmail && isEmptyMobile)
             {
                 baseResponse.data = "";
-                baseResponse.statusCode = (int)HttpStatusCode.NotFound;
+                baseResponse.statusCode = (int) HttpStatusCode.NotFound;
                 baseResponse.done = false;
                 baseResponse.message = "Must Insert Email or Mobile";
                 return Ok(baseResponse);
@@ -301,11 +315,12 @@ namespace NutrishaAPI.Controllers.LegacyControllers
             if (!isEmptyEmail && !isEmptyMobile)
             {
                 baseResponse.data = "";
-                baseResponse.statusCode = (int)HttpStatusCode.NotFound;
+                baseResponse.statusCode = (int) HttpStatusCode.NotFound;
                 baseResponse.done = false;
                 baseResponse.message = "Only Email or Mobile.";
                 return Ok(baseResponse);
             }
+
             var isEmailRegistration = !string.IsNullOrWhiteSpace(request.Email);
             try
             {
@@ -315,26 +330,25 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                         isEmailRegistration
                             ? u => u.Email == request.Email
                             : u => u.Mobile == request.Mobile
-                            );
+                    );
 
-                if (tempUser?.IsAccountVerified == true)
+                if (tempUser != null)
                 {
                     baseResponse.data = "";
-                    baseResponse.statusCode = (int)HttpStatusCode.NotFound;
+                    baseResponse.statusCode = (int) HttpStatusCode.NotFound;
                     baseResponse.done = false;
-                    baseResponse.message = "Email Or Mobile Number Already Exists.";
+                    baseResponse.message = ErrorMessagesKeys.EmailOrPhoneAlreadyExists.Localize(_locale);
                     return Ok(baseResponse);
                 }
 
-                if (tempUser == null)
-                {
-                    tempUser = _mapper.Map<DL.Entities.MUser>(request);
-                    tempUser.IsActive = true;
-                    tempUser.Password = EncryptANDDecrypt.EncryptText(request.Password);
-                    _uow.UserRepository.Add(tempUser);
-                    _uow.Save();
-                }
-                
+
+                tempUser = _mapper.Map<DL.Entities.MUser>(request);
+                tempUser.IsActive = true;
+                tempUser.Password = EncryptANDDecrypt.EncryptText(request.Password);
+                _uow.UserRepository.Add(tempUser);
+                _uow.Save();
+
+
                 // if (!string.IsNullOrEmpty(request.Email))
                 // {
                 //     var verfiyCode = _uow.VerfiyCodeRepository.GetMany(c => c.Email == request.Email).FirstOrDefault();
@@ -381,15 +395,16 @@ namespace NutrishaAPI.Controllers.LegacyControllers
 
             catch (Exception ex)
             {
-
-                baseResponse.statusCode = (int)HttpStatusCode.BadRequest;
+                baseResponse.statusCode = (int) HttpStatusCode.BadRequest;
                 baseResponse.done = false;
                 baseResponse.message = $"Exception :{ex.Message}";
 
-                return StatusCode((int)HttpStatusCode.BadRequest, baseResponse);
+                return StatusCode((int) HttpStatusCode.BadRequest, baseResponse);
             }
+
             return BadRequest("Invalid Username or Password");
         }
+
         [AllowAnonymous]
         [HttpPost, Route("CompleteUserData")]
         [ProducesResponseType(typeof(UserWithTokenDTO), StatusCodes.Status200OK)]
@@ -399,7 +414,6 @@ namespace NutrishaAPI.Controllers.LegacyControllers
             {
                 try
                 {
-
                     var User = _uow.UserRepository.GetMany(c => c.Id == request.UserId).FirstOrDefault();
                     if (User != null)
                     {
@@ -411,26 +425,28 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                                 var Is1BiggerThan10MB = CheckFileSizeHelper.IsBeggerThan10MB(request.PersonalImage);
                                 if (!IsPersonalImage)
                                 {
-                                    return BadRequest(new { Erorr = "Personal Image Only Images Allowed" });
+                                    return BadRequest(new {Erorr = "Personal Image Only Images Allowed"});
                                 }
 
                                 if (Is1BiggerThan10MB)
                                 {
-                                    return BadRequest(new { Erorr = " Personal Image Only Images Less Than 10MB Allowed" });
+                                    return BadRequest(
+                                        new {Erorr = " Personal Image Only Images Less Than 10MB Allowed"});
                                 }
                             }
+
                             if (request.NationalID != null)
                             {
                                 var IsNationalID = FileCheckHelper.IsImage(request.NationalID.OpenReadStream());
                                 var Is1BiggerThan10MB = CheckFileSizeHelper.IsBeggerThan10MB(request.NationalID);
                                 if (!IsNationalID)
                                 {
-                                    return BadRequest(new { Erorr = "NationalID Only Images Allowed" });
+                                    return BadRequest(new {Erorr = "NationalID Only Images Allowed"});
                                 }
 
                                 if (Is1BiggerThan10MB)
                                 {
-                                    return BadRequest(new { Erorr = " NationalID Only Images Less Than 10MB Allowed" });
+                                    return BadRequest(new {Erorr = " NationalID Only Images Less Than 10MB Allowed"});
                                 }
                             }
 
@@ -445,16 +461,20 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                             User.Name = request.Name;
                             User.IsAvailable = request.IsAvailable ?? false;
 
-                            var FC = FileHelper.CreateFolder(_hostingEnvironment, UploadPathes.DocsPath + "/" + User.Mobile);
+                            var FC = FileHelper.CreateFolder(_hostingEnvironment,
+                                UploadPathes.DocsPath + "/" + User.Mobile);
 
                             if (request.PersonalImage != null)
                             {
-                                var PersonalImage = FileHelper.FileUpload(request.PersonalImage, _hostingEnvironment, UploadPathes.DocsPath + "/" + User.Mobile);
+                                var PersonalImage = FileHelper.FileUpload(request.PersonalImage, _hostingEnvironment,
+                                    UploadPathes.DocsPath + "/" + User.Mobile);
                                 User.PersonalImage = PersonalImage;
                             }
+
                             if (request.NationalID != null)
                             {
-                                var NationalID = FileHelper.FileUpload(request.NationalID, _hostingEnvironment, UploadPathes.DocsPath + "/" + User.Mobile);
+                                var NationalID = FileHelper.FileUpload(request.NationalID, _hostingEnvironment,
+                                    UploadPathes.DocsPath + "/" + User.Mobile);
                                 User.NationalID = NationalID;
                                 // User.IsUploadedNationalID = true;
                             }
@@ -463,29 +483,31 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                             _uow.Save();
                             if (request.UserRisk != null)
                             {
-                                var lstRisk = _uow.RiskRepository.GetMany(c => request.UserRisk.Contains(c.Id)).ToList();
+                                var lstRisk = _uow.RiskRepository.GetMany(c => request.UserRisk.Contains(c.Id))
+                                    .ToList();
                                 foreach (var risk in lstRisk)
                                 {
                                     var userRisk = new MUserRisk();
                                     userRisk.RiskId = risk.Id;
                                     userRisk.UserId = User.Id;
                                     _uow.UserRiskRepository.Add(userRisk);
-
                                 }
 
                                 _uow.Save();
                             }
+
                             if (request.UserAllergy != null)
                             {
-                                var lstAllergy = _uow.AllergyRepository.GetMany(c => request.UserAllergy.Contains(c.Id)).ToList();
+                                var lstAllergy = _uow.AllergyRepository.GetMany(c => request.UserAllergy.Contains(c.Id))
+                                    .ToList();
                                 foreach (var allergy in lstAllergy)
                                 {
                                     var userAllergy = new MUserAllergy();
                                     userAllergy.AllergyId = allergy.Id;
                                     userAllergy.UserId = User.Id;
                                     _uow.UserAllergyRepository.Add(userAllergy);
-
                                 }
+
                                 _uow.Save();
                             }
 
@@ -498,30 +520,35 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                             string dbConn = configuration.GetSection("Setting").GetSection("FilePath").Value;
                             if (User.PersonalImage != null && User.PersonalImage != string.Empty)
                             {
-                                User.PersonalImage = dbConn + $"https://api.nutrisha.app/Files/Documents/{User.Id}/{User.PersonalImage}";
+                                User.PersonalImage = dbConn +
+                                                     $"https://api.nutrisha.app/Files/Documents/{User.Id}/{User.PersonalImage}";
                             }
                             else
                             {
                                 User.PersonalImage = string.Empty;
                             }
+
                             if (User.NationalID != null && User.NationalID != string.Empty)
                             {
-                                User.NationalID = dbConn + $"https://api.nutrisha.app/Files/Documents/{User.Id}/{User.NationalID}";
+                                User.NationalID = dbConn +
+                                                  $"https://api.nutrisha.app/Files/Documents/{User.Id}/{User.NationalID}";
                             }
                             else
                             {
                                 User.NationalID = string.Empty;
                             }
-                            var verfiyCodeLast = _uow.VerfiyCodeRepository.GetMany(c => c.Email == User.Email || c.Mobile == User.Mobile).FirstOrDefault();
+
+                            var verfiyCodeLast = _uow.VerfiyCodeRepository
+                                .GetMany(c => c.Email == User.Email || c.Mobile == User.Mobile).FirstOrDefault();
                             if (verfiyCodeLast != null)
                             {
                                 User.VerfiyCode = verfiyCodeLast.VirfeyCode;
                             }
+
                             var AllUser = _mapper.Map<AllUserDTO>(User);
                             baseResponse.data = new
                             {
                                 AllUser,
-
                             };
                             baseResponse.statusCode = StatusCodes.Status200OK;
                             baseResponse.total_rows = 1;
@@ -531,7 +558,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                         else
                         {
                             baseResponse.done = false;
-                            baseResponse.statusCode = (int)HttpStatusCode.BadRequest;
+                            baseResponse.statusCode = (int) HttpStatusCode.BadRequest;
                             baseResponse.message = "Account Not Verfied";
                             return BadRequest(baseResponse);
                         }
@@ -539,24 +566,25 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                 }
                 catch (Exception ex)
                 {
-
-                    baseResponse.statusCode = (int)HttpStatusCode.BadRequest;
+                    baseResponse.statusCode = (int) HttpStatusCode.BadRequest;
                     baseResponse.done = false;
                     baseResponse.message = $"Exception :{ex.Message}";
 
-                    return StatusCode((int)HttpStatusCode.BadRequest, baseResponse);
+                    return StatusCode((int) HttpStatusCode.BadRequest, baseResponse);
                 }
-
             }
+
             return BadRequest("Invalid Username or Password");
         }
+
         [HttpPost, Route("GetVerifyCode")]
         [ProducesResponseType(typeof(MVerfiyCode), StatusCodes.Status200OK)]
         public IActionResult GetVerifyCode(UserMobileEmaiDTO userMobileEmaiDTO)
         {
             if (!string.IsNullOrEmpty(userMobileEmaiDTO.Mobile))
             {
-                var verfiyCode = _uow.VerfiyCodeRepository.GetMany(c => c.Mobile == userMobileEmaiDTO.Mobile).FirstOrDefault();
+                var verfiyCode = _uow.VerfiyCodeRepository.GetMany(c => c.Mobile == userMobileEmaiDTO.Mobile)
+                    .FirstOrDefault();
                 if (verfiyCode != null)
                 {
                     int num = new Random().Next(1000, 9999);
@@ -568,20 +596,22 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                 else
                 {
                     int num = new Random().Next(1000, 9999);
-                    verfiyCode = new MVerfiyCode { Date = DateTime.Now.AddMinutes(5), Mobile = userMobileEmaiDTO.Mobile, VirfeyCode = num };
+                    verfiyCode = new MVerfiyCode
+                        {Date = DateTime.Now.AddMinutes(5), Mobile = userMobileEmaiDTO.Mobile, VirfeyCode = num};
                     _uow.VerfiyCodeRepository.Add(verfiyCode);
                     _uow.Save();
                 }
 
                 baseResponse.data = verfiyCode;
                 baseResponse.total_rows = 1;
-                baseResponse.statusCode = (int)HttpStatusCode.OK;  // Errors.Success;
+                baseResponse.statusCode = (int) HttpStatusCode.OK; // Errors.Success;
                 baseResponse.done = true;
                 return Ok(baseResponse);
             }
             else if (!string.IsNullOrEmpty(userMobileEmaiDTO.Email))
             {
-                var verfiyCode = _uow.VerfiyCodeRepository.GetMany(c => c.Email == userMobileEmaiDTO.Email).FirstOrDefault();
+                var verfiyCode = _uow.VerfiyCodeRepository.GetMany(c => c.Email == userMobileEmaiDTO.Email)
+                    .FirstOrDefault();
                 if (verfiyCode != null)
                 {
                     int num = new Random().Next(1000, 9999);
@@ -590,22 +620,29 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                     _uow.VerfiyCodeRepository.Update(verfiyCode);
                     _uow.Save();
 
-                    _mailService.SendWelcomeEmailAsync(new WelcomeRequest { ToEmail = userMobileEmaiDTO.Email, UserName = userMobileEmaiDTO.Email, Id = 0, VerifyCode = num.ToString() });
-
+                    _mailService.SendWelcomeEmailAsync(new WelcomeRequest
+                    {
+                        ToEmail = userMobileEmaiDTO.Email, UserName = userMobileEmaiDTO.Email, Id = 0,
+                        VerifyCode = num.ToString()
+                    });
                 }
                 else
                 {
                     int num = new Random().Next(1000, 9999);
-                    verfiyCode = new MVerfiyCode { Date = DateTime.Now.AddMinutes(5), Email = userMobileEmaiDTO.Email, VirfeyCode = num };
+                    verfiyCode = new MVerfiyCode
+                        {Date = DateTime.Now.AddMinutes(5), Email = userMobileEmaiDTO.Email, VirfeyCode = num};
                     _uow.VerfiyCodeRepository.Add(verfiyCode);
                     _uow.Save();
-                    _mailService.SendWelcomeEmailAsync(new WelcomeRequest { ToEmail = userMobileEmaiDTO.Email, UserName = userMobileEmaiDTO.Email, Id = 0, VerifyCode = num.ToString() });
-
+                    _mailService.SendWelcomeEmailAsync(new WelcomeRequest
+                    {
+                        ToEmail = userMobileEmaiDTO.Email, UserName = userMobileEmaiDTO.Email, Id = 0,
+                        VerifyCode = num.ToString()
+                    });
                 }
 
                 baseResponse.data = verfiyCode;
                 baseResponse.total_rows = 1;
-                baseResponse.statusCode = (int)HttpStatusCode.OK;  // Errors.Success;
+                baseResponse.statusCode = (int) HttpStatusCode.OK; // Errors.Success;
                 baseResponse.done = true;
                 return Ok(baseResponse);
             }
@@ -613,24 +650,25 @@ namespace NutrishaAPI.Controllers.LegacyControllers
             {
                 baseResponse.data = "must insert mail or mobile";
                 baseResponse.total_rows = 0;
-                baseResponse.statusCode = (int)HttpStatusCode.NotFound;  // Errors.Success;
+                baseResponse.statusCode = (int) HttpStatusCode.NotFound; // Errors.Success;
                 baseResponse.done = false;
                 return Ok(baseResponse);
             }
-
         }
 
         [HttpPost, Route("CheckVerifyCode")]
         [ProducesResponseType(typeof(AllUserDTO), StatusCodes.Status200OK)]
         public IActionResult CheckAccountVerified(CheckVerifyCodeDto checkVerifyCode)
         {
-
-            var user = _uow.UserRepository.GetMany(c => (!string.IsNullOrEmpty(checkVerifyCode.Email) && c.Email == checkVerifyCode.Email) || (!string.IsNullOrEmpty(checkVerifyCode.Mobile) && c.Mobile == checkVerifyCode.Mobile)).FirstOrDefault();
+            var user = _uow.UserRepository.GetMany(c =>
+                (!string.IsNullOrEmpty(checkVerifyCode.Email) && c.Email == checkVerifyCode.Email) ||
+                (!string.IsNullOrEmpty(checkVerifyCode.Mobile) && c.Mobile == checkVerifyCode.Mobile)).FirstOrDefault();
             if (user != null)
             {
                 if (!string.IsNullOrEmpty(checkVerifyCode.Mobile))
                 {
-                    var verfiyCode = _uow.VerfiyCodeRepository.GetMany(c => c.Mobile == checkVerifyCode.Mobile).FirstOrDefault();
+                    var verfiyCode = _uow.VerfiyCodeRepository.GetMany(c => c.Mobile == checkVerifyCode.Mobile)
+                        .FirstOrDefault();
                     if (verfiyCode != null)
                     {
                         if (checkVerifyCode.VirfeyCode == verfiyCode.VirfeyCode && verfiyCode.Date > DateTime.Now)
@@ -643,94 +681,40 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                             string dbConn = configuration.GetSection("Setting").GetSection("FilePath").Value;
                             if (user.PersonalImage != null && user.PersonalImage != string.Empty)
                             {
-                                user.PersonalImage = dbConn + $"https://api.nutrisha.app/Files/Documents/{user.Id}/{user.PersonalImage}";
+                                user.PersonalImage = dbConn +
+                                                     $"https://api.nutrisha.app/Files/Documents/{user.Id}/{user.PersonalImage}";
                             }
                             else
                             {
                                 user.PersonalImage = string.Empty;
                             }
+
                             if (user.NationalID != null && user.NationalID != string.Empty)
                             {
-                                user.NationalID = dbConn + $"https://api.nutrisha.app/Files/Documents/{user.Id}/{user.NationalID}";
+                                user.NationalID = dbConn +
+                                                  $"https://api.nutrisha.app/Files/Documents/{user.Id}/{user.NationalID}";
                             }
                             else
                             {
                                 user.NationalID = string.Empty;
                             }
-                        
-                            var AllUser = _mapper.Map<AllUserDTO>(user);
 
-                            baseResponse.data = AllUser;
-
-                            baseResponse.message= "Account Verified";
-                            baseResponse.total_rows = 1;
-                            baseResponse.statusCode = (int)HttpStatusCode.OK;  // Errors.Success;
-                            baseResponse.done = true;
-
-                            return Ok(baseResponse);
-                        }
-                        else
-                        {
-                            baseResponse.message = "InValied Verify Code";
-                            baseResponse.total_rows = 0;
-                            baseResponse.statusCode = (int)HttpStatusCode.BadRequest;  // Errors.Success;
-                            baseResponse.done = false;
-                            return BadRequest(baseResponse);
-                        }
-                    }
-                    else
-                    {
-                        baseResponse.message = "InValied Verify Code";
-                        baseResponse.total_rows = 0;
-                        baseResponse.statusCode = (int)HttpStatusCode.BadRequest;  // Errors.Success;
-                        baseResponse.done = false;
-                        return BadRequest(baseResponse);
-                    }
-                }
-                else if (!string.IsNullOrEmpty(checkVerifyCode.Email))
-                {
-                    var verfiyCode = _uow.VerfiyCodeRepository.GetMany(c => c.Email == checkVerifyCode.Email).FirstOrDefault();
-                    if (verfiyCode != null)
-                    {
-                        if (checkVerifyCode.VirfeyCode == verfiyCode.VirfeyCode && verfiyCode.Date > DateTime.Now)
-                        {
-                            user.VerfiyCode = checkVerifyCode.VirfeyCode;
-                            user.IsAccountVerified = true;
-                            _uow.UserRepository.Update(user);
-                            _uow.Save();
-                            user.Password = null;
-                            string dbConn = configuration.GetSection("Setting").GetSection("FilePath").Value;
-                            if (user.PersonalImage != null && user.PersonalImage != string.Empty)
-                            {
-                                user.PersonalImage = dbConn + $"https://api.nutrisha.app/Files/Documents/{user.Id}/{user.PersonalImage}";
-                            }
-                            else
-                            {
-                                user.PersonalImage = string.Empty;
-                            }
-                            if (user.NationalID != null && user.NationalID != string.Empty)
-                            {
-                                user.NationalID = dbConn + $"https://api.nutrisha.app/Files/Documents/{user.Id}/{user.NationalID}";
-                            }
-                            else
-                            {
-                                user.NationalID = string.Empty;
-                            }
                             var AllUser = _mapper.Map<AllUserDTO>(user);
 
                             baseResponse.data = AllUser;
 
                             baseResponse.message = "Account Verified";
                             baseResponse.total_rows = 1;
-                            baseResponse.statusCode = (int)HttpStatusCode.OK;  // Errors.Success;
+                            baseResponse.statusCode = (int) HttpStatusCode.OK; // Errors.Success;
                             baseResponse.done = true;
+
                             return Ok(baseResponse);
                         }
                         else
                         {
                             baseResponse.message = "InValied Verify Code";
                             baseResponse.total_rows = 0;
-                            baseResponse.statusCode = (int)HttpStatusCode.BadRequest;  // Errors.Success;
+                            baseResponse.statusCode = (int) HttpStatusCode.BadRequest; // Errors.Success;
                             baseResponse.done = false;
                             return BadRequest(baseResponse);
                         }
@@ -739,7 +723,69 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                     {
                         baseResponse.message = "InValied Verify Code";
                         baseResponse.total_rows = 0;
-                        baseResponse.statusCode = (int)HttpStatusCode.BadRequest;  // Errors.Success;
+                        baseResponse.statusCode = (int) HttpStatusCode.BadRequest; // Errors.Success;
+                        baseResponse.done = false;
+                        return BadRequest(baseResponse);
+                    }
+                }
+                else if (!string.IsNullOrEmpty(checkVerifyCode.Email))
+                {
+                    var verfiyCode = _uow.VerfiyCodeRepository.GetMany(c => c.Email == checkVerifyCode.Email)
+                        .FirstOrDefault();
+                    if (verfiyCode != null)
+                    {
+                        if (checkVerifyCode.VirfeyCode == verfiyCode.VirfeyCode && verfiyCode.Date > DateTime.Now)
+                        {
+                            user.VerfiyCode = checkVerifyCode.VirfeyCode;
+                            user.IsAccountVerified = true;
+                            _uow.UserRepository.Update(user);
+                            _uow.Save();
+                            user.Password = null;
+                            string dbConn = configuration.GetSection("Setting").GetSection("FilePath").Value;
+                            if (user.PersonalImage != null && user.PersonalImage != string.Empty)
+                            {
+                                user.PersonalImage = dbConn +
+                                                     $"https://api.nutrisha.app/Files/Documents/{user.Id}/{user.PersonalImage}";
+                            }
+                            else
+                            {
+                                user.PersonalImage = string.Empty;
+                            }
+
+                            if (user.NationalID != null && user.NationalID != string.Empty)
+                            {
+                                user.NationalID = dbConn +
+                                                  $"https://api.nutrisha.app/Files/Documents/{user.Id}/{user.NationalID}";
+                            }
+                            else
+                            {
+                                user.NationalID = string.Empty;
+                            }
+
+                            var AllUser = _mapper.Map<AllUserDTO>(user);
+
+                            baseResponse.data = AllUser;
+
+                            baseResponse.message = "Account Verified";
+                            baseResponse.total_rows = 1;
+                            baseResponse.statusCode = (int) HttpStatusCode.OK; // Errors.Success;
+                            baseResponse.done = true;
+                            return Ok(baseResponse);
+                        }
+                        else
+                        {
+                            baseResponse.message = "InValied Verify Code";
+                            baseResponse.total_rows = 0;
+                            baseResponse.statusCode = (int) HttpStatusCode.BadRequest; // Errors.Success;
+                            baseResponse.done = false;
+                            return BadRequest(baseResponse);
+                        }
+                    }
+                    else
+                    {
+                        baseResponse.message = "InValied Verify Code";
+                        baseResponse.total_rows = 0;
+                        baseResponse.statusCode = (int) HttpStatusCode.BadRequest; // Errors.Success;
                         baseResponse.done = false;
                         return BadRequest(baseResponse);
                     }
@@ -748,7 +794,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                 {
                     baseResponse.message = "must insert Email or mobile";
                     baseResponse.total_rows = 0;
-                    baseResponse.statusCode = (int)HttpStatusCode.BadRequest;  // Errors.Success;
+                    baseResponse.statusCode = (int) HttpStatusCode.BadRequest; // Errors.Success;
                     baseResponse.done = false;
                     return BadRequest(baseResponse);
                 }
@@ -756,20 +802,16 @@ namespace NutrishaAPI.Controllers.LegacyControllers
             else
             {
                 baseResponse.message = "must insert Valied Email or mobile";
-                baseResponse.statusCode = (int)HttpStatusCode.BadRequest;  // Errors.Success;
+                baseResponse.statusCode = (int) HttpStatusCode.BadRequest; // Errors.Success;
                 baseResponse.done = false;
                 return BadRequest(baseResponse);
             }
-
-
-
         }
 
         [HttpGet, Route("GetAccountVerified")]
         [ProducesResponseType(typeof(ChangeAccountVerifiedDto), StatusCodes.Status200OK)]
         public IActionResult GetAccountVerified(int userId)
         {
-
             var user = _uow.UserRepository.GetMany(c => c.Id == userId).FirstOrDefault();
             if (user != null)
             {
@@ -778,27 +820,24 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                 availability.UserId = user.Id;
                 availability.IsAccountVerified = user.IsAccountVerified;
                 baseResponse.data = availability;
-                baseResponse.statusCode = (int)HttpStatusCode.OK;  // Errors.Success;
+                baseResponse.statusCode = (int) HttpStatusCode.OK; // Errors.Success;
                 baseResponse.done = true;
                 return Ok(baseResponse);
             }
             else
             {
                 baseResponse.data = "";
-                baseResponse.statusCode = (int)HttpStatusCode.NotFound;  // Errors.Success;
+                baseResponse.statusCode = (int) HttpStatusCode.NotFound; // Errors.Success;
                 baseResponse.done = false;
                 return Ok(baseResponse);
             }
-
-
-
         }
+
         [Authorize]
         [HttpPost, Route("ChangeAccountVerified")]
         [ProducesResponseType(typeof(ChangeAccountVerifiedDto), StatusCodes.Status200OK)]
         public IActionResult ChangeAccountVerified(ChangeAccountVerifiedDto changeAccountVerifiedDto)
         {
-
             var user = _uow.UserRepository.GetMany(c => c.Id == changeAccountVerifiedDto.UserId).FirstOrDefault();
             if (user != null)
             {
@@ -810,57 +849,50 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                 availability.UserId = user.Id;
                 availability.IsAccountVerified = user.IsAccountVerified;
                 baseResponse.data = availability;
-                baseResponse.statusCode = (int)HttpStatusCode.OK;  // Errors.Success;
+                baseResponse.statusCode = (int) HttpStatusCode.OK; // Errors.Success;
                 baseResponse.done = true;
                 return Ok(baseResponse);
             }
             else
             {
                 baseResponse.data = "";
-                baseResponse.statusCode = (int)HttpStatusCode.NotFound;  // Errors.Success;
+                baseResponse.statusCode = (int) HttpStatusCode.NotFound; // Errors.Success;
                 baseResponse.done = false;
                 baseResponse.message = "Invalid User";
                 return Ok(baseResponse);
             }
-
-
-
         }
 
         [HttpGet, Route("GetAvailability")]
         [ProducesResponseType(typeof(ChangeAvailabilityDto), StatusCodes.Status200OK)]
         public IActionResult GetAvailability(int userId)
         {
-
-            var user = _uow.UserRepository.GetMany(c =>c.Id==userId).FirstOrDefault();
+            var user = _uow.UserRepository.GetMany(c => c.Id == userId).FirstOrDefault();
             if (user != null)
             {
                 var availability = new ChangeAvailabilityDto();
-               // availability.Mobile = user.Mobile;
+                // availability.Mobile = user.Mobile;
                 availability.UserId = user.Id;
                 availability.IsAvailable = user.IsAvailable;
                 baseResponse.data = availability;
-                baseResponse.statusCode = (int)HttpStatusCode.OK;  // Errors.Success;
+                baseResponse.statusCode = (int) HttpStatusCode.OK; // Errors.Success;
                 baseResponse.done = true;
                 return Ok(baseResponse);
             }
             else
             {
                 baseResponse.data = "";
-                baseResponse.statusCode = (int)HttpStatusCode.NotFound;  // Errors.Success;
+                baseResponse.statusCode = (int) HttpStatusCode.NotFound; // Errors.Success;
                 baseResponse.done = false;
                 return Ok(baseResponse);
             }
-     
-    
-
         }
+
         [Authorize]
         [HttpPost, Route("ChangeAvailability")]
         [ProducesResponseType(typeof(ChangeAvailabilityDto), StatusCodes.Status200OK)]
         public IActionResult ChangeAvailability(ChangeAvailabilityDto changeAvailabilityDto)
         {
-
             var user = _uow.UserRepository.GetMany(c => c.Id == changeAvailabilityDto.UserId).FirstOrDefault();
             if (user != null)
             {
@@ -868,24 +900,21 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                 _uow.UserRepository.Update(user);
                 _uow.Save();
                 var availability = new ChangeAvailabilityDto();
-              //  availability.Mobile = user.Mobile;
+                //  availability.Mobile = user.Mobile;
                 availability.UserId = user.Id;
                 availability.IsAvailable = user.IsAvailable;
                 baseResponse.data = availability;
-                baseResponse.statusCode = (int)HttpStatusCode.OK;  // Errors.Success;
+                baseResponse.statusCode = (int) HttpStatusCode.OK; // Errors.Success;
                 baseResponse.done = true;
                 return Ok(baseResponse);
             }
             else
             {
                 baseResponse.data = "";
-                baseResponse.statusCode = (int)HttpStatusCode.NotFound;  // Errors.Success;
+                baseResponse.statusCode = (int) HttpStatusCode.NotFound; // Errors.Success;
                 baseResponse.done = false;
                 return Ok(baseResponse);
             }
-
-
-
         }
 
         //[Authorize]
@@ -893,7 +922,6 @@ namespace NutrishaAPI.Controllers.LegacyControllers
         [ProducesResponseType(typeof(ChangeUserDeviceTokenDto), StatusCodes.Status200OK)]
         public IActionResult ChangeUserDeviceToken(ChangeUserDeviceTokenDto changeUserDeviceTokenDto)
         {
-
             var user = _uow.UserRepository.GetMany(c => c.Id == changeUserDeviceTokenDto.UserId).FirstOrDefault();
             if (user != null)
             {
@@ -908,21 +936,19 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                 userDeviceToken.DeviceTypeId = changeUserDeviceTokenDto.DeviceTypeId;
                 userDeviceToken.DeviceToken = changeUserDeviceTokenDto.DeviceToken;
                 baseResponse.data = userDeviceToken;
-                baseResponse.statusCode = (int)HttpStatusCode.OK;  // Errors.Success;
+                baseResponse.statusCode = (int) HttpStatusCode.OK; // Errors.Success;
                 baseResponse.done = true;
                 return Ok(baseResponse);
             }
             else
             {
                 baseResponse.data = "";
-                baseResponse.statusCode = (int)HttpStatusCode.NotFound;  // Errors.Success;
+                baseResponse.statusCode = (int) HttpStatusCode.NotFound; // Errors.Success;
                 baseResponse.done = false;
                 return Ok(baseResponse);
             }
-
-
-
         }
+
         [NonAction]
         private static string DecodeUrlString(string url)
         {
@@ -940,19 +966,18 @@ namespace NutrishaAPI.Controllers.LegacyControllers
             {
                 try
                 {
-
-                    var User = _uow.UserRepository.GetMany(a => a.Id == changePasswordDto.UserId ).FirstOrDefault();
+                    var User = _uow.UserRepository.GetMany(a => a.Id == changePasswordDto.UserId).FirstOrDefault();
                     if (User != null)
                     {
                         var olsPassword = User.Password;
                         var newPassword = EncryptANDDecrypt.EncryptText(changePasswordDto.NewPassword);
-                        if(olsPassword != newPassword)
+                        if (olsPassword != newPassword)
                         {
                             User.Password = EncryptANDDecrypt.EncryptText(changePasswordDto.NewPassword);
                             _uow.UserRepository.Update(User);
                             _uow.Save();
                             baseResponse.data = "";
-                            baseResponse.statusCode = (int)HttpStatusCode.OK;  // Errors.Success;
+                            baseResponse.statusCode = (int) HttpStatusCode.OK; // Errors.Success;
                             baseResponse.done = true;
                             baseResponse.message = "Password Changed";
                             return Ok(baseResponse);
@@ -960,35 +985,32 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                         else
                         {
                             baseResponse.data = "";
-                            baseResponse.statusCode = (int)HttpStatusCode.NotAcceptable;
+                            baseResponse.statusCode = (int) HttpStatusCode.NotAcceptable;
                             baseResponse.done = false;
                             baseResponse.message = "Not Valied Password";
                             return Ok(baseResponse);
                         }
-                     
                     }
+
                     baseResponse.data = "";
-                    baseResponse.statusCode = (int)HttpStatusCode.BadRequest;
+                    baseResponse.statusCode = (int) HttpStatusCode.BadRequest;
                     baseResponse.done = false;
                     baseResponse.message = "Worng User Id";
 
-                    return StatusCode((int)HttpStatusCode.BadRequest, baseResponse);
-
+                    return StatusCode((int) HttpStatusCode.BadRequest, baseResponse);
                 }
                 catch (Exception ex)
                 {
                     baseResponse.data = "";
-                    baseResponse.statusCode = (int)HttpStatusCode.BadRequest;
+                    baseResponse.statusCode = (int) HttpStatusCode.BadRequest;
                     baseResponse.done = false;
                     baseResponse.message = $"Exception :{ex.Message}";
 
-                    return StatusCode((int)HttpStatusCode.BadRequest, baseResponse);
+                    return StatusCode((int) HttpStatusCode.BadRequest, baseResponse);
                 }
             }
+
             return BadRequest(ModelState);
-
-
-
         }
 
         [AllowAnonymous]
@@ -999,25 +1021,23 @@ namespace NutrishaAPI.Controllers.LegacyControllers
             // var IdDec = EncryptANDDecrypt.DecryptText(forgetPasswordDTO.EncId);
             if (!string.IsNullOrEmpty(forgetPasswordDTO.Email))
             {
-                var verfiyCode = _uow.VerfiyCodeRepository.GetMany(c => c.Email == forgetPasswordDTO.Email).FirstOrDefault();
+                var verfiyCode = _uow.VerfiyCodeRepository.GetMany(c => c.Email == forgetPasswordDTO.Email)
+                    .FirstOrDefault();
 
                 var user = _uow.UserRepository.GetMany(a => a.Email == forgetPasswordDTO.Email).FirstOrDefault();
                 if (user != null)
                 {
-
                     if (!user.IsAccountVerified)
                     {
-                        
                         baseResponse.data = "";
-                        baseResponse.statusCode = (int)HttpStatusCode.BadRequest;
+                        baseResponse.statusCode = (int) HttpStatusCode.BadRequest;
                         baseResponse.done = false;
                         baseResponse.message = "please verify your account first.";
                         return BadRequest(baseResponse);
-                        
                     }
+
                     if (verfiyCode != null)
                     {
-                        
                         // BAD CODE?? I know i just a fixer :) no time to refactor # TAWFIQ #
                         if (verfiyCode.Date > DateTime.Now)
                         {
@@ -1026,7 +1046,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                             if (oldPassword == newPassword)
                             {
                                 baseResponse.data = "";
-                                baseResponse.statusCode = (int)HttpStatusCode.BadRequest;
+                                baseResponse.statusCode = (int) HttpStatusCode.BadRequest;
                                 baseResponse.done = false;
                                 baseResponse.message = "new password shouldn't be one of your old passwords.";
                                 return BadRequest(baseResponse);
@@ -1040,24 +1060,28 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                             string dbConn = configuration.GetSection("Setting").GetSection("FilePath").Value;
                             if (user.PersonalImage != null && user.PersonalImage != string.Empty)
                             {
-                                user.PersonalImage = dbConn + $"https://api.nutrisha.app/Files/Documents/{user.Id}/{user.PersonalImage}";
+                                user.PersonalImage = dbConn +
+                                                     $"https://api.nutrisha.app/Files/Documents/{user.Id}/{user.PersonalImage}";
                             }
                             else
                             {
                                 user.PersonalImage = string.Empty;
                             }
+
                             if (user.NationalID != null && user.NationalID != string.Empty)
                             {
-                                user.NationalID = dbConn + $"https://api.nutrisha.app/Files/Documents/{user.Id}/{user.NationalID}";
+                                user.NationalID = dbConn +
+                                                  $"https://api.nutrisha.app/Files/Documents/{user.Id}/{user.NationalID}";
                             }
                             else
                             {
                                 user.NationalID = string.Empty;
                             }
+
                             var AllUser = _mapper.Map<AllUserDTO>(user);
 
                             baseResponse.data = AllUser;
-                            baseResponse.statusCode = (int)HttpStatusCode.OK;  // Errors.Success;
+                            baseResponse.statusCode = (int) HttpStatusCode.OK; // Errors.Success;
                             baseResponse.done = true;
                             baseResponse.message = "Password has changed successfully";
                             return Ok(baseResponse);
@@ -1065,21 +1089,20 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                         else
                         {
                             baseResponse.data = "";
-                            baseResponse.statusCode = (int)HttpStatusCode.BadRequest;
+                            baseResponse.statusCode = (int) HttpStatusCode.BadRequest;
                             baseResponse.done = false;
                             baseResponse.message = "asking the user to reset the pass again";
                         }
                     }
                 }
-
             }
-     
+
             baseResponse.data = "";
-            baseResponse.statusCode = (int)HttpStatusCode.BadRequest;
+            baseResponse.statusCode = (int) HttpStatusCode.BadRequest;
             baseResponse.done = false;
             baseResponse.message = "Wrong credentials";
 
-            return StatusCode((int)HttpStatusCode.BadRequest, baseResponse);
+            return StatusCode((int) HttpStatusCode.BadRequest, baseResponse);
         }
 
         [AllowAnonymous]
@@ -1089,7 +1112,8 @@ namespace NutrishaAPI.Controllers.LegacyControllers
         {
             if (!string.IsNullOrEmpty(forgetPasswordDTO.Mobile))
             {
-                var verfiyCode = _uow.VerfiyCodeRepository.GetMany(c => c.Mobile == forgetPasswordDTO.Mobile).FirstOrDefault();
+                var verfiyCode = _uow.VerfiyCodeRepository.GetMany(c => c.Mobile == forgetPasswordDTO.Mobile)
+                    .FirstOrDefault();
                 var user = _uow.UserRepository.GetMany(c => c.Mobile == forgetPasswordDTO.Mobile).FirstOrDefault();
                 if (user != null)
                 {
@@ -1105,24 +1129,28 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                             string dbConn = configuration.GetSection("Setting").GetSection("FilePath").Value;
                             if (user.PersonalImage != null && user.PersonalImage != string.Empty)
                             {
-                                user.PersonalImage = dbConn + $"https://api.nutrisha.app/Files/Documents/{user.Id}/{user.PersonalImage}";
+                                user.PersonalImage = dbConn +
+                                                     $"https://api.nutrisha.app/Files/Documents/{user.Id}/{user.PersonalImage}";
                             }
                             else
                             {
                                 user.PersonalImage = string.Empty;
                             }
+
                             if (user.NationalID != null && user.NationalID != string.Empty)
                             {
-                                user.NationalID = dbConn + $"https://api.nutrisha.app/Files/Documents/{user.Id}/{user.NationalID}";
+                                user.NationalID = dbConn +
+                                                  $"https://api.nutrisha.app/Files/Documents/{user.Id}/{user.NationalID}";
                             }
                             else
                             {
                                 user.NationalID = string.Empty;
                             }
+
                             var AllUser = _mapper.Map<AllUserDTO>(user);
 
                             baseResponse.data = AllUser;
-                            baseResponse.statusCode = (int)HttpStatusCode.OK;  // Errors.Success;
+                            baseResponse.statusCode = (int) HttpStatusCode.OK; // Errors.Success;
                             baseResponse.done = true;
                             baseResponse.message = "Password has changed successfully";
                             return Ok(baseResponse);
@@ -1130,21 +1158,22 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                         else
                         {
                             baseResponse.data = "";
-                            baseResponse.statusCode = (int)HttpStatusCode.BadRequest;
+                            baseResponse.statusCode = (int) HttpStatusCode.BadRequest;
                             baseResponse.done = false;
                             baseResponse.message = "asking the user to reset the pass again";
                         }
                     }
                 }
-
             }
+
             baseResponse.data = "";
-            baseResponse.statusCode = (int)HttpStatusCode.BadRequest;
+            baseResponse.statusCode = (int) HttpStatusCode.BadRequest;
             baseResponse.done = false;
             baseResponse.message = "Wrong credentials";
 
-            return StatusCode((int)HttpStatusCode.BadRequest, baseResponse);
+            return StatusCode((int) HttpStatusCode.BadRequest, baseResponse);
         }
+
         [AllowAnonymous]
         [HttpGet, Route("ActivateAccountOTP")]
         public IActionResult ActivateViaCode(int VirifyCode)
@@ -1156,10 +1185,10 @@ namespace NutrishaAPI.Controllers.LegacyControllers
             {
                 return Ok(Result);
             }
+
             return BadRequest();
         }
-        
-        
+
 
         //[AllowAnonymous]
         //[HttpPost, Route("ForgetPassword")]
