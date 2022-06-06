@@ -12,7 +12,5 @@ namespace DL.DTOs.UserDTOs
         public string Email { get; set; }
         public int VerifyCode { get; set; }
         public string NewPassword { get; set; }
-
-   
     }
 }

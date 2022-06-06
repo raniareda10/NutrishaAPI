@@ -47,7 +47,7 @@ namespace DL.MailModels
             smtp.Connect(_mailSettings.Host, _mailSettings.Port, SecureSocketOptions.StartTls);
             smtp.Authenticate(_mailSettings.Mail, _mailSettings.Password);
             await smtp.SendAsync(email);
-            smtp.Disconnect(true);
+            await smtp.DisconnectAsync(true);
         }
         public async Task<string>  SendWelcomeEmailAsync(WelcomeRequest request)
         {

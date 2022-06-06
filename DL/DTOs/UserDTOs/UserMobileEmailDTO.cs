@@ -8,8 +8,7 @@ namespace DL.DTOs.UserDTOs
 {
     public class UserMobileEmaiDTO
     {
-
-
+        
         public string Mobile { get; set; }
   
         public string Email { get; set; }

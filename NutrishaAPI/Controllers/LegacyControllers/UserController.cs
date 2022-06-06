@@ -1027,15 +1027,6 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                 var user = _uow.UserRepository.GetMany(a => a.Email == forgetPasswordDTO.Email).FirstOrDefault();
                 if (user != null)
                 {
-                    if (!user.IsAccountVerified)
-                    {
-                        baseResponse.data = "";
-                        baseResponse.statusCode = (int) HttpStatusCode.BadRequest;
-                        baseResponse.done = false;
-                        baseResponse.message = "please verify your account first.";
-                        return BadRequest(baseResponse);
-                    }
-
                     if (verfiyCode != null)
                     {
                         // BAD CODE?? I know i just a fixer :) no time to refactor # TAWFIQ #
@@ -1052,6 +1043,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                                 return BadRequest(baseResponse);
                             }
 
+                            user.IsAccountVerified = true;
                             user.Password = newPassword;
                             _uow.UserRepository.Update(user);
                             _uow.Save();

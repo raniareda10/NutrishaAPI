@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using DL.DtosV1.Articles;
 using DL.ResultModels;
 using DL.Services.Blogs.Articles;
@@ -12,7 +13,7 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Article
 {
 // [OnlyAdmins]
     [Authorize]
-    public class ArticleController : BaseAdminV1Controller 
+    public class ArticleController : BaseAdminV1Controller
     {
         private readonly ArticleService _articleService;
 
@@ -22,6 +23,9 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Article
         }
 
         [HttpPost("Post")]
+        [DisableRequestSizeLimit]
+        [RequestFormLimits(MultipartBodyLengthLimit = long.MaxValue, ValueLengthLimit = int.MaxValue,
+            MultipartHeadersLengthLimit = int.MaxValue)]
         public async Task<IActionResult> PostAsync([FromForm] PostArticleDto postArticleDto)
         {
             var validationResult = postArticleDto.IsValid();
@@ -29,11 +33,11 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Article
             {
                 return InvalidResult(validationResult.Errors);
             }
-            
+
             var result = await _articleService.PostAsync(postArticleDto);
             return ItemResult(result);
         }
-        
+
         [HttpGet("GetById")]
         public async Task<IActionResult> PostAsync([FromQuery] long id)
         {
@@ -41,7 +45,7 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Article
             {
                 return InvalidResult(NonLocalizedErrorMessages.InvalidId);
             }
-            
+
             var result = await _articleService.GetByIdForAdmin(id);
             return ItemResult(result);
         }
