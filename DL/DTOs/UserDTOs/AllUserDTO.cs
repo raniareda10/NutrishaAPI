@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
+using DL.Enums;
 using Microsoft.AspNetCore.Http;
 namespace DL.DTOs.UserDTOs
 {
@@ -45,5 +46,8 @@ namespace DL.DTOs.UserDTOs
         public bool IsAccountVerified { get; set; } = false;
         //  public int? OfferId { get; set; }
         // public DateTime? OfferTime { get; set; }
+        public RegistrationType RegistrationType { get; set; }
+        public string LastName { get; set; }
+        public DateTime BirthDate { get; set; }
     }
 }

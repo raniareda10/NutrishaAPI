@@ -9,6 +9,7 @@ using BL.Security;
 using DL.DTO;
 using DL.DTOs.UserDTOs;
 using DL.Entities;
+using DL.Enums;
 using DL.ErrorMessages;
 using DL.MailModels;
 using HELPER;
@@ -322,6 +323,8 @@ namespace NutrishaAPI.Controllers.LegacyControllers
             }
 
             var isEmailRegistration = !string.IsNullOrWhiteSpace(request.Email);
+
+            var registrationType = isEmailRegistration ? RegistrationType.ByEmail : RegistrationType.ByPhoneNumber;
             try
             {
                 var tempUser = _uow.UserRepository
@@ -337,7 +340,9 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                     baseResponse.data = "";
                     baseResponse.statusCode = (int) HttpStatusCode.NotFound;
                     baseResponse.done = false;
-                    baseResponse.message = ErrorMessagesKeys.EmailOrPhoneAlreadyExists.Localize(_locale);
+                    baseResponse.message = isEmailRegistration
+                        ? "Email already registered"
+                        : "Phone number already registered";
                     return Ok(baseResponse);
                 }
 
@@ -345,6 +350,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                 tempUser = _mapper.Map<DL.Entities.MUser>(request);
                 tempUser.IsActive = true;
                 tempUser.Password = EncryptANDDecrypt.EncryptText(request.Password);
+                tempUser.RegistrationType = registrationType;
                 _uow.UserRepository.Add(tempUser);
                 _uow.Save();
 

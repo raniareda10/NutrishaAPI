@@ -12,5 +12,7 @@ namespace DL.StorageServices
     {
         Task<IList<MediaFile>> UploadAsync(IMedia model,
             EntityType entityType);
+
+        Task<string> UploadFileAsync(IFormFile file,  string path);
     }
 }

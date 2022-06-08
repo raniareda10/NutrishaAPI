@@ -19,11 +19,12 @@ namespace DL.StorageServices
     public class StorageService : IStorageService
     {
         private readonly string _hostDomain;
-        private string _currentDirectory;
+
         public StorageService(IConfiguration configuration)
         {
             _hostDomain = configuration["Domain"];
         }
+
         public async Task<IList<MediaFile>> UploadAsync(IMedia model,
             // string entityId,
             EntityType entityType)
@@ -48,16 +49,16 @@ namespace DL.StorageServices
             }
 
             if (filesCount == 0) return mediaFiles;
-            _currentDirectory = Directory.GetCurrentDirectory() + "/wwwroot";
-            
-            var path = $"/{entityType}-{Guid.NewGuid()}";
-            Directory.CreateDirectory($"{_currentDirectory}{path}");
+
+            var path = $"{entityType}-{Guid.NewGuid()}";
+            var currentDirectory = Directory.GetCurrentDirectory() + "/wwwroot";
+            Directory.CreateDirectory($"{currentDirectory}/{path}");
             foreach (var fileModel in model.Files)
             {
                 mediaFiles.Add(new MediaFile()
                 {
                     Id = Guid.NewGuid(),
-                    Url = await UploadFileAsync(fileModel.File, path),
+                    Url = await UploadFileHelperAsync(fileModel.File, path, currentDirectory),
                     Flags = fileModel.Flags,
                     MediaType = MediaExtensions.GetFileType(fileModel.File),
                     Thumbnail = null
@@ -67,14 +68,20 @@ namespace DL.StorageServices
             return mediaFiles;
         }
 
-        private async Task<string> UploadFileAsync(IFormFile file, string pathToCopyTo)
+        public async Task<string> UploadFileAsync(IFormFile file, string path)
         {
-            var extension = Path.GetExtension(file.FileName);
-            var filePath = $"{pathToCopyTo}/{Guid.NewGuid()}{extension}";
+            var currentDirectory = Directory.GetCurrentDirectory() + "/wwwroot";
+            Directory.CreateDirectory($"{currentDirectory}/{path}");
+            return await UploadFileHelperAsync(file, path, currentDirectory);
+        }
+
+        private async Task<string> UploadFileHelperAsync(IFormFile file, string pathToCopyTo, string directory)
+        {
+            var filePath = $"{pathToCopyTo}/{Guid.NewGuid()}-{file.FileName}";
             using var stream = new MemoryStream();
-            await using var fileStream = new FileStream($"{_currentDirectory}{filePath}", FileMode.Create);
+            await using var fileStream = new FileStream($"{directory}/{filePath}", FileMode.Create);
             await file.CopyToAsync(fileStream);
-            return $"{_hostDomain}{filePath}";
+            return $"{_hostDomain}/{filePath}";
         }
     }
 }

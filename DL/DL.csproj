@@ -31,6 +31,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="EntitiesV1\DislikedMeals" />
     <Folder Include="Entities\Blogs\Polls" />
     <Folder Include="Mappers" />
     <Folder Include="Migrations\" />

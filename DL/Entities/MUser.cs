@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DL.Enums;
 
 namespace DL.Entities
 {
@@ -55,5 +56,8 @@ namespace DL.Entities
         public bool IsDataComplete { get; set; } = false;
         public bool IsAccountVerified { get; set; } = false;
         public bool IsAdmin { get; set; }
+        public RegistrationType RegistrationType { get; set; }
+        public string LastName { get; set; }
+        public DateTime? BirthDate { get; set; }
     }
 }

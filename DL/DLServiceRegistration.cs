@@ -1,11 +1,14 @@
 ﻿using DL.EntitiesV1.Blogs;
+using DL.Services.Allergy;
 using DL.Services.Blogs;
 using DL.Services.Blogs.Articles;
 using DL.Services.Blogs.BlogDetails;
 using DL.Services.Blogs.Polls;
 using DL.Services.Comments;
 using DL.Services.Polls;
+using DL.Services.Profiles;
 using DL.Services.Reactions;
+using DL.Services.Reminders;
 using DL.Services.Users;
 using DL.Services.Users.Admins;
 using DL.StorageServices;
@@ -29,6 +32,9 @@ namespace DL
 
             service.AddScoped<CommentService>();
 
+            service.AddScoped<AllergyService>();
+            service.AddScoped<MobileProfileService>();
+            service.AddScoped<ReminderService>();
 
             service.AddScoped<IStorageService, StorageService>();
 

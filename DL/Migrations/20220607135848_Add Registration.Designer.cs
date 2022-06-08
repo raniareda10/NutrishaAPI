@@ -4,14 +4,16 @@ using DL.DBContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace DL.Migrations
 {
     [DbContext(typeof(AppDBContext))]
-    partial class AppDBContextModelSnapshot : ModelSnapshot
+    [Migration("20220607135848_Add Registration")]
+    partial class AddRegistration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -728,9 +730,6 @@ namespace DL.Migrations
                     b.Property<decimal?>("BMI")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<DateTime?>("BirthDate")
-                        .HasColumnType("datetime2");
-
                     b.Property<int>("CreatedBy")
                         .HasColumnType("int");
 
@@ -777,9 +776,6 @@ namespace DL.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Language")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("LastName")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Latitude")
@@ -1382,64 +1378,6 @@ namespace DL.Migrations
                     b.ToTable("Reactions");
                 });
 
-            modelBuilder.Entity("DL.EntitiesV1.Reminders.ReminderEntity", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .UseIdentityColumn();
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsOn")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("OccurrenceDays")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<long>("ReminderGroupId")
-                        .HasColumnType("bigint");
-
-                    b.Property<int>("ReminderType")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("Time")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Title")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ReminderGroupId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Reminders");
-                });
-
-            modelBuilder.Entity("DL.EntitiesV1.Reminders.ReminderGroupEntity", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .UseIdentityColumn();
-
-                    b.Property<int>("Order")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Title")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("ReminderGroups");
-                });
-
             modelBuilder.Entity("DL.Entities.MDislikeMeal", b =>
                 {
                     b.HasOne("DL.Entities.MMeal", "Meal")
@@ -1711,25 +1649,6 @@ namespace DL.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("DL.EntitiesV1.Reminders.ReminderEntity", b =>
-                {
-                    b.HasOne("DL.EntitiesV1.Reminders.ReminderGroupEntity", "ReminderGroup")
-                        .WithMany()
-                        .HasForeignKey("ReminderGroupId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("DL.Entities.MUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ReminderGroup");
 
                     b.Navigation("User");
                 });

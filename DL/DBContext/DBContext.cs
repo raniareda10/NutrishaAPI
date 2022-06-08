@@ -9,8 +9,10 @@ using DL.EntitiesV1.Blogs;
 using DL.EntitiesV1.Blogs.Articles;
 using DL.EntitiesV1.Blogs.Polls;
 using DL.EntitiesV1.Comments;
+using DL.EntitiesV1.Enum;
 using DL.EntitiesV1.Media;
 using DL.EntitiesV1.Reactions;
+using DL.EntitiesV1.Reminders;
 using DL.EntityTypeBuilders;
 using Newtonsoft.Json;
 
@@ -18,9 +20,8 @@ namespace DL.DBContext
 {
     public class AppDBContext : DbContext
     {
-        
         public AppDBContext(DbContextOptions<AppDBContext> options)
-        : base(options)
+            : base(options)
         {
             ChangeTracker.LazyLoadingEnabled = false;
         }
@@ -31,28 +32,49 @@ namespace DL.DBContext
         public DbSet<Blog> Blogs { get; set; }
         public DbSet<BlogTag> BlogTag { get; set; }
         public DbSet<Article> Articles { get; set; }
+
         #endregion
-        
+
         #region Polls
+
         public DbSet<Poll> Polls { get; set; }
         public DbSet<PollQuestion> PollQuestions { get; set; }
         public DbSet<PollAnswer> PollAnswers { get; set; }
+
         #endregion
 
         #region Reactions
 
         public DbSet<Reaction> Reactions { get; set; }
+
         #endregion
-        
+
         #region Comments
 
         public DbSet<Comment> Comments { get; set; }
-        
+
         #endregion
+
+        #region Reminders
+
+        public DbSet<ReminderGroupEntity> ReminderGroups { get; set; }
+        public DbSet<ReminderEntity> Reminders { get; set; }
+
+        #endregion
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<MUser>().HasIndex(p => new {  p.Mobile }).IsUnique();
+            modelBuilder.Entity<MUser>().HasIndex(p => new {p.Mobile}).IsUnique();
             ConfigureBlogs(modelBuilder);
+            ConfigureReminders(modelBuilder);
+        }
+
+        private void ConfigureReminders(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<ReminderEntity>()
+                .Property(r => r.OccurrenceDays)
+                .HasConversion(r => JsonConvert.SerializeObject(r),
+                    r => JsonConvert.DeserializeObject<DaysEnum[]>(r));
         }
 
         private void ConfigureBlogs(ModelBuilder modelBuilder)
@@ -60,16 +82,13 @@ namespace DL.DBContext
             modelBuilder.Entity<Blog>()
                 .Property(b => b.Media)
                 .HasConversion(
-                    media => JsonConvert.SerializeObject(media, new JsonSerializerSettings()
-                    {
-                        NullValueHandling = NullValueHandling.Ignore
-                    }),
+                    media => JsonConvert.SerializeObject(media),
                     media => JsonConvert.DeserializeObject<IList<MediaFile>>(media)
                 );
 
             modelBuilder.Entity<Blog>()
                 .ApplyTotalToJson();
-            
+
             modelBuilder.Entity<Comment>()
                 .ApplyTotalToJson();
         }
