@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using DL.DtosV1.Common;
 using DL.DtosV1.Storage;
 using DL.EntitiesV1.Blogs;
 using DL.EntitiesV1.Blogs.Articles;
@@ -12,9 +13,9 @@ namespace DL.DtosV1.Articles
     public class PostArticleDto : IMedia
     {
         public string Subject { get; set; }
-        public string Description { get; set; }
+        public LocalizedObject<string> Description { get; set; }
         public long TagId { get; set; }
-        
+
         public IList<FormFileDto> Files { get; set; }
         public IList<ExternalMedia> ExternalMedia { get; set; }
 
@@ -38,6 +39,5 @@ namespace DL.DtosV1.Articles
                 }
             };
         }
-
     }
 }

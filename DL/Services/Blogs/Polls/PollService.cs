@@ -10,6 +10,7 @@ using DL.EntitiesV1.Blogs.Polls;
 using DL.Enums;
 using DL.Extensions;
 using DL.ResultModels;
+using Microsoft.EntityFrameworkCore;
 
 namespace DL.Services.Blogs.Polls
 {
@@ -70,6 +71,13 @@ namespace DL.Services.Blogs.Polls
 
             var result = await pollsQuery.ToPagedListAsync(model);
             return result;
+        }
+
+        public async Task DeletePollAsync(long id)
+        {
+            var blog = await _dbContext.Blogs.FirstOrDefaultAsync(b => b.Id == id);
+             _dbContext.Blogs.Remove(blog);
+             await _dbContext.SaveChangesAsync();
         }
     }
 

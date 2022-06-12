@@ -5,6 +5,7 @@ using DL.Services.Blogs.Articles;
 using DL.Services.Blogs.BlogDetails;
 using DL.Services.Blogs.Polls;
 using DL.Services.Comments;
+using DL.Services.ContactSupport;
 using DL.Services.Polls;
 using DL.Services.Profiles;
 using DL.Services.Reactions;
@@ -35,6 +36,9 @@ namespace DL
             service.AddScoped<AllergyService>();
             service.AddScoped<MobileProfileService>();
             service.AddScoped<ReminderService>();
+            
+            
+            service.AddScoped<ContactSupportService>();
 
             service.AddScoped<IStorageService, StorageService>();
 

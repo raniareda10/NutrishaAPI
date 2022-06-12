@@ -14,6 +14,9 @@ namespace DL.EntitiesV1.Blogs
         public Article Article { get; set; }
         public Poll Poll { get; set; }
 
+        
+        public DateTime Edited { get; set; }
+        
         public string Subject { get; set; }
         public EntityType EntityType { get; set; }
 

@@ -21,7 +21,7 @@ namespace NutrishaAPI.Controllers.V1.Mobile
         [HttpGet("GetAll")]
         public async Task<IActionResult> GetAllAsync()
         {
-            return ListResult(await _blogTagService.GetAllTags());
+            return ListResult(await _blogTagService.GetAllTags(null));
         }
     }
 }

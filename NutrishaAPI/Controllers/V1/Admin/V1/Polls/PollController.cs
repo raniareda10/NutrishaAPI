@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using DL.CommonModels.Paging;
 using DL.DtosV1.Polls;
+using DL.ErrorMessages;
 using DL.ResultModels;
 using DL.Services.Blogs.Polls;
 using Microsoft.AspNetCore.Authorization;
@@ -19,7 +20,7 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Polls
         {
             _pollService = pollService;
         }
-        
+
         [HttpPost("Post")]
         public async Task<IActionResult> PostAsync([FromBody] PostPollDto postPollDto)
         {
@@ -31,8 +32,8 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Polls
 
             return ItemResult(await _pollService.PostAsync(postPollDto));
         }
-        
-        
+
+
         [HttpGet("GetPagedList")]
         public async Task<IActionResult> PostAsync([FromQuery] PagedModel model)
         {
@@ -40,9 +41,18 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Polls
             {
                 return InvalidResult(NonLocalizedErrorMessages.InValidPageCountOrSize);
             }
-            
+
             var result = await _pollService.GetPagedListAsync(model);
             return PagedResult(result);
+        }
+
+        [HttpDelete("Delete")]
+        public async Task<IActionResult> PostAsync([FromQuery] long id)
+        {
+            if (id < 1) return InvalidResult(NonLocalizedErrorMessages.InvalidId);
+
+            await _pollService.DeletePollAsync(id);
+            return EmptyResult();
         }
     }
 }

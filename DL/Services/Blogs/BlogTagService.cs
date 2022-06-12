@@ -19,9 +19,14 @@ namespace DL.Services.Blogs
         }
 
 
-        public async Task<IList<BlogTagDto>> GetAllTags()
+        public async Task<IList<BlogTagDto>> GetAllTags(string keyword)
         {
-            return await _dbContext.BlogTag.Select(t => BlogTagDto.FromBlogTag(t)).ToListAsync();
+            var query = _dbContext.BlogTag.AsQueryable();
+            if (!string.IsNullOrWhiteSpace(keyword))
+            {
+                query = query.Where(s => s.Name.Contains(keyword));
+            }
+            return await query.Select(t => BlogTagDto.FromBlogTag(t)).ToListAsync();
         }
 
         public async Task<long> Post(PostBlogTagDto postBlogTagDto)

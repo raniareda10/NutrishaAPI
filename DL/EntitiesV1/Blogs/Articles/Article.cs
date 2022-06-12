@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
+using DL.DtosV1.Common;
 
 namespace DL.EntitiesV1.Blogs.Articles
 {
@@ -7,6 +8,6 @@ namespace DL.EntitiesV1.Blogs.Articles
     {
         [ForeignKey(nameof(Blog))] public long Id { get; set; }
         public Blog Blog { get; set; }
-        public string Description { get; set; }
+        public LocalizedObject<string> Description { get; set; }
     }
 }

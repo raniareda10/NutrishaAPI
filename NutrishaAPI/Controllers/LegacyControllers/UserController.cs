@@ -32,6 +32,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
     [EnableCors("MyPolicy")]
     public class UserController : Controller
     {
+        private string host = "https://api.nutrisha.app/Files/Documents/";
         private readonly IUnitOfWork _uow;
 
         private readonly ISMS _SMS;
@@ -110,26 +111,6 @@ namespace NutrishaAPI.Controllers.LegacyControllers
             //
 
             user.Password = null;
-            string dbConn = configuration.GetSection("Setting").GetSection("FilePath").Value;
-            if (user.PersonalImage != null && user.PersonalImage != string.Empty)
-            {
-                user.PersonalImage =
-                    dbConn + $"https://api.nutrisha.app/Files/Documents/{user.Id}/{user.PersonalImage}";
-            }
-            else
-            {
-                user.PersonalImage = string.Empty;
-            }
-
-            if (user.NationalID != null && user.NationalID != string.Empty)
-            {
-                user.NationalID = dbConn + $"https://api.nutrisha.app/Files/Documents/{user.Id}/{user.NationalID}";
-            }
-            else
-            {
-                user.NationalID = string.Empty;
-            }
-
             // user.VehicleTypeName = item.VehicleType.Name;
             var muser = _uow.UserRepository.GetMany(c => c.Id == user.Id).FirstOrDefault();
             if (request.DeviceTypeId != null && !string.IsNullOrEmpty(request.DeviceToken))
@@ -200,18 +181,8 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                     Id = item.Id,
                 };
 
-
                 // Return the file. A byte array can also be used instead of a stream
-                string dbConn = configuration.GetSection("Setting").GetSection("FilePath").Value;
-                if (item.PersonalImage != null && item.PersonalImage != string.Empty)
-                {
-                    userDTO.PersonalImage = dbConn + $"/Files/Documents/{item.Id}/{item.PersonalImage}";
-                }
 
-                if (item.NationalID != null && item.NationalID != string.Empty)
-                {
-                    userDTO.NationalID = dbConn + $"/Files/Documents/{item.Id}/{item.NationalID}";
-                }
 
                 var verfiyCode = _uow.VerfiyCodeRepository
                     .GetMany(c => c.Email == userDTO.Email || c.Mobile == userDTO.Mobile).FirstOrDefault();
@@ -271,16 +242,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
 
 
             // Return the file. A byte array can also be used instead of a stream
-            string dbConn = configuration.GetSection("Setting").GetSection("FilePath").Value;
-            if (item.PersonalImage != null && item.PersonalImage != string.Empty)
-            {
-                userDTO.PersonalImage = dbConn + $"/Files/Documents/{item.Id}/{item.PersonalImage}";
-            }
 
-            if (item.NationalID != null && item.NationalID != string.Empty)
-            {
-                userDTO.NationalID = dbConn + $"/Files/Documents/{item.Id}/{item.NationalID}";
-            }
 
             var verfiyCode = _uow.VerfiyCodeRepository
                 .GetMany(c => c.Email == userDTO.Email || c.Mobile == userDTO.Mobile).FirstOrDefault();
@@ -310,7 +272,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                 baseResponse.statusCode = (int) HttpStatusCode.NotFound;
                 baseResponse.done = false;
                 baseResponse.message = "Must Insert Email or Mobile";
-                return Ok(baseResponse);
+                return NotFound(baseResponse);
             }
 
             if (!isEmptyEmail && !isEmptyMobile)
@@ -319,7 +281,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                 baseResponse.statusCode = (int) HttpStatusCode.NotFound;
                 baseResponse.done = false;
                 baseResponse.message = "Only Email or Mobile.";
-                return Ok(baseResponse);
+                return NotFound(baseResponse);
             }
 
             var isEmailRegistration = !string.IsNullOrWhiteSpace(request.Email);
@@ -338,12 +300,12 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                 if (tempUser != null)
                 {
                     baseResponse.data = "";
-                    baseResponse.statusCode = (int) HttpStatusCode.NotFound;
+                    baseResponse.statusCode = (int) HttpStatusCode.BadRequest;
                     baseResponse.done = false;
                     baseResponse.message = isEmailRegistration
                         ? "Email already registered"
                         : "Phone number already registered";
-                    return Ok(baseResponse);
+                    return BadRequest(baseResponse);
                 }
 
 
@@ -523,26 +485,6 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                             userLogin.Mobile = User.Mobile;
                             userLogin.Password = User.Password;
 
-                            string dbConn = configuration.GetSection("Setting").GetSection("FilePath").Value;
-                            if (User.PersonalImage != null && User.PersonalImage != string.Empty)
-                            {
-                                User.PersonalImage = dbConn +
-                                                     $"https://api.nutrisha.app/Files/Documents/{User.Id}/{User.PersonalImage}";
-                            }
-                            else
-                            {
-                                User.PersonalImage = string.Empty;
-                            }
-
-                            if (User.NationalID != null && User.NationalID != string.Empty)
-                            {
-                                User.NationalID = dbConn +
-                                                  $"https://api.nutrisha.app/Files/Documents/{User.Id}/{User.NationalID}";
-                            }
-                            else
-                            {
-                                User.NationalID = string.Empty;
-                            }
 
                             var verfiyCodeLast = _uow.VerfiyCodeRepository
                                 .GetMany(c => c.Email == User.Email || c.Mobile == User.Mobile).FirstOrDefault();
@@ -656,9 +598,9 @@ namespace NutrishaAPI.Controllers.LegacyControllers
             {
                 baseResponse.data = "must insert mail or mobile";
                 baseResponse.total_rows = 0;
-                baseResponse.statusCode = (int) HttpStatusCode.NotFound; // Errors.Success;
+                baseResponse.statusCode = (int) HttpStatusCode.BadRequest; // Errors.Success;
                 baseResponse.done = false;
-                return Ok(baseResponse);
+                return BadRequest(baseResponse);
             }
         }
 
@@ -684,26 +626,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                             _uow.UserRepository.Update(user);
                             _uow.Save();
                             user.Password = null;
-                            string dbConn = configuration.GetSection("Setting").GetSection("FilePath").Value;
-                            if (user.PersonalImage != null && user.PersonalImage != string.Empty)
-                            {
-                                user.PersonalImage = dbConn +
-                                                     $"https://api.nutrisha.app/Files/Documents/{user.Id}/{user.PersonalImage}";
-                            }
-                            else
-                            {
-                                user.PersonalImage = string.Empty;
-                            }
 
-                            if (user.NationalID != null && user.NationalID != string.Empty)
-                            {
-                                user.NationalID = dbConn +
-                                                  $"https://api.nutrisha.app/Files/Documents/{user.Id}/{user.NationalID}";
-                            }
-                            else
-                            {
-                                user.NationalID = string.Empty;
-                            }
 
                             var AllUser = _mapper.Map<AllUserDTO>(user);
 
@@ -747,26 +670,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                             _uow.UserRepository.Update(user);
                             _uow.Save();
                             user.Password = null;
-                            string dbConn = configuration.GetSection("Setting").GetSection("FilePath").Value;
-                            if (user.PersonalImage != null && user.PersonalImage != string.Empty)
-                            {
-                                user.PersonalImage = dbConn +
-                                                     $"https://api.nutrisha.app/Files/Documents/{user.Id}/{user.PersonalImage}";
-                            }
-                            else
-                            {
-                                user.PersonalImage = string.Empty;
-                            }
 
-                            if (user.NationalID != null && user.NationalID != string.Empty)
-                            {
-                                user.NationalID = dbConn +
-                                                  $"https://api.nutrisha.app/Files/Documents/{user.Id}/{user.NationalID}";
-                            }
-                            else
-                            {
-                                user.NationalID = string.Empty;
-                            }
 
                             var AllUser = _mapper.Map<AllUserDTO>(user);
 
@@ -835,7 +739,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                 baseResponse.data = "";
                 baseResponse.statusCode = (int) HttpStatusCode.NotFound; // Errors.Success;
                 baseResponse.done = false;
-                return Ok(baseResponse);
+                return BadRequest(baseResponse);
             }
         }
 
@@ -888,9 +792,9 @@ namespace NutrishaAPI.Controllers.LegacyControllers
             else
             {
                 baseResponse.data = "";
-                baseResponse.statusCode = (int) HttpStatusCode.NotFound; // Errors.Success;
+                baseResponse.statusCode = (int) HttpStatusCode.BadRequest; // Errors.Success;
                 baseResponse.done = false;
-                return Ok(baseResponse);
+                return BadRequest(baseResponse);
             }
         }
 
@@ -917,9 +821,9 @@ namespace NutrishaAPI.Controllers.LegacyControllers
             else
             {
                 baseResponse.data = "";
-                baseResponse.statusCode = (int) HttpStatusCode.NotFound; // Errors.Success;
+                baseResponse.statusCode = (int) HttpStatusCode.BadRequest; // Errors.Success;
                 baseResponse.done = false;
-                return Ok(baseResponse);
+                return BadRequest(baseResponse);
             }
         }
 
@@ -949,9 +853,9 @@ namespace NutrishaAPI.Controllers.LegacyControllers
             else
             {
                 baseResponse.data = "";
-                baseResponse.statusCode = (int) HttpStatusCode.NotFound; // Errors.Success;
+                baseResponse.statusCode = (int) HttpStatusCode.BadRequest; // Errors.Success;
                 baseResponse.done = false;
-                return Ok(baseResponse);
+                return BadRequest(baseResponse);
             }
         }
 
@@ -991,10 +895,10 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                         else
                         {
                             baseResponse.data = "";
-                            baseResponse.statusCode = (int) HttpStatusCode.NotAcceptable;
+                            baseResponse.statusCode = (int) HttpStatusCode.BadRequest;
                             baseResponse.done = false;
                             baseResponse.message = "Not Valied Password";
-                            return Ok(baseResponse);
+                            return BadRequest(baseResponse);
                         }
                     }
 
@@ -1055,26 +959,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                             _uow.Save();
                             user.VerfiyCode = forgetPasswordDTO.VerifyCode;
                             user.Password = null;
-                            string dbConn = configuration.GetSection("Setting").GetSection("FilePath").Value;
-                            if (user.PersonalImage != null && user.PersonalImage != string.Empty)
-                            {
-                                user.PersonalImage = dbConn +
-                                                     $"https://api.nutrisha.app/Files/Documents/{user.Id}/{user.PersonalImage}";
-                            }
-                            else
-                            {
-                                user.PersonalImage = string.Empty;
-                            }
 
-                            if (user.NationalID != null && user.NationalID != string.Empty)
-                            {
-                                user.NationalID = dbConn +
-                                                  $"https://api.nutrisha.app/Files/Documents/{user.Id}/{user.NationalID}";
-                            }
-                            else
-                            {
-                                user.NationalID = string.Empty;
-                            }
 
                             var AllUser = _mapper.Map<AllUserDTO>(user);
 
@@ -1124,29 +1009,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                             _uow.Save();
                             user.VerfiyCode = forgetPasswordDTO.VerifyCode;
                             user.Password = null;
-                            string dbConn = configuration.GetSection("Setting").GetSection("FilePath").Value;
-                            if (user.PersonalImage != null && user.PersonalImage != string.Empty)
-                            {
-                                user.PersonalImage = dbConn +
-                                                     $"https://api.nutrisha.app/Files/Documents/{user.Id}/{user.PersonalImage}";
-                            }
-                            else
-                            {
-                                user.PersonalImage = string.Empty;
-                            }
-
-                            if (user.NationalID != null && user.NationalID != string.Empty)
-                            {
-                                user.NationalID = dbConn +
-                                                  $"https://api.nutrisha.app/Files/Documents/{user.Id}/{user.NationalID}";
-                            }
-                            else
-                            {
-                                user.NationalID = string.Empty;
-                            }
-
                             var AllUser = _mapper.Map<AllUserDTO>(user);
-
                             baseResponse.data = AllUser;
                             baseResponse.statusCode = (int) HttpStatusCode.OK; // Errors.Success;
                             baseResponse.done = true;
@@ -1186,124 +1049,5 @@ namespace NutrishaAPI.Controllers.LegacyControllers
 
             return BadRequest();
         }
-
-
-        //[AllowAnonymous]
-        //[HttpPost, Route("ForgetPassword")]
-        //[ProducesResponseType(typeof(AllUserDTO), StatusCodes.Status200OK)]
-        //public IActionResult ForgetPasswordPost(ForgetPasswordDTO forgetPasswordDTO)
-        //{
-        //    // var IdDec = EncryptANDDecrypt.DecryptText(forgetPasswordDTO.EncId);
-        //    if (!string.IsNullOrEmpty(forgetPasswordDTO.Email))
-        //    {
-        //        var verfiyCode = _uow.VerfiyCodeRepository.GetMany(c => c.Email == forgetPasswordDTO.Email).FirstOrDefault();
-
-        //        var user = _uow.UserRepository.GetMany(a => a.Email == forgetPasswordDTO.Email).FirstOrDefault();
-        //        if (user != null)
-        //        {
-
-        //            if (verfiyCode != null)
-        //            {
-        //                if (verfiyCode.Date > DateTime.Now)
-        //                {
-        //                    user.Password = EncryptANDDecrypt.EncryptText(forgetPasswordDTO.NewPassword);
-        //                    _uow.UserRepository.Update(user);
-        //                    _uow.Save();
-        //                    user.VerfiyCode = forgetPasswordDTO.VerifyCode;
-        //                    user.Password = null;
-        //                    string dbConn = configuration.GetSection("Setting").GetSection("FilePath").Value;
-        //                    if (user.PersonalImage != null && user.PersonalImage != string.Empty)
-        //                    {
-        //                        user.PersonalImage = dbConn + $"https://api.nutrisha.app/Files/Documents/{user.Id}/{user.PersonalImage}";
-        //                    }
-        //                    else
-        //                    {
-        //                        user.PersonalImage = string.Empty;
-        //                    }
-        //                    if (user.NationalID != null && user.NationalID != string.Empty)
-        //                    {
-        //                        user.NationalID = dbConn + $"https://api.nutrisha.app/Files/Documents/{user.Id}/{user.NationalID}";
-        //                    }
-        //                    else
-        //                    {
-        //                        user.NationalID = string.Empty;
-        //                    }
-        //                    var AllUser = _mapper.Map<AllUserDTO>(user);
-
-        //                    baseResponse.data = AllUser;
-        //                    baseResponse.statusCode = (int)HttpStatusCode.OK;  // Errors.Success;
-        //                    baseResponse.done = true;
-        //                    baseResponse.message = "Password has changed successfully";
-        //                    return Ok(baseResponse);
-        //                }
-        //                else
-        //                {
-        //                    baseResponse.data = "";
-        //                    baseResponse.statusCode = (int)HttpStatusCode.BadRequest;
-        //                    baseResponse.done = false;
-        //                    baseResponse.message = "asking the user to reset the pass again";
-        //                }
-        //            }
-        //        }
-
-        //    }
-        //    if (!string.IsNullOrEmpty(forgetPasswordDTO.Mobile))
-        //    {
-        //        var verfiyCode = _uow.VerfiyCodeRepository.GetMany(c => c.Mobile == forgetPasswordDTO.Mobile).FirstOrDefault();
-        //        var user = _uow.UserRepository.GetMany(c => c.Mobile == forgetPasswordDTO.Mobile).FirstOrDefault();
-        //        if (user != null)
-        //        {
-        //            if (verfiyCode != null)
-        //            {
-        //                if (verfiyCode.Date > DateTime.Now)
-        //                {
-        //                    user.Password = EncryptANDDecrypt.EncryptText(forgetPasswordDTO.NewPassword);
-        //            _uow.UserRepository.Update(user);
-        //            _uow.Save();
-        //            user.VerfiyCode = forgetPasswordDTO.VerifyCode;
-        //                    user.Password = null;
-        //                    string dbConn = configuration.GetSection("Setting").GetSection("FilePath").Value;
-        //                    if (user.PersonalImage != null && user.PersonalImage != string.Empty)
-        //                    {
-        //                        user.PersonalImage = dbConn + $"https://api.nutrisha.app/Files/Documents/{user.Id}/{user.PersonalImage}";
-        //                    }
-        //                    else
-        //                    {
-        //                        user.PersonalImage = string.Empty;
-        //                    }
-        //                    if (user.NationalID != null && user.NationalID != string.Empty)
-        //                    {
-        //                        user.NationalID = dbConn + $"https://api.nutrisha.app/Files/Documents/{user.Id}/{user.NationalID}";
-        //                    }
-        //                    else
-        //                    {
-        //                        user.NationalID = string.Empty;
-        //                    }
-        //                    var AllUser = _mapper.Map<AllUserDTO>(user);
-
-        //                    baseResponse.data = AllUser;
-        //                    baseResponse.statusCode = (int)HttpStatusCode.OK;  // Errors.Success;
-        //            baseResponse.done = true;
-        //            baseResponse.message = "Password has changed successfully";
-        //            return Ok(baseResponse);
-        //                }
-        //                else
-        //                {
-        //                    baseResponse.data = "";
-        //                    baseResponse.statusCode = (int)HttpStatusCode.BadRequest;
-        //                    baseResponse.done = false;
-        //                    baseResponse.message = "asking the user to reset the pass again";
-        //                }
-        //            }
-        //        }
-
-        //    }
-        //    baseResponse.data = "";
-        //    baseResponse.statusCode = (int)HttpStatusCode.BadRequest;
-        //    baseResponse.done = false;
-        //    baseResponse.message = "Wrong credentials";
-
-        //    return StatusCode((int)HttpStatusCode.BadRequest, baseResponse);
-        //}
     }
 }

@@ -9,6 +9,7 @@ using DL.EntitiesV1.Blogs;
 using DL.EntitiesV1.Blogs.Articles;
 using DL.EntitiesV1.Blogs.Polls;
 using DL.EntitiesV1.Comments;
+using DL.EntitiesV1.ContactSupport;
 using DL.EntitiesV1.Enum;
 using DL.EntitiesV1.Media;
 using DL.EntitiesV1.Reactions;
@@ -62,11 +63,21 @@ namespace DL.DBContext
 
         #endregion
 
+        #region Contact Us
+
+        public DbSet<ContactSupportEntity> ContactSupports { get; set; }
+        public DbSet<ContactSupportType> ContactSupportTypes { get; set; }
+        
+        #endregion
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<MUser>().HasIndex(p => new {p.Mobile}).IsUnique();
             ConfigureBlogs(modelBuilder);
             ConfigureReminders(modelBuilder);
+
+            modelBuilder.Entity<Article>()
+                .HasLocalizedObject(a => a.Description);
         }
 
         private void ConfigureReminders(ModelBuilder modelBuilder)

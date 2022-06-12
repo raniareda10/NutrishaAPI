@@ -18,9 +18,9 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1
         }
 
         [HttpGet("GetAll")]
-        public async Task<IActionResult> GetAllAsync()
+        public async Task<IActionResult> GetAllAsync([FromQuery] string keyword)
         {
-            return ListResult(await _blogTagService.GetAllTags());
+            return ListResult(await _blogTagService.GetAllTags(keyword));
         }
 
         [HttpPost("Post")]
