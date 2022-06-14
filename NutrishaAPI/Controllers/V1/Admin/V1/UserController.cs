@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 using DL.DtosV1.Users.Admins;
-using DL.Services.Users.Admins;
+using DL.Repositories.Users.Admins;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NutrishaAPI.Validations.Users;

@@ -2,45 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AutoMapper;
-using BL.Infrastructure;
-using BL.Security;
 using DL;
-using DL.DBContext;
-using DL.MailModels;
-using DL.Mapping;
-using ElmahCore;
-using ElmahCore.Mvc;
-using ElmahCore.Mvc.Notifiers;
-using ElmahCore.Sql;
 using Hangfire;
-using Hangfire.MemoryStorage;
-using HELPER;
-using MailReader;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.SqlServer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using Model.ApiModels;
 using Newtonsoft.Json;
 using NLog;
 using NutrishaAPI.Middlewares;
 using NutrishaAPI.ServicesRegistrations;
-using NutrishaAPIAPI;
-using NutrishaAPIAPI.Extensions;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace KSEEngineeringJobs
@@ -62,7 +35,7 @@ namespace KSEEngineeringJobs
             services.RegisterLegacyService(Configuration);
             services.RegisterDataAccessServices();
             services.RegisterCurrentUserServices();
-
+            services.AddHttpClient();
             services.AddControllers()
                 .AddNewtonsoftJson(options =>
                 {

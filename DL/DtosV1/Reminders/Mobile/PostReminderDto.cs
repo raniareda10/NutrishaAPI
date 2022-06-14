@@ -6,10 +6,9 @@ namespace DL.DtosV1.Reminders.Mobile
 {
     public class PostReminderDto
     {
-        public int ReminderGroupId { get; set; }
+        public ReminderGroupType GroupType { get; set; }
         public string Title { get; set; }
-        public DaysEnum[] OccurrenceDays { get; set; }
-        public ReminderType ReminderType { get; set; }
+        public DayOfWeek[] OccurrenceDays { get; set; }
         public DateTime Time { get; set; }
     }
 }

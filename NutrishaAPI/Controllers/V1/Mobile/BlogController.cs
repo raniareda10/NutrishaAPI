@@ -1,8 +1,8 @@
 ﻿using System.Threading.Tasks;
 using DL.EntitiesV1.Blogs;
 using DL.Enums;
+using DL.Repositories.Blogs;
 using DL.ResultModels;
-using DL.Services.Blogs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NutrishaAPI.Controllers.V1.Mobile.Bases;

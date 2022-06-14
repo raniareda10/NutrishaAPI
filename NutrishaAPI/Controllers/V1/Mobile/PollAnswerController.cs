@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 using DL.DtosV1.Polls;
-using DL.Services.Polls;
+using DL.Repositories.Polls;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NutrishaAPI.Controllers.V1.Mobile.Bases;

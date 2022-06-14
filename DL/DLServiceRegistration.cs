@@ -1,20 +1,23 @@
 ﻿using DL.EntitiesV1.Blogs;
-using DL.Services.Allergy;
-using DL.Services.Blogs;
-using DL.Services.Blogs.Articles;
-using DL.Services.Blogs.BlogDetails;
-using DL.Services.Blogs.Polls;
-using DL.Services.Comments;
-using DL.Services.ContactSupport;
-using DL.Services.Polls;
-using DL.Services.Profiles;
-using DL.Services.Reactions;
-using DL.Services.Reminders;
-using DL.Services.Users;
-using DL.Services.Users.Admins;
+using DL.Repositories.Allergy;
+using DL.Repositories.Blogs;
+using DL.Repositories.Blogs.Articles;
+using DL.Repositories.Blogs.BlogDetails;
+using DL.Repositories.Blogs.Polls;
+using DL.Repositories.Comments;
+using DL.Repositories.ContactSupport;
+using DL.Repositories.Polls;
+using DL.Repositories.Profiles;
+using DL.Repositories.Reactions;
+using DL.Repositories.Reminders;
+using DL.Repositories.Users;
+using DL.Repositories.Users.Admins;
+using DL.Services.Sms;
+using DL.Services.Sms.Models;
 using DL.StorageServices;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-
+using Microsoft.Extensions.Configuration;
 namespace DL
 {
     public static class DLServiceRegistration
@@ -36,8 +39,8 @@ namespace DL
             service.AddScoped<AllergyService>();
             service.AddScoped<MobileProfileService>();
             service.AddScoped<ReminderService>();
-            
-            
+
+
             service.AddScoped<ContactSupportService>();
 
             service.AddScoped<IStorageService, StorageService>();
@@ -48,6 +51,19 @@ namespace DL
             service.AddScoped<TokenService>();
 
             #endregion
+
+            service.RegisterServices();
+        }
+
+
+        private static void RegisterServices(this IServiceCollection service)
+        {
+            service.AddSingleton<ISmsGetaway, SmsGetaway>();
+            service.AddSingleton(options =>
+            {
+                var config = options.GetRequiredService<IConfiguration>();
+                return config.GetSection("SmsConfiguration").Get<SmsConfiguration>();
+            });
         }
     }
 }

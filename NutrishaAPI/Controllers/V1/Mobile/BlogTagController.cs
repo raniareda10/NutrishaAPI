@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 using DL.DtosV1.BlogTags;
-using DL.Services.Blogs;
+using DL.Repositories.Blogs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NutrishaAPI.Controllers.V1.Mobile.Bases;

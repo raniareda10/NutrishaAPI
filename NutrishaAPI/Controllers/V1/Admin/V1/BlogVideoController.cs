@@ -1,4 +1,4 @@
-﻿using DL.Services.Blogs.BlogVideo;
+﻿using DL.Repositories.Blogs.BlogVideo;
 
 namespace NutrishaAPI.Controllers.V1.Admin.V1
 {

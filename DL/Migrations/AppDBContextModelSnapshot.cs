@@ -1447,10 +1447,7 @@ namespace DL.Migrations
                     b.Property<string>("OccurrenceDays")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<long>("ReminderGroupId")
-                        .HasColumnType("bigint");
-
-                    b.Property<int>("ReminderType")
+                    b.Property<int>("ReminderGroupType")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("Time")
@@ -1464,29 +1461,9 @@ namespace DL.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ReminderGroupId");
-
                     b.HasIndex("UserId");
 
                     b.ToTable("Reminders");
-                });
-
-            modelBuilder.Entity("DL.EntitiesV1.Reminders.ReminderGroupEntity", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .UseIdentityColumn();
-
-                    b.Property<int>("Order")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Title")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("ReminderGroups");
                 });
 
             modelBuilder.Entity("DL.Entities.MDislikeMeal", b =>
@@ -1785,19 +1762,11 @@ namespace DL.Migrations
 
             modelBuilder.Entity("DL.EntitiesV1.Reminders.ReminderEntity", b =>
                 {
-                    b.HasOne("DL.EntitiesV1.Reminders.ReminderGroupEntity", "ReminderGroup")
-                        .WithMany("Reminders")
-                        .HasForeignKey("ReminderGroupId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("DL.Entities.MUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("ReminderGroup");
 
                     b.Navigation("User");
                 });
@@ -1812,11 +1781,6 @@ namespace DL.Migrations
             modelBuilder.Entity("DL.EntitiesV1.Blogs.Polls.Poll", b =>
                 {
                     b.Navigation("Questions");
-                });
-
-            modelBuilder.Entity("DL.EntitiesV1.Reminders.ReminderGroupEntity", b =>
-                {
-                    b.Navigation("Reminders");
                 });
 #pragma warning restore 612, 618
         }

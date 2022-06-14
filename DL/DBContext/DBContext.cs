@@ -58,7 +58,6 @@ namespace DL.DBContext
 
         #region Reminders
 
-        public DbSet<ReminderGroupEntity> ReminderGroups { get; set; }
         public DbSet<ReminderEntity> Reminders { get; set; }
 
         #endregion
@@ -78,6 +77,11 @@ namespace DL.DBContext
 
             modelBuilder.Entity<Article>()
                 .HasLocalizedObject(a => a.Description);
+
+            // modelBuilder.Entity<ReminderEntity>()
+            //     .HasIndex(p => p.IsOn).IsUnique(false);
+            // modelBuilder.Entity<ReminderEntity>()
+            //     .HasIndex(p => p.Time).IsUnique(false);
         }
 
         private void ConfigureReminders(ModelBuilder modelBuilder)
@@ -85,7 +89,7 @@ namespace DL.DBContext
             modelBuilder.Entity<ReminderEntity>()
                 .Property(r => r.OccurrenceDays)
                 .HasConversion(r => JsonConvert.SerializeObject(r),
-                    r => JsonConvert.DeserializeObject<DaysEnum[]>(r));
+                    r => JsonConvert.DeserializeObject<DayOfWeek[]>(r));
         }
 
         private void ConfigureBlogs(ModelBuilder modelBuilder)

@@ -8,7 +8,7 @@ using DL.EntitiesV1.Blogs.Articles;
 using DL.EntitiesV1.Blogs.Polls;
 using DL.EntitiesV1.Media;
 using DL.Enums;
-using DL.Services.Blogs;
+using DL.Repositories.Blogs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;

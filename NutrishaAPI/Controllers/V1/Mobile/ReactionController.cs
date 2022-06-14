@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using DL.DtosV1.Reactions;
+using DL.Repositories.Reactions;
 using DL.ResultModels;
-using DL.Services.Reactions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NutrishaAPI.Controllers.V1.Mobile.Bases;

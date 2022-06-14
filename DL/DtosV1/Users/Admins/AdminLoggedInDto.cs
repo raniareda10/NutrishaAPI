@@ -1,5 +1,4 @@
-﻿using DL.Services.Users.Admins;
-using DL.Services.Users.Models;
+﻿using DL.Repositories.Users.Models;
 
 namespace DL.DtosV1.Users.Admins
 {

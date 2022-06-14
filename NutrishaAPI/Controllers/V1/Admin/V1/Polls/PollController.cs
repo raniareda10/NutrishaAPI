@@ -2,8 +2,8 @@
 using DL.CommonModels.Paging;
 using DL.DtosV1.Polls;
 using DL.ErrorMessages;
+using DL.Repositories.Blogs.Polls;
 using DL.ResultModels;
-using DL.Services.Blogs.Polls;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NutrishaAPI.Validations.Polls;

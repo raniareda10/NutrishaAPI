@@ -1,8 +1,7 @@
 ﻿using System.Threading.Tasks;
 using DL.DtosV1.Allergies;
 using DL.DtosV1.Reminders.Mobile;
-using DL.Services.Allergy;
-using DL.Services.Reminders;
+using DL.Repositories.Reminders;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NutrishaAPI.Controllers.V1.Mobile.Bases;

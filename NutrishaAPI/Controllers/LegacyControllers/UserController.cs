@@ -12,6 +12,8 @@ using DL.Entities;
 using DL.Enums;
 using DL.ErrorMessages;
 using DL.MailModels;
+using DL.Repositories.Reminders;
+using DL.Services.Sms;
 using HELPER;
 using Helpers;
 using Microsoft.AspNetCore.Authorization;
@@ -35,8 +37,10 @@ namespace NutrishaAPI.Controllers.LegacyControllers
         private string host = "https://api.nutrisha.app/Files/Documents/";
         private readonly IUnitOfWork _uow;
 
+        private readonly ISmsGetaway _smsGetaway;
         private readonly ISMS _SMS;
         private readonly IAuthenticateService _authService;
+        private readonly ReminderService _reminderService;
         private readonly ICheckUniqes _checkUniq;
         public IConfiguration configuration { get; set; }
 
@@ -47,16 +51,19 @@ namespace NutrishaAPI.Controllers.LegacyControllers
 
         private readonly IMailService _mailService;
 
-        public UserController(ISMS SMS, ICheckUniqes checkUniq, IMailService mailService, IMapper mapper,
+        public UserController(ISmsGetaway smsGetaway,ISMS SMS, ICheckUniqes checkUniq, IMailService mailService, IMapper mapper,
             IHostingEnvironment hostingEnvironment, IUnitOfWork uow, IAuthenticateService authService,
             IConfiguration iConfig,
             IHttpContextAccessor httpContextAccessor,
+            ReminderService reminderService,
             IOptions<TokenManagement> tokenManagement)
         {
+            _smsGetaway = smsGetaway;
             _SMS = SMS;
             _checkUniq = checkUniq;
             _uow = uow;
             _authService = authService;
+            _reminderService = reminderService;
             _hostingEnvironment = hostingEnvironment;
             _mapper = mapper;
             _mailService = mailService;
@@ -316,35 +323,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                 _uow.UserRepository.Add(tempUser);
                 _uow.Save();
 
-
-                // if (!string.IsNullOrEmpty(request.Email))
-                // {
-                //     var verfiyCode = _uow.VerfiyCodeRepository.GetMany(c => c.Email == request.Email).FirstOrDefault();
-                //     if (verfiyCode != null)
-                //     {
-                //         int num = new Random().Next(1000, 9999);
-                //         verfiyCode.VirfeyCode = num;
-                //         verfiyCode.Date = DateTime.Now.AddMinutes(5);
-                //         _uow.VerfiyCodeRepository.Update(verfiyCode);
-                //         _uow.Save();
-                //         _mailService.SendWelcomeEmailAsync(new WelcomeRequest { ToEmail = request.Email, UserName = request.Email, Id = 0, VerifyCode = num.ToString() });
-                //
-                //     }
-                //     else
-                //     {
-                //         int num = new Random().Next(1000, 9999);
-                //         verfiyCode = new MVerfiyCode { Date = DateTime.Now.AddMinutes(5), Email = request.Email, VirfeyCode = num };
-                //         _uow.VerfiyCodeRepository.Add(verfiyCode);
-                //         _uow.Save();
-                //         _mailService.SendWelcomeEmailAsync(new WelcomeRequest { ToEmail = request.Email, UserName = request.Email, Id = 0, VerifyCode = num.ToString() });
-                //
-                //     }
-                // }
-                // if (!string.IsNullOrEmpty(request.Mobile))
-                // {
-                //     VerifyCodeHelper verifyCodeHelper = new VerifyCodeHelper(_uow, _SMS);
-                //     verifyCodeHelper.SendOTP(request.Mobile, userId);
-                // }
+                _reminderService.CreateDefaultRemindersAsync(tempUser.Id);
                 var userLogin = new ApiLoginModelDTO();
                 userLogin.Email = request.Email;
                 userLogin.Mobile = request.Mobile;
@@ -533,6 +512,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
             {
                 var verfiyCode = _uow.VerfiyCodeRepository.GetMany(c => c.Mobile == userMobileEmaiDTO.Mobile)
                     .FirstOrDefault();
+                
                 if (verfiyCode != null)
                 {
                     int num = new Random().Next(1000, 9999);
@@ -550,6 +530,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                     _uow.Save();
                 }
 
+                _smsGetaway.SendMessageAsync($"Your verification code is {verfiyCode.VirfeyCode}", userMobileEmaiDTO.Mobile);
                 baseResponse.data = verfiyCode;
                 baseResponse.total_rows = 1;
                 baseResponse.statusCode = (int) HttpStatusCode.OK; // Errors.Success;

@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
 using DL.DtosV1.Articles;
+using DL.Repositories.Blogs.Articles;
 using DL.ResultModels;
-using DL.Services.Blogs.Articles;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NutrishaAPI.Attributes;

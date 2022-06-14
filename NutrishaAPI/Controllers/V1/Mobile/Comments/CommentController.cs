@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using DL.DtosV1.Comments;
+using DL.Repositories.Comments;
 using DL.ResultModels;
-using DL.Services.Comments;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NutrishaAPI.Controllers.V1.Mobile.Bases;

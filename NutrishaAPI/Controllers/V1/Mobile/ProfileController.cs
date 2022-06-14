@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 using DL.DtosV1.Users.Mobiles;
-using DL.Services.Profiles;
+using DL.Repositories.Profiles;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NutrishaAPI.Controllers.V1.Mobile.Bases;
@@ -21,6 +21,12 @@ namespace NutrishaAPI.Controllers.V1.Mobile
         {
             var serviceResult = await _mobileProfileService.PutAsync(updateProfileDto);
             return ItemResult(serviceResult.Data);
+        }
+        
+        [HttpGet("GetCurrentUserProfile")]
+        public async Task<IActionResult> GetCurrentUserProfileAsync()
+        {
+            return ItemResult(await _mobileProfileService.GetCurrentUserProfileAsync());
         }
     }
 
