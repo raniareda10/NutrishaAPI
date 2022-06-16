@@ -9,6 +9,6 @@ namespace DL.DtosV1.Reminders.Mobile
         public int ReminderId { get; set; }
         public string Title { get; set; }
         public DayOfWeek[] OccurrenceDays { get; set; }
-        public DateTime Time { get; set; }
+        public TimeSpan Time { get; set; }
     }
 }

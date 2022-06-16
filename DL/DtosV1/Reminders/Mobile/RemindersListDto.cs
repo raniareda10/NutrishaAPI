@@ -21,6 +21,6 @@ namespace DL.DtosV1.Reminders.Mobile
         [JsonIgnore]
         public string OccurrenceDaysMap { get; set; }
         public bool IsOn { get; set; }
-        public DateTime Time { get; set; }
+        public TimeSpan Time { get; set; }
     }
 }

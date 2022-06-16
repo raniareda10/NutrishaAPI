@@ -27,14 +27,16 @@ namespace DL.Repositories.Reminders
         {
             var reminderList = await _appDbContext.Reminders
                 .Where(r => r.UserId == _currentUserService.UserId)
-                .OrderByDescending(r => r.Time)
+                .OrderByDescending(r => r.TimeTicks)
                 .ToListAsync();
 
             var reminderGroups = reminderList.GroupBy(r => r.ReminderGroupType)
                 .Select(grouped => new RemindersListDto()
                 {
                     Type = grouped.Key,
-                    Reminders = grouped.Select(reminder =>
+                    Reminders = grouped
+                        .OrderBy(t => t.TimeTicks)
+                        .Select(reminder =>
                         new ReminderDetailsDto
                         {
                             Id = reminder.Id,
@@ -43,7 +45,7 @@ namespace DL.Repositories.Reminders
                             OccurrenceDays =
                                 JsonConvert.DeserializeObject<DayOfWeek[]>(reminder.OccurrenceDays),
                             Time = reminder.Time
-                        }).OrderBy(t => t.Time)
+                        })
                 }).ToList();
 
             return reminderGroups;
@@ -59,7 +61,7 @@ namespace DL.Repositories.Reminders
                 IsOn = true,
                 Title = postReminderDto.Title,
                 OccurrenceDays = JsonConvert.SerializeObject(postReminderDto.OccurrenceDays),
-                Time = postReminderDto.Time
+                TimeTicks = postReminderDto.Time.Ticks
             };
 
             await _appDbContext.AddAsync(reminder);
@@ -71,7 +73,7 @@ namespace DL.Repositories.Reminders
                 Title = reminder.Title,
                 IsOn = reminder.IsOn,
                 OccurrenceDays = postReminderDto.OccurrenceDays,
-                Time = reminder.Time
+                Time = postReminderDto.Time,
             };
         }
 
@@ -88,8 +90,8 @@ namespace DL.Repositories.Reminders
 
             reminder.Title = putReminderDto.Title;
             reminder.OccurrenceDays = JsonConvert.SerializeObject(putReminderDto.OccurrenceDays);
-            reminder.Time = putReminderDto.Time;
-
+            reminder.TimeTicks = putReminderDto.Time.Ticks;
+            
             _appDbContext.Update(reminder);
             await _appDbContext.SaveChangesAsync();
         }
@@ -101,8 +103,7 @@ namespace DL.Repositories.Reminders
                     r.IsOn && r.OccurrenceDays.Contains(DateTime.UtcNow.DayOfWeek.ToString("D")))
                 .Select(s => new
                 {
-                    s.Title,
-                    s.Time
+                    s.Title, Time = s.TimeTicks
                 }).ToListAsync();
 
 
@@ -110,7 +111,7 @@ namespace DL.Repositories.Reminders
             q.ForEach(r =>
             {
                 dynamic d = new ExpandoObject();
-                d.Time = DateTime.Today.AddHours(r.Time.Hour).AddMinutes(r.Time.Minute);
+                // d.Time = DateTime.Today.AddHours(r.Time.Hour).AddMinutes(r.Time.Minute);
                 d.Title = r.Title;
             });
         }
@@ -144,7 +145,7 @@ namespace DL.Repositories.Reminders
                 Created = created,
                 ReminderGroupType = ReminderGroupType.Meals,
                 UserId = userId,
-                Time = DefaultRemindersTime.BreakFastTime,
+                TimeTicks = DefaultRemindersTime.BreakFastTime.Ticks,
                 OccurrenceDays = JsonConvert.SerializeObject(days),
                 Title = ReminderConstants.BreakFast
             });
@@ -153,7 +154,7 @@ namespace DL.Repositories.Reminders
                 Created = created,
                 ReminderGroupType = ReminderGroupType.Meals,
                 UserId = userId,
-                Time = DefaultRemindersTime.DinnerTime,
+                TimeTicks = DefaultRemindersTime.DinnerTime.Ticks,
                 OccurrenceDays = JsonConvert.SerializeObject(days),
                 Title = ReminderConstants.Dinner
             });
@@ -163,7 +164,7 @@ namespace DL.Repositories.Reminders
                 Created = created,
                 ReminderGroupType = ReminderGroupType.Meals,
                 UserId = userId,
-                Time = DefaultRemindersTime.LunchTime,
+                TimeTicks = DefaultRemindersTime.LunchTime.Ticks,
                 OccurrenceDays = JsonConvert.SerializeObject(days),
                 Title = ReminderConstants.Lunch
             });
@@ -173,7 +174,7 @@ namespace DL.Repositories.Reminders
                 Created = created,
                 ReminderGroupType = ReminderGroupType.Weight,
                 UserId = userId,
-                Time = DefaultRemindersTime.CheckWeightTime,
+                TimeTicks = DefaultRemindersTime.CheckWeightTime.Ticks,
                 OccurrenceDays = JsonConvert.SerializeObject(new DayOfWeek[]
                 {
                     DayOfWeek.Monday

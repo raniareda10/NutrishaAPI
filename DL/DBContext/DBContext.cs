@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DL.EntitiesV1;
+using DL.EntitiesV1.Allergies;
 using DL.EntitiesV1.Blogs;
 using DL.EntitiesV1.Blogs.Articles;
 using DL.EntitiesV1.Blogs.Polls;
@@ -62,17 +64,29 @@ namespace DL.DBContext
 
         #endregion
 
+        #region Allergy
+
+        public DbSet<UserAllergy> UserAllergy { get; set; }
+
+        #endregion
+        #region Dislikes
+
+        public DbSet<UserDislikes> UserDislikes { get; set; }
+
+        #endregion
+
         #region Contact Us
 
         public DbSet<ContactSupportEntity> ContactSupports { get; set; }
         public DbSet<ContactSupportType> ContactSupportTypes { get; set; }
-        
+
         #endregion
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<MUser>().HasIndex(p => new {p.Mobile}).IsUnique();
             ConfigureBlogs(modelBuilder);
+            ConfigureReminders(modelBuilder);
 
             modelBuilder.Entity<Article>()
                 .HasLocalizedObject(a => a.Description);
@@ -82,7 +96,18 @@ namespace DL.DBContext
             // modelBuilder.Entity<ReminderEntity>()
             //     .HasIndex(p => p.Time).IsUnique(false);
         }
-        
+
+        private void ConfigureReminders(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<ReminderEntity>()
+                .Ignore(r => r.Time);
+
+            // .Property(r => r.TimeSpan)
+            //
+            // .HasConversion(t => t.Ticks,
+            //     ticks => TimeSpan.FromTicks(ticks));
+        }
+
         private void ConfigureBlogs(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Blog>()
