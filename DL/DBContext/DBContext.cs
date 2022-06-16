@@ -86,7 +86,6 @@ namespace DL.DBContext
         {
             modelBuilder.Entity<MUser>().HasIndex(p => new {p.Mobile}).IsUnique();
             ConfigureBlogs(modelBuilder);
-            ConfigureReminders(modelBuilder);
 
             modelBuilder.Entity<Article>()
                 .HasLocalizedObject(a => a.Description);
@@ -96,18 +95,7 @@ namespace DL.DBContext
             // modelBuilder.Entity<ReminderEntity>()
             //     .HasIndex(p => p.Time).IsUnique(false);
         }
-
-        private void ConfigureReminders(ModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<ReminderEntity>()
-                .Ignore(r => r.Time);
-
-            // .Property(r => r.TimeSpan)
-            //
-            // .HasConversion(t => t.Ticks,
-            //     ticks => TimeSpan.FromTicks(ticks));
-        }
-
+        
         private void ConfigureBlogs(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Blog>()

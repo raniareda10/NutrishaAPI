@@ -2,8 +2,9 @@
 {
     public class AllergyDto
     {
-            public int Id { get; set; }
-            public string Name { get; set; }
-        
+        public long Id { get; set; }
+        public string Name { get; set; }
+        public bool IsSelected { get; set; }
+        public bool IsCreatedByUser { get; set; }
     }
 }

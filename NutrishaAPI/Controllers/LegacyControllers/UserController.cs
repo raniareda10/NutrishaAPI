@@ -12,6 +12,8 @@ using DL.Entities;
 using DL.Enums;
 using DL.ErrorMessages;
 using DL.MailModels;
+using DL.Repositories.Allergy;
+using DL.Repositories.Dislikes;
 using DL.Repositories.Reminders;
 using DL.Services.Sms;
 using HELPER;
@@ -40,6 +42,8 @@ namespace NutrishaAPI.Controllers.LegacyControllers
         private readonly ISmsGetaway _smsGetaway;
         private readonly ISMS _SMS;
         private readonly IAuthenticateService _authService;
+        private readonly AllergyService _allergyService;
+        private readonly DislikesMealService _dislikesMealService;
         private readonly ReminderService _reminderService;
         private readonly ICheckUniqes _checkUniq;
         public IConfiguration configuration { get; set; }
@@ -51,9 +55,12 @@ namespace NutrishaAPI.Controllers.LegacyControllers
 
         private readonly IMailService _mailService;
 
-        public UserController(ISmsGetaway smsGetaway,ISMS SMS, ICheckUniqes checkUniq, IMailService mailService, IMapper mapper,
+        public UserController(ISmsGetaway smsGetaway, ISMS SMS, ICheckUniqes checkUniq, IMailService mailService,
+            IMapper mapper,
             IHostingEnvironment hostingEnvironment, IUnitOfWork uow, IAuthenticateService authService,
             IConfiguration iConfig,
+            AllergyService allergyService,
+            DislikesMealService dislikesMealService,
             IHttpContextAccessor httpContextAccessor,
             ReminderService reminderService,
             IOptions<TokenManagement> tokenManagement)
@@ -63,6 +70,8 @@ namespace NutrishaAPI.Controllers.LegacyControllers
             _checkUniq = checkUniq;
             _uow = uow;
             _authService = authService;
+            _allergyService = allergyService;
+            _dislikesMealService = dislikesMealService;
             _reminderService = reminderService;
             _hostingEnvironment = hostingEnvironment;
             _mapper = mapper;
@@ -323,7 +332,6 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                 _uow.UserRepository.Add(tempUser);
                 _uow.Save();
 
-                _reminderService.CreateDefaultRemindersAsync(tempUser.Id);
                 var userLogin = new ApiLoginModelDTO();
                 userLogin.Email = request.Email;
                 userLogin.Mobile = request.Mobile;
@@ -512,7 +520,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
             {
                 var verfiyCode = _uow.VerfiyCodeRepository.GetMany(c => c.Mobile == userMobileEmaiDTO.Mobile)
                     .FirstOrDefault();
-                
+
                 if (verfiyCode != null)
                 {
                     int num = new Random().Next(1000, 9999);
@@ -530,7 +538,8 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                     _uow.Save();
                 }
 
-                _smsGetaway.SendMessageAsync($"Your verification code is {verfiyCode.VirfeyCode}", userMobileEmaiDTO.Mobile);
+                _smsGetaway.SendMessageAsync($"Your verification code is {verfiyCode.VirfeyCode}",
+                    userMobileEmaiDTO.Mobile);
                 baseResponse.data = verfiyCode;
                 baseResponse.total_rows = 1;
                 baseResponse.statusCode = (int) HttpStatusCode.OK; // Errors.Success;
@@ -587,13 +596,15 @@ namespace NutrishaAPI.Controllers.LegacyControllers
 
         [HttpPost, Route("CheckVerifyCode")]
         [ProducesResponseType(typeof(AllUserDTO), StatusCodes.Status200OK)]
-        public IActionResult CheckAccountVerified(CheckVerifyCodeDto checkVerifyCode)
+        public async Task<IActionResult> CheckAccountVerified(CheckVerifyCodeDto checkVerifyCode)
         {
             var user = _uow.UserRepository.GetMany(c =>
                 (!string.IsNullOrEmpty(checkVerifyCode.Email) && c.Email == checkVerifyCode.Email) ||
                 (!string.IsNullOrEmpty(checkVerifyCode.Mobile) && c.Mobile == checkVerifyCode.Mobile)).FirstOrDefault();
+
             if (user != null)
             {
+                var firstTimeVerification = !user.IsAccountVerified;
                 if (!string.IsNullOrEmpty(checkVerifyCode.Mobile))
                 {
                     var verfiyCode = _uow.VerfiyCodeRepository.GetMany(c => c.Mobile == checkVerifyCode.Mobile)
@@ -606,8 +617,13 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                             user.IsAccountVerified = true;
                             _uow.UserRepository.Update(user);
                             _uow.Save();
-                            user.Password = null;
 
+                            if (firstTimeVerification)
+                            {
+                                await AddDefaultDataWhenAccountVerifiedForFirstTime(user.Id);
+                            }
+
+                            user.Password = null;
 
                             var AllUser = _mapper.Map<AllUserDTO>(user);
 
@@ -650,8 +666,13 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                             user.IsAccountVerified = true;
                             _uow.UserRepository.Update(user);
                             _uow.Save();
-                            user.Password = null;
 
+                            if (firstTimeVerification)
+                            {
+                                await AddDefaultDataWhenAccountVerifiedForFirstTime(user.Id);
+                            }
+
+                            user.Password = null;
 
                             var AllUser = _mapper.Map<AllUserDTO>(user);
 
@@ -1029,6 +1050,13 @@ namespace NutrishaAPI.Controllers.LegacyControllers
             }
 
             return BadRequest();
+        }
+
+        private async Task AddDefaultDataWhenAccountVerifiedForFirstTime(int userId)
+        {
+            await _reminderService.CreateDefaultRemindersAsync(userId);
+            await _dislikesMealService.AddDefaultDislikesAsync(userId);
+            await _allergyService.AddDefaultAllergiesToUser(userId);
         }
     }
 }

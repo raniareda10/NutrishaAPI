@@ -8,12 +8,6 @@ namespace DL.EntitiesV1
         public MUser User { get; set; }
         public bool IsSelected { get; set; }
         public string Title { get; set; }
-        public DislikeType DislikeType { get; set; }
-    }
-
-
-    public enum DislikeType
-    {
-        
+        public DislikeMealType DislikeType { get; set; }
     }
 }

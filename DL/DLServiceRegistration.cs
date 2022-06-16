@@ -6,6 +6,7 @@ using DL.Repositories.Blogs.BlogDetails;
 using DL.Repositories.Blogs.Polls;
 using DL.Repositories.Comments;
 using DL.Repositories.ContactSupport;
+using DL.Repositories.Dislikes;
 using DL.Repositories.Polls;
 using DL.Repositories.Profiles;
 using DL.Repositories.Reactions;
@@ -37,6 +38,7 @@ namespace DL
             service.AddScoped<CommentService>();
 
             service.AddScoped<AllergyService>();
+            service.AddScoped<DislikesMealService>();
             service.AddScoped<MobileProfileService>();
             service.AddScoped<ReminderService>();
 

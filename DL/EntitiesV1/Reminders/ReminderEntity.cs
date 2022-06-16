@@ -13,22 +13,7 @@ namespace DL.EntitiesV1.Reminders
         public MUser User { get; set; }
         public string OccurrenceDays { get; set; }
         public bool IsOn { get; set; }
-        public long TimeTicks { get; set; }
-        
-        private TimeSpan? _timeSpan;
-        public TimeSpan Time
-        {
-            get
-            {
-                _timeSpan ??= TimeSpan.FromTicks(TimeTicks);
-                return _timeSpan.Value;
-            }
-            set
-            {
-                _timeSpan = value;
-                TimeTicks = value.Ticks;
-            }
-        }
+        public TimeSpan Time { get; set; }
     }
     
     public enum ReminderGroupType
