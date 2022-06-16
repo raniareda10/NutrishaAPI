@@ -11,7 +11,7 @@ namespace DL.EntitiesV1.Reminders
         public ReminderGroupType ReminderGroupType { get; set; }
         public int UserId { get; set; }
         public MUser User { get; set; }
-        public DayOfWeek[] OccurrenceDays { get; set; }
+        public string OccurrenceDays { get; set; }
         public bool IsOn { get; set; }
         public DateTime Time { get; set; }
     }

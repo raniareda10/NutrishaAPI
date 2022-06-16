@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Threading.Tasks;
 using DL.DBContext;
 using DL.DtosV1.Reminders.Mobile;
 using DL.EntitiesV1.Reminders;
+using DL.Repositories.Reminders.Constants;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 namespace DL.Repositories.Reminders
 {
@@ -26,8 +29,8 @@ namespace DL.Repositories.Reminders
                 .Where(r => r.UserId == _currentUserService.UserId)
                 .OrderByDescending(r => r.Time)
                 .ToListAsync();
-            
-            return reminderList.GroupBy(r => r.ReminderGroupType)
+
+            var reminderGroups = reminderList.GroupBy(r => r.ReminderGroupType)
                 .Select(grouped => new RemindersListDto()
                 {
                     Type = grouped.Key,
@@ -37,10 +40,13 @@ namespace DL.Repositories.Reminders
                             Id = reminder.Id,
                             Title = reminder.Title,
                             IsOn = reminder.IsOn,
-                            OccurrenceDays = reminder.OccurrenceDays,
+                            OccurrenceDays =
+                                JsonConvert.DeserializeObject<DayOfWeek[]>(reminder.OccurrenceDays),
                             Time = reminder.Time
-                        })
+                        }).OrderBy(t => t.Time)
                 }).ToList();
+
+            return reminderGroups;
         }
 
         public async Task<ReminderDetailsDto> PostAsync(PostReminderDto postReminderDto)
@@ -52,7 +58,7 @@ namespace DL.Repositories.Reminders
                 UserId = _currentUserService.UserId,
                 IsOn = true,
                 Title = postReminderDto.Title,
-                OccurrenceDays = postReminderDto.OccurrenceDays,
+                OccurrenceDays = JsonConvert.SerializeObject(postReminderDto.OccurrenceDays),
                 Time = postReminderDto.Time
             };
 
@@ -64,7 +70,7 @@ namespace DL.Repositories.Reminders
                 Id = reminder.Id,
                 Title = reminder.Title,
                 IsOn = reminder.IsOn,
-                OccurrenceDays = reminder.OccurrenceDays,
+                OccurrenceDays = postReminderDto.OccurrenceDays,
                 Time = reminder.Time
             };
         }
@@ -81,11 +87,32 @@ namespace DL.Repositories.Reminders
             }
 
             reminder.Title = putReminderDto.Title;
-            reminder.OccurrenceDays = putReminderDto.OccurrenceDays;
+            reminder.OccurrenceDays = JsonConvert.SerializeObject(putReminderDto.OccurrenceDays);
             reminder.Time = putReminderDto.Time;
 
             _appDbContext.Update(reminder);
             await _appDbContext.SaveChangesAsync();
+        }
+        
+        public async Task GetTodayReminders()
+        {
+            var q = await _appDbContext.Reminders
+                .Where(r =>
+                    r.IsOn && r.OccurrenceDays.Contains(DateTime.UtcNow.DayOfWeek.ToString("D")))
+                .Select(s => new
+                {
+                    s.Title,
+                    s.Time
+                }).ToListAsync();
+
+
+            var list = new List<dynamic>();
+            q.ForEach(r =>
+            {
+                dynamic d = new ExpandoObject();
+                d.Time = DateTime.Today.AddHours(r.Time.Hour).AddMinutes(r.Time.Minute);
+                d.Title = r.Title;
+            });
         }
 
         public async Task TurnOnAsync(TurnReminderOnDto reminderOnDto)
@@ -109,13 +136,16 @@ namespace DL.Repositories.Reminders
             const int defaultReminderCount = 4;
             var reminders = new List<ReminderEntity>(defaultReminderCount);
 
+            var days = Enum.GetValues<DayOfWeek>();
             var created = DateTime.UtcNow;
+
             reminders.Add(new ReminderEntity()
             {
                 Created = created,
                 ReminderGroupType = ReminderGroupType.Meals,
                 UserId = userId,
-                Time = DateTime.UtcNow,
+                Time = DefaultRemindersTime.BreakFastTime,
+                OccurrenceDays = JsonConvert.SerializeObject(days),
                 Title = ReminderConstants.BreakFast
             });
             reminders.Add(new ReminderEntity()
@@ -123,7 +153,8 @@ namespace DL.Repositories.Reminders
                 Created = created,
                 ReminderGroupType = ReminderGroupType.Meals,
                 UserId = userId,
-                Time = DateTime.UtcNow,
+                Time = DefaultRemindersTime.DinnerTime,
+                OccurrenceDays = JsonConvert.SerializeObject(days),
                 Title = ReminderConstants.Dinner
             });
 
@@ -132,7 +163,8 @@ namespace DL.Repositories.Reminders
                 Created = created,
                 ReminderGroupType = ReminderGroupType.Meals,
                 UserId = userId,
-                Time = DateTime.UtcNow,
+                Time = DefaultRemindersTime.LunchTime,
+                OccurrenceDays = JsonConvert.SerializeObject(days),
                 Title = ReminderConstants.Lunch
             });
 
@@ -141,8 +173,11 @@ namespace DL.Repositories.Reminders
                 Created = created,
                 ReminderGroupType = ReminderGroupType.Weight,
                 UserId = userId,
-                Time = DateTime.UtcNow,
-                Title = ReminderConstants.BreakFast
+                Time = DefaultRemindersTime.CheckWeightTime,
+                OccurrenceDays = JsonConvert.SerializeObject(new DayOfWeek[]
+                {
+                    DayOfWeek.Monday
+                })
             });
 
             await _appDbContext.AddRangeAsync(reminders);

@@ -54,6 +54,7 @@ namespace DL.Repositories.Blogs.Polls
         public async Task<PagedResult<PollAdminDetailsDto>> GetPagedListAsync(PagedModel model)
         {
             var pollsQuery = _dbContext.Blogs
+                .Where(b => b.EntityType == EntityType.Poll)
                 .OrderByDescending(blog => blog.Created)
                 .Select(b => new PollAdminDetailsDto
                 {
