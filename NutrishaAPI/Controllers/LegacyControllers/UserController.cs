@@ -8,6 +8,7 @@ using BL.Infrastructure;
 using BL.Security;
 using DL.DTO;
 using DL.DTOs.UserDTOs;
+using DL.DtosV1.Allergies;
 using DL.Entities;
 using DL.Enums;
 using DL.ErrorMessages;
@@ -363,7 +364,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
         [AllowAnonymous]
         [HttpPost, Route("CompleteUserData")]
         [ProducesResponseType(typeof(UserWithTokenDTO), StatusCodes.Status200OK)]
-        public IActionResult CompleteUserData([FromForm] CompleteUserDTO request)
+        public async Task<IActionResult> CompleteUserData([FromForm] CompleteUserDTO request)
         {
             if (ModelState.IsValid)
             {
@@ -451,8 +452,13 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                                 _uow.Save();
                             }
 
-                            if (request.UserAllergy != null)
+                            if (request.UserAllergy != null && request.UserAllergy.Count != 0)
                             {
+                                await _allergyService.PutAsync(new PutAllergyDto()
+                                {
+                                    AllergyIds = request.UserAllergy
+                                });
+                                
                                 var lstAllergy = _uow.AllergyRepository.GetMany(c => request.UserAllergy.Contains(c.Id))
                                     .ToList();
                                 foreach (var allergy in lstAllergy)

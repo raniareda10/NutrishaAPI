@@ -13,7 +13,7 @@ namespace DL.DTOs.UserDTOs
         [MinLength(3), MaxLength(50)]
         public string Name { get; set; }
         public List<int?> UserRisk { get; set; } 
-        public List<int?> UserAllergy { get; set; }
+        public HashSet<long> UserAllergy { get; set; }
         //[MinLength(3), MaxLength(300)]
         //public string Address { get; set; } = string.Empty;
         //public string Longitude { get; set; } = string.Empty;
