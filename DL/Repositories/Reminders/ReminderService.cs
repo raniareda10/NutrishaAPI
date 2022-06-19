@@ -58,7 +58,7 @@ namespace DL.Repositories.Reminders
             var reminder = new ReminderEntity()
             {
                 Created = DateTime.UtcNow,
-                ReminderGroupType = postReminderDto.GroupType,
+                ReminderGroupType = postReminderDto.ReminderType,
                 UserId = _currentUserService.UserId,
                 IsOn = true,
                 Title = postReminderDto.Title,
@@ -184,6 +184,16 @@ namespace DL.Repositories.Reminders
             });
 
             await _appDbContext.AddRangeAsync(reminders);
+            await _appDbContext.SaveChangesAsync();
+        }
+
+        public async Task DeleteReminderAsync(long reminderId)
+        {
+            var reminder = await _appDbContext.Reminders.FirstOrDefaultAsync(r =>
+                r.Id == reminderId && r.UserId == _currentUserService.UserId);
+            if (reminder == null) return;
+
+            _appDbContext.Reminders.Remove(reminder);
             await _appDbContext.SaveChangesAsync();
         }
     }

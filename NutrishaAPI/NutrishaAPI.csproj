@@ -51,6 +51,6 @@
 
   <ItemGroup>
     <Content Remove="wwwroot\**" />
-    <Content Include="web.config" CopyToOutputDirectory="Never" />
+<!--    <Content Include="web.config" CopyToOutputDirectory="Never" />-->
   </ItemGroup>
 </Project>

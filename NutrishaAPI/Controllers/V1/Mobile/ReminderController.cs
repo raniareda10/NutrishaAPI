@@ -44,5 +44,12 @@ namespace NutrishaAPI.Controllers.V1.Mobile
             await _reminderService.TurnOnAsync(reminderOnDto);
             return EmptyResult();
         }
+
+        [HttpDelete("Delete")]
+        public async Task<IActionResult> DeleteReminderAsync([FromQuery] long id)
+        {
+            await _reminderService.DeleteReminderAsync(id);
+            return EmptyResult();
+        }
     }
 }
