@@ -26,7 +26,7 @@ namespace NutrishaAPI.Middlewares
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"something goes wrong at {httpContext.Request.Path}?{httpContext.Request.QueryString}");
+                _logger.LogError($"something goes wrong at {httpContext.Request.Path}?{httpContext.Request.QueryString} error {JsonConvert.SerializeObject(ex)}");
                 httpContext.Response.ContentType = "application/json";
                 httpContext.Response.StatusCode = 500;
                 await httpContext.Response.WriteAsync(JsonConvert.SerializeObject(new BaseResponse<object>()
