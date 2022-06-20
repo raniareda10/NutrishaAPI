@@ -12,9 +12,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using NLog;
+using NLog.Extensions.Logging;
 using NutrishaAPI.Middlewares;
 using NutrishaAPI.ServicesRegistrations;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using Microsoft.Extensions.Logging;
 
 namespace KSEEngineeringJobs
 {
@@ -42,6 +44,14 @@ namespace KSEEngineeringJobs
                     options.SerializerSettings.DateTimeZoneHandling = DateTimeZoneHandling.Utc;
                     options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
                 });
+
+            services.AddLogging(loggingBuilder =>
+            {
+                // configure Logging with NLog
+                loggingBuilder.ClearProviders();
+                loggingBuilder.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace);
+                loggingBuilder.AddNLog(Configuration);
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -55,7 +65,7 @@ namespace KSEEngineeringJobs
             app.UseSwagger();
             app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Api v1"));
             app.UseHttpsRedirection();
-
+            
             app.UseAuthentication();
 
             app.UseRouting();
@@ -104,8 +114,8 @@ namespace KSEEngineeringJobs
                             new List<string>()
                         }
                     };
-                    operation.Security = new List<OpenApiSecurityRequirement> { securityRequirement };
-                    operation.Responses.Add("401", new OpenApiResponse { Description = "Unauthorized" });
+                    operation.Security = new List<OpenApiSecurityRequirement> {securityRequirement};
+                    operation.Responses.Add("401", new OpenApiResponse {Description = "Unauthorized"});
                 }
             }
         }

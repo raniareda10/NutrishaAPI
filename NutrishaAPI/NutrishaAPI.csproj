@@ -4,7 +4,7 @@
     <TargetFramework>net5.0</TargetFramework>
     <UserSecretsId>9f1104ba-91ca-4df5-9ed5-eb064ed826ec</UserSecretsId>
   </PropertyGroup>
-
+  
   <ItemGroup>
     <Compile Remove="ClearFireBaseJob.cs" />
     <Compile Remove="Controllers\ContactUsController.cs" />
@@ -14,6 +14,10 @@
     <Compile Remove="IClearFireBaseJob.cs" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="nlog.config" CopyToOutputDirectory="Always" />
+  </ItemGroup>
+  
   <ItemGroup>
     <PackageReference Include="CorePush" Version="3.0.10" />
     <PackageReference Include="ElmahCore" Version="2.0.7" />
