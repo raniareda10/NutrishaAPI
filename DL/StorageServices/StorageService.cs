@@ -1,19 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 using DL.EntitiesV1.Media;
-using DL.EntitiesV1.Reactions;
 using DL.Enums;
 using DL.Extensions;
 using DL.HelperInterfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
-using MimeKit;
-
 namespace DL.StorageServices
 {
     public class StorageService : IStorageService
