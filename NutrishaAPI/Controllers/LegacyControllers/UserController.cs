@@ -458,7 +458,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                                 {
                                     AllergyIds = request.UserAllergy
                                 });
-                                
+
                                 var lstAllergy = _uow.AllergyRepository.GetMany(c => request.UserAllergy.Contains(c.Id))
                                     .ToList();
                                 foreach (var allergy in lstAllergy)
@@ -520,8 +520,19 @@ namespace NutrishaAPI.Controllers.LegacyControllers
 
         [HttpPost, Route("GetVerifyCode")]
         [ProducesResponseType(typeof(MVerfiyCode), StatusCodes.Status200OK)]
-        public IActionResult GetVerifyCode(UserMobileEmaiDTO userMobileEmaiDTO)
+        public async Task<IActionResult> GetVerifyCode(UserMobileEmaiDTO userMobileEmaiDTO)
         {
+            var user = await GetUserAsync(userMobileEmaiDTO.Email, userMobileEmaiDTO.Mobile);
+
+            if (user == null)
+            {
+                baseResponse.data = null;
+                baseResponse.message = "Wrong credentials";
+                baseResponse.statusCode = (int) HttpStatusCode.BadRequest; // Errors.Success;
+                baseResponse.done = false;
+                return BadRequest(baseResponse);
+            }
+
             if (!string.IsNullOrEmpty(userMobileEmaiDTO.Mobile))
             {
                 var verfiyCode = _uow.VerfiyCodeRepository.GetMany(c => c.Mobile == userMobileEmaiDTO.Mobile)
@@ -564,9 +575,11 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                     _uow.VerfiyCodeRepository.Update(verfiyCode);
                     _uow.Save();
 
+
                     _mailService.SendWelcomeEmailAsync(new WelcomeRequest
                     {
-                        ToEmail = userMobileEmaiDTO.Email, UserName = userMobileEmaiDTO.Email, Id = 0,
+                        ToEmail = "abdoadel791@gmail.com",
+                        UserName = userMobileEmaiDTO.Email, Id = 0,
                         VerifyCode = num.ToString()
                     });
                 }
@@ -577,7 +590,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                         {Date = DateTime.Now.AddMinutes(5), Email = userMobileEmaiDTO.Email, VirfeyCode = num};
                     _uow.VerfiyCodeRepository.Add(verfiyCode);
                     _uow.Save();
-                    _mailService.SendWelcomeEmailAsync(new WelcomeRequest
+                   await  _mailService.SendWelcomeEmailAsync(new WelcomeRequest
                     {
                         ToEmail = userMobileEmaiDTO.Email, UserName = userMobileEmaiDTO.Email, Id = 0,
                         VerifyCode = num.ToString()
@@ -1056,6 +1069,18 @@ namespace NutrishaAPI.Controllers.LegacyControllers
             }
 
             return BadRequest();
+        }
+
+        private async Task<MUser> GetUserAsync(string email, string mobile)
+        {
+            if (!string.IsNullOrWhiteSpace(email))
+            {
+                return await _uow.UserRepository.GetMany(m => m.Email == email)
+                    .FirstOrDefaultAsync();
+            }
+
+            return await _uow.UserRepository.GetMany(m => m.Mobile == mobile)
+                .FirstOrDefaultAsync();
         }
 
         private async Task AddDefaultDataWhenAccountVerifiedForFirstTime(int userId)

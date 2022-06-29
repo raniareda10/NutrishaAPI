@@ -27,7 +27,8 @@ namespace DL.Services.Sms
             var body = new
             {
                 body = message,
-                to = to
+                to = to,
+                from = _smsConfiguration.From
             };
 
             var client = _httpClientFactory.CreateClient();

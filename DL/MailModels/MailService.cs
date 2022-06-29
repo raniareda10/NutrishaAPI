@@ -14,10 +14,12 @@ namespace DL.MailModels
     public class MailService : IMailService
     {
         private readonly MailSettings _mailSettings;
+
         public MailService(IOptions<MailSettings> mailSettings)
         {
             _mailSettings = mailSettings.Value;
         }
+
         public async Task SendEmailAsync(MailRequest mailRequest)
         {
             var email = new MimeMessage();
@@ -37,10 +39,12 @@ namespace DL.MailModels
                             file.CopyTo(ms);
                             fileBytes = ms.ToArray();
                         }
+
                         builder.Attachments.Add(file.FileName, fileBytes, ContentType.Parse(file.ContentType));
                     }
                 }
             }
+
             builder.HtmlBody = mailRequest.Body;
             email.Body = builder.ToMessageBody();
             using var smtp = new SmtpClient();
@@ -49,36 +53,32 @@ namespace DL.MailModels
             await smtp.SendAsync(email);
             await smtp.DisconnectAsync(true);
         }
-        public async Task<string>  SendWelcomeEmailAsync(WelcomeRequest request)
+
+        public async Task<string> SendWelcomeEmailAsync(WelcomeRequest request)
         {
-            try
+            // var filePath = Directory.GetCurrentDirectory() + @"\wwwroot\EmailTemps\ActivateTemp.html";
+            // StreamReader str = new StreamReader(filePath);
+            // str.Close();
+            var mailText = "Otp:" + request.VerifyCode;
+            var email = new MimeMessage
             {
-                string FilePath = Directory.GetCurrentDirectory() + @"\wwwroot\EmailTemps\ActivateTemp.html";
-                StreamReader str = new StreamReader(FilePath);
-                string MailText = str.ReadToEnd();
-                str.Close();
-                MailText = "Otp:" + request.VerifyCode.ToString();
-                var email = new MimeMessage();
-                email.Sender = MailboxAddress.Parse(_mailSettings.Mail);
-                email.To.Add(MailboxAddress.Parse(request.ToEmail));
-                email.Subject = $"Welcome {request.UserName}";
-                var builder = new BodyBuilder();
-                builder.HtmlBody = MailText;
-                email.Body = builder.ToMessageBody();
-                using var smtp = new SmtpClient();
-                smtp.Connect(_mailSettings.Host, _mailSettings.Port, SecureSocketOptions.Auto);
-                smtp.Authenticate(_mailSettings.Mail, _mailSettings.Password);
-                await smtp.SendAsync(email);
-                smtp.Disconnect(true);
-                return "OK";
-
-            }
-            catch (Exception ex)
+                Sender = MailboxAddress.Parse(_mailSettings.Mail),
+                To = {MailboxAddress.Parse(request.ToEmail)},
+                Subject = $"Welcome {request.UserName}"
+            };
+            var builder = new BodyBuilder
             {
+                HtmlBody = mailText
+            };
 
-                return ex.ToString();
-            }
-            
+            email.Body = builder.ToMessageBody();
+
+            using var smtp = new SmtpClient();
+            await smtp.ConnectAsync(_mailSettings.Host, _mailSettings.Port);
+            await smtp.AuthenticateAsync(_mailSettings.Mail, _mailSettings.Password);
+            await smtp.SendAsync(email);
+            await smtp.DisconnectAsync(true);
+            return "OK";
         }
 
 
@@ -90,7 +90,8 @@ namespace DL.MailModels
                 StreamReader str = new StreamReader(FilePath);
                 string MailText = str.ReadToEnd();
                 str.Close();
-                MailText = MailText.Replace("{UserName}", request.UserName).Replace("{Link}", request.Link).Replace("[ID]", request.Id.ToString());
+                MailText = MailText.Replace("{UserName}", request.UserName).Replace("{Link}", request.Link)
+                    .Replace("[ID]", request.Id.ToString());
                 var email = new MimeMessage();
                 email.Sender = MailboxAddress.Parse(_mailSettings.Mail);
                 email.To.Add(MailboxAddress.Parse(request.ToEmail));
@@ -104,14 +105,11 @@ namespace DL.MailModels
                 await smtp.SendAsync(email);
                 smtp.Disconnect(true);
                 return "OK";
-
             }
             catch (Exception ex)
             {
-
                 return ex.ToString();
             }
-
         }
     }
 }
