@@ -11,6 +11,7 @@ using DL.Repositories.Polls;
 using DL.Repositories.Profiles;
 using DL.Repositories.Reactions;
 using DL.Repositories.Reminders;
+using DL.Repositories.UserMeasurement;
 using DL.Repositories.Users;
 using DL.Repositories.Users.Admins;
 using DL.Services.Sms;
@@ -41,6 +42,7 @@ namespace DL
             service.AddScoped<DislikesMealService>();
             service.AddScoped<MobileProfileService>();
             service.AddScoped<ReminderService>();
+            service.AddScoped<UserMeasurementRepository>();
 
 
             service.AddScoped<ContactSupportService>();

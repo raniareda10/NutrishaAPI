@@ -13,6 +13,7 @@ using DL.EntitiesV1.Blogs.Polls;
 using DL.EntitiesV1.Comments;
 using DL.EntitiesV1.ContactSupport;
 using DL.EntitiesV1.Enum;
+using DL.EntitiesV1.Measurements;
 using DL.EntitiesV1.Media;
 using DL.EntitiesV1.Reactions;
 using DL.EntitiesV1.Reminders;
@@ -82,11 +83,17 @@ namespace DL.DBContext
 
         #endregion
 
+        #region UserMeasurement
+
+        public DbSet<UserMeasurementEntity> UserMeasurements { get; set; }
+
+        #endregion
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<MUser>().HasIndex(p => new {p.Mobile}).IsUnique();
             ConfigureBlogs(modelBuilder);
-
+            ConfigureUserMeasurements(modelBuilder);
+            
             modelBuilder.Entity<Article>()
                 .HasLocalizedObject(a => a.Description);
 
@@ -95,7 +102,14 @@ namespace DL.DBContext
             // modelBuilder.Entity<ReminderEntity>()
             //     .HasIndex(p => p.Time).IsUnique(false);
         }
-        
+
+        private void ConfigureUserMeasurements(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<UserMeasurementEntity>()
+                .HasIndex(m => m.MeasurementType)
+                .IsUnique(false);
+        }
+
         private void ConfigureBlogs(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Blog>()

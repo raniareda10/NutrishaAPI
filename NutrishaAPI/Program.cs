@@ -1,16 +1,12 @@
+using System;
+using DL.DBContext;
 using KSEEngineeringJobs;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using LoggerService;
 using NLog;
 
-namespace NutrishaAPIAPI
+namespace NutrishaAPI
 {
     public class Program
     {
@@ -21,7 +17,8 @@ namespace NutrishaAPIAPI
             try
             {
                 logger.Info("Start Program.");
-                CreateHostBuilder(args).Build().Run();
+                var host = CreateHostBuilder(args).Build();
+                host.Run();
             }
             catch (Exception e)
             {
@@ -34,7 +31,7 @@ namespace NutrishaAPIAPI
             }
         }
 
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
+        private static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
     }
