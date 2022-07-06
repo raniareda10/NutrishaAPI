@@ -10,5 +10,9 @@
         public const string InvalidSubject = "Please provide valid subject.";
         public const string WrongCredential = "Please provide correct Credential";
         public const string ActionPrevented = "You prevented from doing this action.";
+        
+        
+        public const string OneLanguageRequired = "Please provide one language at least for {0}.";
+        
     }
 }

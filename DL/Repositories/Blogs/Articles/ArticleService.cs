@@ -72,11 +72,11 @@ namespace DL.Repositories.Blogs.Articles
 
         public async Task<long> PostAsync(PostArticleDto postArticleDto)
         {
-            var coverMedia = await _storageService.PrepareMediaAsync(postArticleDto.CoverImage, EntityType.Article);
-            var additonalMedia =
-                await _storageService.PrepareMediaAsync(postArticleDto.AdditionalMedia, EntityType.Article);
-            
-            
+            // var coverMedia = await _storageService.PrepareMediaAsync(postArticleDto.CoverImage, EntityType.Article);
+            // var additionalMedia =
+            //     await _storageService.PrepareMediaAsync(postArticleDto.AdditionalMedia, EntityType.Article);
+            //
+
             var media = await _storageService.UploadAsync(
                 postArticleDto, EntityType.Article);
             var article = postArticleDto.ToArticle(_currentUserService.UserId);
@@ -133,7 +133,7 @@ namespace DL.Repositories.Blogs.Articles
 
             return await query.ToPagedListAsync(queryModel);
         }
-        
+
         public async Task<BaseServiceResult> DeleteAsync(long id)
         {
             var blog = await _dbContext.Blogs
@@ -146,14 +146,14 @@ namespace DL.Repositories.Blogs.Articles
                     Errors = new[] { NonLocalizedErrorMessages.InvalidId }
                 };
             }
+
             _dbContext.Remove(blog);
             await _dbContext.SaveChangesAsync();
 
             return new BaseServiceResult();
         }
     }
-    
-    
+
 
     public interface IBlogDetailsService
     {

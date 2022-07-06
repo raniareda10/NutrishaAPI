@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using DL.CommonModels;
 using DL.CommonModels.Paging;
 using DL.DBContext;
 using DL.DtosV1.Polls;
@@ -51,7 +52,7 @@ namespace DL.Repositories.Blogs.Polls
             return blog.Id;
         }
 
-        public async Task<PagedResult<PollAdminDetailsDto>> GetPagedListAsync(PagedModel model)
+        public async Task<PagedResult<PollAdminDetailsDto>> GetPagedListAsync(GetPagedListQueryModel model)
         {
             var pollsQuery = _dbContext.Blogs
                 .Where(b => b.EntityType == EntityType.Poll)
@@ -69,6 +70,11 @@ namespace DL.Repositories.Blogs.Polls
                     BackgroundColor = b.Poll.BackgroundColor
                 });
 
+            if (!string.IsNullOrWhiteSpace(model.SearchWord))
+            {
+                pollsQuery = pollsQuery.Where(p => p.Subject.Contains(model.SearchWord));
+            }
+            
             var result = await pollsQuery.ToPagedListAsync(model);
             return result;
         }

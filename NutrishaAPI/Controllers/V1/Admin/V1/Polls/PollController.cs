@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using DL.CommonModels;
 using DL.CommonModels.Paging;
 using DL.DtosV1.Polls;
 using DL.ErrorMessages;
@@ -35,7 +36,7 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Polls
 
 
         [HttpGet("GetPagedList")]
-        public async Task<IActionResult> PostAsync([FromQuery] PagedModel model)
+        public async Task<IActionResult> PostAsync([FromQuery] GetPagedListQueryModel model)
         {
             if (!model.IsValidPagedModel())
             {

@@ -15,9 +15,9 @@ namespace NutrishaAPI.Controllers.V1.Mobile
     {
         private readonly BlogService _blogService;
 
-        public BlogController(BlogService BlogService)
+        public BlogController(BlogService blogService)
         {
-            _blogService = BlogService;
+            _blogService = blogService;
         }
 
         [HttpGet("GetPagedList")]

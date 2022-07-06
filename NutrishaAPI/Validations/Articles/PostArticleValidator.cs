@@ -6,6 +6,7 @@ using DL.HelperInterfaces;
 using DL.ResultModels;
 using Microsoft.AspNetCore.Http;
 using NutrishaAPI.Validations.Models;
+using NutrishaAPI.Validations.Shared;
 
 namespace NutrishaAPI.Validations.Articles
 {
@@ -21,6 +22,11 @@ namespace NutrishaAPI.Validations.Articles
                 return result;
             }
 
+            if (!model.Description.HasAtLeastOneLanguage())
+            {
+                result.AddError(string.Format(NonLocalizedErrorMessages.OneLanguageRequired, "description"));
+                return result;
+            }
 
             if (!model.IsValidFiles())
             {
