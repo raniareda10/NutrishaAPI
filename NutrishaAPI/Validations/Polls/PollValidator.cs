@@ -1,7 +1,4 @@
-﻿using System.Net.Mime;
-using DL.DtosV1.Polls;
-using Microsoft.AspNetCore.Mvc;
-using NutrishaAPI.Controllers.V1.Admin.V1;
+﻿using DL.DtosV1.Polls;
 using NutrishaAPI.Validations.Models;
 using NutrishaAPI.Validations.Shared;
 

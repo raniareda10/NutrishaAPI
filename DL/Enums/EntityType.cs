@@ -5,6 +5,7 @@
         Article = 0,
         Poll = 1,
         BlogVideo = 2,
-        Comment = 3
+        Comment = 3,
+        User = 4
     }
 }

@@ -25,14 +25,14 @@ namespace DL.Repositories.Helpers
                     return false;
             }
         }
-        
+
         public static Task<ITotal> GetEntityWithTotalAsync<T>(this AppDBContext dbContext, T entity) where T : IEntity
         {
             return GetEntityWithTotalAsync(dbContext, entity.EntityId, entity.EntityType);
         }
-        
+
         public static async Task<ITotal> GetEntityWithTotalAsync(
-            this AppDBContext dbContext,long entityId, EntityType entityType)
+            this AppDBContext dbContext, long entityId, EntityType entityType)
         {
             ITotal entityWithTotals;
             switch (entityType)
@@ -49,13 +49,18 @@ namespace DL.Repositories.Helpers
                         .FirstOrDefaultAsync(c => c.Id == entityId);
                     break;
                 }
+
+                case EntityType.User:
+                    entityWithTotals = await dbContext.MUser.FirstOrDefaultAsync(c => c.Id == entityId);
+                    break;
+                
                 default:
                     throw new ArgumentException("Not Supported Yet");
             }
 
             if (entityWithTotals != null)
                 dbContext.Update(entityWithTotals);
-            
+
             return entityWithTotals;
         }
     }

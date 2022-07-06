@@ -37,7 +37,13 @@ namespace DL.Repositories.Comments
             await UpdateParentTotalsAsync(
                 postCommentDto.EntityId,
                 postCommentDto.EntityType,
-                TotalKeys.Comments, 
+                TotalKeys.Comments,
+                true);
+
+            await UpdateParentTotalsAsync(
+                _currentUserService.UserId,
+                EntityType.User,
+                TotalKeys.Comments,
                 true);
             
             var comment = postCommentDto.ToCommentEntity(_currentUserService.UserId);
@@ -48,15 +54,19 @@ namespace DL.Repositories.Comments
             return result;
         }
 
-        public async Task<BaseServiceResult> DeleteCommentAsync(long commentId)
+        public async Task<BaseServiceResult> DeleteCommentAsync(long commentId, bool isAdmin = false)
         {
             var result = new BaseServiceResult();
 
-            var comment = await _dbContext.Comments.FirstOrDefaultAsync(c =>
-                c.Id == commentId &&
-                c.UserId == _currentUserService.UserId
-            );
+            var query = _dbContext.Comments
+                .Where(c => c.Id == commentId);
 
+            if (!isAdmin)
+            {
+                query = query.Where(c => c.UserId == _currentUserService.UserId);
+            }
+
+            var comment = await query.FirstOrDefaultAsync();
             if (comment == null)
             {
                 result.Errors.Add(NonLocalizedErrorMessages.InvalidId);
@@ -67,8 +77,15 @@ namespace DL.Repositories.Comments
             await UpdateParentTotalsAsync(
                 comment.EntityId,
                 comment.EntityType,
-                TotalKeys.Comments, 
+                TotalKeys.Comments,
                 false);
+
+            await UpdateParentTotalsAsync(
+                _currentUserService.UserId,
+                EntityType.User,
+                TotalKeys.Comments,
+                false);
+
             await _dbContext.SaveChangesAsync();
 
             return result;

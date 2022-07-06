@@ -7,6 +7,7 @@ using DL.EntitiesV1.Blogs.Articles;
 using DL.EntitiesV1.Media;
 using DL.Enums;
 using DL.HelperInterfaces;
+using Newtonsoft.Json;
 
 namespace DL.DtosV1.Articles
 {
@@ -16,6 +17,9 @@ namespace DL.DtosV1.Articles
         public LocalizedObject<string> Description { get; set; }
         public long TagId { get; set; }
 
+        public MediaFileDto CoverImage { get; set; }
+        public IList<MediaFileDto> AdditionalMedia { get; set; }
+        
         public IList<FormFileDto> Files { get; set; }
         public IList<ExternalMedia> ExternalMedia { get; set; }
 
@@ -35,7 +39,7 @@ namespace DL.DtosV1.Articles
                 EntityType = EntityType.Article,
                 Article = new Article()
                 {
-                    Description = Description
+                    Description = JsonConvert.SerializeObject(Description)
                 }
             };
         }

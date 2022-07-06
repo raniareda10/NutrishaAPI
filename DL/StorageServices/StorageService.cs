@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using DL.DtosV1.Common;
 using DL.EntitiesV1.Media;
 using DL.Enums;
 using DL.Extensions;
 using DL.HelperInterfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
+
 namespace DL.StorageServices
 {
     public class StorageService : IStorageService
@@ -63,6 +65,43 @@ namespace DL.StorageServices
             return mediaFiles;
         }
 
+        public async Task<IList<MediaFile>> PrepareMediaAsync(IList<MediaFileDto> mediaFiles, EntityType entityType)
+        {
+            if (mediaFiles == null || mediaFiles.Count == 0) return null;
+
+
+            var files = new List<MediaFile>(mediaFiles.Count);
+
+            foreach (var mediaFile in mediaFiles)
+            {
+                files.Add(await PrepareMediaAsync(mediaFile, entityType));
+            }
+
+            return files;
+        }
+
+        public async Task<MediaFile> PrepareMediaAsync(MediaFileDto mediaFile, EntityType entityType)
+        {
+            if (mediaFile.File == null)
+                return new MediaFile()
+                {
+                    Id = Guid.NewGuid(),
+                    Url = mediaFile.Url,
+                    Flags = mediaFile.Flags.Select(m => m.ToString()).ToHashSet(),
+                    MediaType = MediaExtensions.ExtractExternalUrlType(mediaFile.Url),
+                    Thumbnail = null
+                };
+
+            
+            var path = $"{entityType}-{Guid.NewGuid()}";
+            return new MediaFile()
+            {
+                Id = Guid.NewGuid(),
+                Flags = mediaFile.Flags.Select(m => m.ToString()).ToHashSet(),
+                MediaType = MediaExtensions.GetFileType(mediaFile.File),
+                Url = await UploadFileAsync(mediaFile.File, path)
+            };
+        }
         public async Task<string> UploadFileAsync(IFormFile file, string path)
         {
             var currentDirectory = Directory.GetCurrentDirectory() + "/wwwroot";

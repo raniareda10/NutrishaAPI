@@ -7,6 +7,7 @@ using DL.Repositories.Blogs.Polls;
 using DL.Repositories.Comments;
 using DL.Repositories.ContactSupport;
 using DL.Repositories.Dislikes;
+using DL.Repositories.MobileUser;
 using DL.Repositories.Polls;
 using DL.Repositories.Profiles;
 using DL.Repositories.Reactions;
@@ -42,12 +43,14 @@ namespace DL
             service.AddScoped<DislikesMealService>();
             service.AddScoped<MobileProfileService>();
             service.AddScoped<ReminderService>();
-            service.AddScoped<UserMeasurementRepository>();
 
+
+            service.AddScoped<UserMeasurementRepository>();
+            service.AddScoped<MobileUserRepository>();
 
             service.AddScoped<ContactSupportService>();
 
-            service.AddScoped<IStorageService, StorageService>();
+            service.AddSingleton<IStorageService, StorageService>();
 
             #region Users
 

@@ -1,12 +1,10 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using DL.CommonModels;
 using DL.DtosV1.Articles;
 using DL.Repositories.Blogs.Articles;
 using DL.ResultModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using NutrishaAPI.Attributes;
-using NutrishaAPI.Controllers.V1.Admin.V1;
 using NutrishaAPI.Validations.Articles;
 
 namespace NutrishaAPI.Controllers.V1.Admin.V1.Article
@@ -50,6 +48,11 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Article
             return ItemResult(result);
         }
 
+        [HttpGet("GetPagedList")]
+        public async Task<IActionResult> GetPagedListAsync([FromQuery] GetPagedListQueryModel model)
+        {
+            return PagedResult(await _articleService.GetPagedListAsync(model));
+        }
 
         [HttpPut("Edit")]
         public async Task<IActionResult> EditAsync(EditArticleDto editArticleDto)
@@ -63,6 +66,15 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Article
             // await _articleService.PutAsync();
 
             return Ok();
+        }
+
+        [HttpPut("Delete")]
+        public async Task<IActionResult> DeleteArticle([FromQuery] long id)
+        {
+            if (id < 1) return InvalidResult(NonLocalizedErrorMessages.InvalidId);
+
+            var result = await _articleService.DeleteAsync(id);
+            return result.Success ? EmptyResult() : InvalidResult(NonLocalizedErrorMessages.InvalidId);
         }
     }
 }

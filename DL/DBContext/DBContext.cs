@@ -17,6 +17,7 @@ using DL.EntitiesV1.Measurements;
 using DL.EntitiesV1.Media;
 using DL.EntitiesV1.Reactions;
 using DL.EntitiesV1.Reminders;
+using DL.EntitiesV1.Users;
 using DL.EntityTypeBuilders;
 using Newtonsoft.Json;
 
@@ -70,9 +71,16 @@ namespace DL.DBContext
         public DbSet<UserAllergy> UserAllergy { get; set; }
 
         #endregion
+
         #region Dislikes
 
         public DbSet<UserDislikes> UserDislikes { get; set; }
+
+        #endregion
+
+        #region User Preventions
+
+        public DbSet<MobileUserPreventionEntity> UserPreventions { get; set; }
 
         #endregion
 
@@ -88,19 +96,40 @@ namespace DL.DBContext
         public DbSet<UserMeasurementEntity> UserMeasurements { get; set; }
 
         #endregion
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<MUser>().HasIndex(p => new {p.Mobile}).IsUnique();
+            modelBuilder.Entity<MUser>().HasIndex(p => new { p.Mobile }).IsUnique();
             ConfigureBlogs(modelBuilder);
+            ConfigureUsers(modelBuilder);
             ConfigureUserMeasurements(modelBuilder);
-            
-            modelBuilder.Entity<Article>()
-                .HasLocalizedObject(a => a.Description);
+            ConfigureUserPreventions(modelBuilder);
 
             // modelBuilder.Entity<ReminderEntity>()
             //     .HasIndex(p => p.IsOn).IsUnique(false);
             // modelBuilder.Entity<ReminderEntity>()
             //     .HasIndex(p => p.Time).IsUnique(false);
+        }
+
+        private void ConfigureUsers(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<MUser>()
+                .ApplyTotalToJson();
+            modelBuilder.Entity<MUser>()
+                .Property(m => m.Totals)
+                .IsRequired()
+                .HasDefaultValue(new Dictionary<string, int>()
+                {
+                    { TotalKeys.Likes, 0 },
+                    { TotalKeys.Comments, 0 },
+                });
+        }
+
+        private void ConfigureUserPreventions(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<MobileUserPreventionEntity>()
+                .HasIndex(m => m.PreventionType)
+                .IsUnique(false);
         }
 
         private void ConfigureUserMeasurements(ModelBuilder modelBuilder)

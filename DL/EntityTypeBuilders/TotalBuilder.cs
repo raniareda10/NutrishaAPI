@@ -16,7 +16,7 @@ namespace DL.EntityTypeBuilders
                     {
                         NullValueHandling = NullValueHandling.Ignore
                     }),
-                    totals => JsonConvert.DeserializeObject<IDictionary<string, int>>(totals)
+                    totals => JsonConvert.DeserializeObject<Dictionary<string, int>>(totals)
                 );
         }
     }

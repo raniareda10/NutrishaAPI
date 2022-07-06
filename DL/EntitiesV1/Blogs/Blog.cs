@@ -20,7 +20,7 @@ namespace DL.EntitiesV1.Blogs
         public string Subject { get; set; }
         public EntityType EntityType { get; set; }
 
-        public IDictionary<string, int> Totals { get; set; }
+        public Dictionary<string, int> Totals { get; set; }
         public int OwnerId { get; set; }
         public MUser Owner { get; set; }
         public IList<MediaFile> Media { get; set; }

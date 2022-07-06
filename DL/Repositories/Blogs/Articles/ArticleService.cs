@@ -1,14 +1,23 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
+using DL.CommonModels;
+using DL.CommonModels.Paging;
 using DL.DBContext;
 using DL.DtosV1.Articles;
 using DL.DtosV1.Blogs;
 using DL.DtosV1.Blogs.Details;
+using DL.DtosV1.Common;
 using DL.DtosV1.Users;
+using DL.Entities;
+using DL.EntitiesV1.Blogs;
+using DL.EntitiesV1.Measurements;
 using DL.EntitiesV1.Reactions;
 using DL.Enums;
+using DL.Extensions;
+using DL.ResultModels;
 using DL.StorageServices;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 namespace DL.Repositories.Blogs.Articles
 {
@@ -36,7 +45,7 @@ namespace DL.Repositories.Blogs.Articles
                 {
                     Id = b.Id,
                     Subject = b.Subject,
-                    Description = b.Article.Description,
+                    DescriptionMapper = b.Article.Description,
                     Totals = b.Totals,
                     Media = b.Media,
                     Created = b.Created,
@@ -57,11 +66,17 @@ namespace DL.Repositories.Blogs.Articles
                 .Select(r => r.ReactionType as ReactionType?)
                 .FirstOrDefaultAsync();
 
+            article.Description = JsonConvert.DeserializeObject<LocalizedObject<string>>(article.DescriptionMapper);
             return article;
         }
 
         public async Task<long> PostAsync(PostArticleDto postArticleDto)
         {
+            var coverMedia = await _storageService.PrepareMediaAsync(postArticleDto.CoverImage, EntityType.Article);
+            var additonalMedia =
+                await _storageService.PrepareMediaAsync(postArticleDto.AdditionalMedia, EntityType.Article);
+            
+            
             var media = await _storageService.UploadAsync(
                 postArticleDto, EntityType.Article);
             var article = postArticleDto.ToArticle(_currentUserService.UserId);
@@ -79,7 +94,7 @@ namespace DL.Repositories.Blogs.Articles
                 {
                     Id = b.Id,
                     Subject = b.Subject,
-                    Description = b.Article.Description,
+                    DescriptionMapper = b.Article.Description,
                     Totals = b.Totals,
                     Media = b.Media,
                     Created = b.Created,
@@ -93,10 +108,52 @@ namespace DL.Repositories.Blogs.Articles
                 })
                 .FirstOrDefaultAsync(b => b.Id == id);
 
-
+            article.Description = JsonConvert.DeserializeObject<LocalizedObject<string>>(article.DescriptionMapper);
             return article;
         }
+
+        public async Task<PagedResult<ArticleListDto>> GetPagedListAsync(GetPagedListQueryModel queryModel)
+        {
+            var query = _dbContext.Blogs
+                .OrderByDescending(b => b.Created)
+                .Select(b => new ArticleListDto
+                {
+                    Subject = b.Subject,
+                    Description = b.Article.Description,
+                    Owner = new OwnerDto()
+                    {
+                        Id = b.Owner.Id,
+                        Name = b.Owner.Name,
+                        ImageUrl = b.Owner.PersonalImage
+                    },
+                    Media = b.Media,
+                    Totals = b.Totals,
+                    Tag = BlogTagDto.FromBlogTag(b.Tag)
+                });
+
+            return await query.ToPagedListAsync(queryModel);
+        }
+        
+        public async Task<BaseServiceResult> DeleteAsync(long id)
+        {
+            var blog = await _dbContext.Blogs
+                .FirstOrDefaultAsync(b => b.Id == id);
+
+            if (blog == null)
+            {
+                return new BaseServiceResult()
+                {
+                    Errors = new[] { NonLocalizedErrorMessages.InvalidId }
+                };
+            }
+            _dbContext.Remove(blog);
+            await _dbContext.SaveChangesAsync();
+
+            return new BaseServiceResult();
+        }
     }
+    
+    
 
     public interface IBlogDetailsService
     {

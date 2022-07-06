@@ -15,7 +15,7 @@ namespace DL.DtosV1.Comments
 
         public OwnerDto Owner { get; set; }
         public ReactionType? ReactionType { get; set; }
-        public IDictionary<string, int> Totals { get; set; }
+        public Dictionary<string, int> Totals { get; set; }
 
         public static CommentDto FromCommentEntity(Comment c)
         {

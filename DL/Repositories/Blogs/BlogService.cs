@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using DL.CommonModels.Paging;
 using DL.DBContext;
 using DL.DtosV1.Blogs.Timeline;
+using DL.DtosV1.Common;
 using DL.DtosV1.Polls;
 using DL.EntitiesV1.Blogs;
 using DL.EntitiesV1.Blogs.Polls;
@@ -12,6 +13,7 @@ using DL.Extensions;
 using DL.Repositories.Blogs.BlogDetails;
 using DL.Repositories.Helpers;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 namespace DL.Repositories.Blogs
 {
@@ -63,7 +65,7 @@ namespace DL.Repositories.Blogs
 
             return new PagedResult<object>()
             {
-                Data = result.Select(d => (dynamic) d.Data).ToList(),
+                Data = result.Select(d => (dynamic)d.Data).ToList(),
                 TotalRows = blogs.TotalRows
             };
         }
@@ -121,7 +123,8 @@ namespace DL.Repositories.Blogs
                     additionalData.ReactionType = reactionType;
                 }
 
-                additionalData.Description = blog.Blog.Article.Description;
+                additionalData.Description =
+                    JsonConvert.DeserializeObject<LocalizedObject<string>>(blog.Blog.Article.Description);
                 blog.Data.AdditionalData = additionalData;
             }
         }

@@ -1,19 +1,13 @@
 ﻿using System.Threading.Tasks;
 using DL.DtosV1.Comments;
-using DL.EntitiesV1.Users;
 using DL.Repositories.Comments;
 using DL.ResultModels;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using NutrishaAPI.Attributes;
-using NutrishaAPI.Controllers.V1.Mobile.Bases;
-using NutrishaAPI.Validations.Comments;
 using NutrishaAPI.Validations.Shared;
 
-namespace NutrishaAPI.Controllers.V1.Mobile.Comments
+namespace NutrishaAPI.Controllers.V1.Admin.V1
 {
-    [Authorize]
-    public class CommentController : BaseMobileController
+    public class CommentController : BaseAdminV1Controller
     {
         private readonly CommentService _commentService;
 
@@ -21,21 +15,6 @@ namespace NutrishaAPI.Controllers.V1.Mobile.Comments
         {
             _commentService = commentService;
         }
-
-        [HttpPost("Post")]
-        [OnlyUsersWithoutPreventionOf(MobilePreventionType.NoComment)]
-        public async Task<IActionResult> PostCommentAsync(PostCommentDto postCommentDto)
-        {
-            var validationResult = postCommentDto.IsValid();
-            if (!validationResult.Success)
-            {
-                return InvalidResult(validationResult.Errors);
-            }
-            
-            var result = await _commentService.PostCommentAsync(postCommentDto);
-            return result.Success ? ItemResult(result.Data) : InvalidResult(result.Errors);
-        }
-
 
         [HttpGet("GetPagedList")]
         public async Task<IActionResult> GetPagedListAsync([FromQuery] GetCommentsModel model)
@@ -46,13 +25,12 @@ namespace NutrishaAPI.Controllers.V1.Mobile.Comments
             return PagedResult(await _commentService.GetPagedListAsync(model));
         }
         
-        // Server Limitation HttpDelete Not Allowed
-        [HttpPost("Delete")]
+        [HttpDelete("Delete")]
         public async Task<IActionResult> DeleteCommentAsync([FromQuery] long id)
         {
             if (id < 1) return InvalidResult(NonLocalizedErrorMessages.InvalidId);
             
-            var result = await _commentService.DeleteCommentAsync(id);
+            var result = await _commentService.DeleteCommentAsync(id, true);
             return result.Success ? EmptyResult() : InvalidResult(result.Errors);
         }
     }

@@ -4,6 +4,7 @@ using System.Linq.Expressions;
 using System.Threading.Tasks;
 using DL.DBContext;
 using DL.DtosV1.Reactions;
+using DL.EntitiesV1.Blogs;
 using DL.EntitiesV1.Reactions;
 using DL.Enums;
 using DL.Repositories.Helpers;
@@ -48,7 +49,7 @@ namespace DL.Repositories.Reactions
                 result.Errors.Add(NonLocalizedErrorMessages.NoEntityWithThisId);
                 return result;
             }
-            
+
             var reaction = new Reaction()
             {
                 Created = DateTime.UtcNow,
@@ -59,7 +60,8 @@ namespace DL.Repositories.Reactions
             };
 
             var totals = await UpdateAndGetTotalsAsync(UpdateReactionDto);
-            
+
+            await UpdateParentTotalsAsync(_currentUserService.UserId, EntityType.User, TotalKeys.Likes, true);
             await _dbContext.Reactions.AddAsync(reaction);
             await _dbContext.SaveChangesAsync();
             result.Data = totals;
@@ -74,13 +76,13 @@ namespace DL.Repositories.Reactions
 
             var entityWithTotal = await _dbContext
                 .GetEntityWithTotalAsync(UpdateReactionDto);
-            
+
             if (entityWithTotal == null)
             {
                 result.Errors.Add(NonLocalizedErrorMessages.NoEntityWithThisId);
                 return result;
             }
-            
+
             var isDeleted = await TryDeleteReactionAsync(UpdateReactionDto.EntityId, UpdateReactionDto.ReactionType);
             if (!isDeleted)
             {
@@ -88,6 +90,7 @@ namespace DL.Repositories.Reactions
                 return result;
             }
 
+            await UpdateParentTotalsAsync(_currentUserService.UserId, EntityType.User, TotalKeys.Likes, false);
             entityWithTotal.Totals[UpdateReactionDto.ReactionType.MapToTotalKey()]--;
             await _dbContext.SaveChangesAsync();
             result.Data = entityWithTotal.Totals;
@@ -117,7 +120,7 @@ namespace DL.Repositories.Reactions
         }
 
         #endregion
-        
+
         private async Task<bool> TryDeleteReactionAsync(long EntityId, ReactionType ReactionType)
         {
             var reaction = await _dbContext.Reactions.FirstOrDefaultAsync(
@@ -149,6 +152,27 @@ namespace DL.Repositories.Reactions
             var keyToIncrease = UpdateReactionDto.ReactionType.MapToTotalKey();
             entityWithTotals.Totals[keyToIncrease]++;
             return entityWithTotals.Totals;
+        }
+
+        private async Task UpdateParentTotalsAsync(
+            long entityId,
+            EntityType entityType,
+            string key,
+            bool increase)
+        {
+            var entityWithTotal = await _dbContext
+                .GetEntityWithTotalAsync(entityId, entityType);
+
+            if (increase)
+            {
+                entityWithTotal.Totals[key]++;
+            }
+            else
+            {
+                entityWithTotal.Totals[key]--;
+            }
+
+            _dbContext.Update(entityWithTotal);
         }
     }
 }

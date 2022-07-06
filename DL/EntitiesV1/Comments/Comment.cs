@@ -12,7 +12,7 @@ namespace DL.EntitiesV1.Comments
 
         public long EntityId { get; set; }
         public EntityType EntityType { get; set; }
-        public IDictionary<string, int> Totals { get; set; }
+        public Dictionary<string, int> Totals { get; set; }
         public string Content { get; set; }
     }
 }

@@ -1,16 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.RegularExpressions;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using DL.DBContext;
-using DL.EntitiesV1.Blogs;
-using DL.EntitiesV1.Blogs.Articles;
-using DL.EntitiesV1.Blogs.Polls;
-using DL.EntitiesV1.Media;
-using DL.Enums;
 using DL.Repositories.Allergy;
-using DL.Repositories.Blogs;
 using DL.Repositories.Dislikes;
 using DL.Repositories.Reminders;
 using Microsoft.AspNetCore.Authorization;
@@ -18,7 +9,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
 using NutrishaAPI.Attributes;
 using NutrishaAPI.Controllers.V1.Mobile.Bases;
 
