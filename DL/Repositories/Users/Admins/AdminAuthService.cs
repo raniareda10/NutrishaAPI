@@ -8,12 +8,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DL.Repositories.Users.Admins
 {
-    public class AdminUserService
+    public class AdminAuthService
     {
         private readonly AppDBContext _dbContext;
         private readonly TokenService _tokenService;
 
-        public AdminUserService(
+        public AdminAuthService(
             AppDBContext dbContext,
             TokenService tokenService)
         {

@@ -13,6 +13,7 @@ using DL.EntitiesV1.Blogs.Polls;
 using DL.EntitiesV1.Comments;
 using DL.EntitiesV1.ContactSupport;
 using DL.EntitiesV1.Enum;
+using DL.EntitiesV1.Meals;
 using DL.EntitiesV1.Measurements;
 using DL.EntitiesV1.Media;
 using DL.EntitiesV1.Reactions;
@@ -94,6 +95,12 @@ namespace DL.DBContext
         #region UserMeasurement
 
         public DbSet<UserMeasurementEntity> UserMeasurements { get; set; }
+
+        #endregion
+
+        #region Meals
+
+        // public DbSet<MealEntity> Meals { get; set; }
 
         #endregion
 

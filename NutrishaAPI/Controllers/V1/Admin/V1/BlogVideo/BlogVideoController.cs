@@ -1,30 +1,30 @@
 ﻿using System.Threading.Tasks;
 using DL.CommonModels;
 using DL.DtosV1.Articles;
-using DL.Repositories.Blogs.Articles;
+using DL.DtosV1.BlogVideo;
+using DL.Repositories.BlogVideo;
 using DL.ResultModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using NutrishaAPI.Validations.Articles;
+using NutrishaAPI.Validations.BLogVideo;
 
-namespace NutrishaAPI.Controllers.V1.Admin.V1.Article
+namespace NutrishaAPI.Controllers.V1.Admin.V1.BlogVideo
 {
-// [OnlyAdmins]
     [Authorize]
-    public class ArticleController : BaseAdminV1Controller
+    public class BlogVideoController : BaseAdminV1Controller
     {
-        private readonly ArticleService _articleService;
+        private readonly BlogVideoRepository _blogVideoRepository;
 
-        public ArticleController(ArticleService articleService)
+        public BlogVideoController(BlogVideoRepository blogVideoRepository)
         {
-            _articleService = articleService;
+            _blogVideoRepository = blogVideoRepository;
         }
 
         [HttpPost("Post")]
         [DisableRequestSizeLimit]
         [RequestFormLimits(MultipartBodyLengthLimit = long.MaxValue, ValueLengthLimit = int.MaxValue,
             MultipartHeadersLengthLimit = int.MaxValue)]
-        public async Task<IActionResult> PostAsync([FromForm] PostArticleDto postArticleDto)
+        public async Task<IActionResult> PostAsync([FromForm] PostBlogVideoDto postArticleDto)
         {
             var validationResult = postArticleDto.IsValid();
             if (!validationResult.Success)
@@ -32,30 +32,30 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Article
                 return InvalidResult(validationResult.Errors);
             }
 
-            var result = await _articleService.PostAsync(postArticleDto);
+            var result = await _blogVideoRepository.PostAsync(postArticleDto);
             return ItemResult(result);
         }
 
         [HttpGet("GetById")]
-        public async Task<IActionResult> GetByIdAsync([FromQuery] long id)
+        public async Task<IActionResult> PostAsync([FromQuery] long id)
         {
             if (id < 1)
             {
                 return InvalidResult(NonLocalizedErrorMessages.InvalidId);
             }
 
-            var result = await _articleService.GetByIdForAdmin(id);
+            var result = await _blogVideoRepository.GetByIdForAdmin(id);
             return ItemResult(result);
         }
 
         [HttpGet("GetPagedList")]
         public async Task<IActionResult> GetPagedListAsync([FromQuery] GetPagedListQueryModel model)
         {
-            return PagedResult(await _articleService.GetPagedListAsync(model));
+            return PagedResult(await _blogVideoRepository.GetPagedListAsync(model));
         }
 
         [HttpPut("Put")]
-        public async Task<IActionResult> PutAsync([FromForm] EditArticleDto editArticleDto)
+        public async Task<IActionResult> PutAsync([FromForm] EditBlogVideo editBlogVideo)
         {
             // var validationResult = editArticleDto.IsValid();
             // if (!validationResult.Success)
@@ -63,17 +63,17 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Article
             //     return InvalidResult(validationResult.Errors);
             // }
 
-            await _articleService.PutAsync(editArticleDto);
+            await _blogVideoRepository.PutAsync(editBlogVideo);
 
             return Ok();
         }
 
-        [HttpPut("Delete")]
+        [HttpDelete("Delete")]
         public async Task<IActionResult> DeleteArticle([FromQuery] long id)
         {
             if (id < 1) return InvalidResult(NonLocalizedErrorMessages.InvalidId);
 
-            var result = await _articleService.DeleteAsync(id);
+            var result = await _blogVideoRepository.DeleteAsync(id);
             return result.Success ? EmptyResult() : InvalidResult(NonLocalizedErrorMessages.InvalidId);
         }
     }

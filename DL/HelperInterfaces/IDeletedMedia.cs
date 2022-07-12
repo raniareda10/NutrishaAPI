@@ -5,6 +5,6 @@ namespace DL.HelperInterfaces
 {
     public interface IDeletedMedia
     {
-        public IList<Guid> DeletedMediaIds { get; set; }
+        public HashSet<Guid> DeletedMediaIds { get; set; }
     }
 }

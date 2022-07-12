@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using DL.DBContext;
 using DL.DtosV1.BlogVideo;
@@ -7,6 +8,7 @@ using DL.EntitiesV1.Blogs;
 using DL.Enums;
 using DL.ResultModels;
 using DL.StorageServices;
+using Microsoft.EntityFrameworkCore;
 
 namespace DL.Repositories.Blogs.BlogVideo
 {
@@ -29,7 +31,7 @@ namespace DL.Repositories.Blogs.BlogVideo
         public async Task<PayloadServiceResult<BlogVideoDetailsDto>> PostAsync(PostBlogVideoDto postBlogVideoDto)
         {
             var result = new PayloadServiceResult<BlogVideoDetailsDto>();
-            var media = await _storageService.UploadAsync(postBlogVideoDto, EntityType.BlogVideo);
+            var media = await _storageService.PrepareMediaAsync(postBlogVideoDto, EntityType.BlogVideo);
 
             var blog = new Blog()
             {
@@ -56,5 +58,7 @@ namespace DL.Repositories.Blogs.BlogVideo
             };
             return result;
         }
+        
+        
     }
 }

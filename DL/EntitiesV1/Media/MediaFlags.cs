@@ -3,5 +3,6 @@
     public class MediaFlags
     {
         public const string CoverImage = "CoverImage";
+        public const string MainMedia = "MainMedia";
     }
 }

@@ -22,15 +22,25 @@ namespace DL.StorageServices
             _hostDomain = configuration["Domain"];
         }
 
-        public async Task<IList<MediaFile>> UploadAsync(IMedia model,
+        public async Task<IList<MediaFile>> PrepareMediaAsync(IMedia model,
             // string entityId,
-            EntityType entityType)
+            EntityType entityType,
+            IEnumerable<MediaFile> oldMedia = null,
+            HashSet<Guid> removedMedia = null)
         {
+            oldMedia ??= new List<MediaFile>();
+            if (removedMedia is { Count: > 0 })
+            {
+                oldMedia = oldMedia?
+                    .Where(m => !removedMedia.Contains(m.Id))
+                    .ToList() ?? new List<MediaFile>();
+            }
+            
             var filesCount = model.Files?.Count ?? 0;
             var externalMediaCount = model.ExternalMedia?.Count ?? 0;
             var count = filesCount + externalMediaCount;
 
-            if (count == 0) return null;
+            if (count == 0) return oldMedia.ToList();
             var mediaFiles = new List<MediaFile>(count);
 
             if (externalMediaCount != 0)
@@ -62,7 +72,7 @@ namespace DL.StorageServices
                 });
             }
 
-            return mediaFiles;
+            return mediaFiles.Concat(oldMedia).ToList();
         }
 
         public async Task<IList<MediaFile>> PrepareMediaAsync(IList<MediaFileDto> mediaFiles, EntityType entityType)
@@ -92,7 +102,7 @@ namespace DL.StorageServices
                     Thumbnail = null
                 };
 
-            
+
             var path = $"{entityType}-{Guid.NewGuid()}";
             return new MediaFile()
             {
@@ -102,6 +112,7 @@ namespace DL.StorageServices
                 Url = await UploadFileAsync(mediaFile.File, path)
             };
         }
+
         public async Task<string> UploadFileAsync(IFormFile file, string path)
         {
             var currentDirectory = Directory.GetCurrentDirectory() + "/wwwroot";

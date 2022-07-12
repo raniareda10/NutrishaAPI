@@ -8,13 +8,13 @@ using NutrishaAPI.Validations.Users;
 namespace NutrishaAPI.Controllers.V1.Admin.V1
 {
     [AllowAnonymous]
-    public class UserController : BaseAdminV1RoutingController
+    public class AuthController : BaseAdminV1RoutingController
     {
-        private readonly AdminUserService _adminUserService;
+        private readonly AdminAuthService _adminAuthService;
 
-        public UserController(AdminUserService adminUserService)
+        public AuthController(AdminAuthService adminAuthService)
         {
-            _adminUserService = adminUserService;
+            _adminAuthService = adminAuthService;
         }
         [HttpPost("Login")]
         public async Task<IActionResult> LoginAsync(AdminLoginDto adminLoginDto)
@@ -25,7 +25,7 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1
                 return InvalidResult(validateResult.Errors);
             }
 
-            var serviceResult = await _adminUserService.LoginAsync(adminLoginDto);
+            var serviceResult = await _adminAuthService.LoginAsync(adminLoginDto);
             if (!serviceResult.Success)
             {
                 return InvalidResult(serviceResult.Errors);

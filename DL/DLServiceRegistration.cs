@@ -4,6 +4,7 @@ using DL.Repositories.Blogs;
 using DL.Repositories.Blogs.Articles;
 using DL.Repositories.Blogs.BlogDetails;
 using DL.Repositories.Blogs.Polls;
+using DL.Repositories.BlogVideo;
 using DL.Repositories.Comments;
 using DL.Repositories.ContactSupport;
 using DL.Repositories.Dislikes;
@@ -49,12 +50,14 @@ namespace DL
             service.AddScoped<MobileUserRepository>();
 
             service.AddScoped<ContactSupportService>();
+            service.AddScoped<BlogVideoRepository>();
+            service.AddScoped<AdminUserRepository>();
 
             service.AddSingleton<IStorageService, StorageService>();
 
             #region Users
 
-            service.AddScoped<AdminUserService>();
+            service.AddScoped<AdminAuthService>();
             service.AddScoped<TokenService>();
 
             #endregion

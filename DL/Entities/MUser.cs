@@ -35,6 +35,7 @@ namespace DL.Entities
     public decimal? Evaluation { get; set; } = 0;
     public int? DeviceTypeId { get; set; }
     public int? GenderId { get; set; }
+    public MGender Gender { get; set; }
     public int? JourneyPlanId { get; set; }
     public string DeviceToken { get; set; } = string.Empty;
     public string Language { get; set; } = string.Empty;

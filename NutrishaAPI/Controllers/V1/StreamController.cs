@@ -5,10 +5,10 @@ using Microsoft.AspNetCore.Mvc;
 namespace NutrishaAPI.Controllers.V1
 {
     [AllowAnonymous]
-    [Route("Streaming")]
-    public class StreamingController : ApiController
+    [Route("Stream")]
+    public class StreamController : ApiController
     {
-        [HttpGet, Route("")]
+        [HttpGet]
         public FileResult Get(string filePath)
         {
             var path = Directory.GetCurrentDirectory() + $"/wwwroot/{filePath}";

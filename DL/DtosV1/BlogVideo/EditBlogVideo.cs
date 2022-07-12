@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using DL.HelperInterfaces;
 
-namespace DL.DtosV1.Articles
+namespace DL.DtosV1.BlogVideo
 {
-    public class EditArticleDto : PostArticleDto, IDeletedMedia
+    public class EditBlogVideo : PostBlogVideoDto, IDeletedMedia
     {
         public long Id { get; set; }
         public HashSet<Guid> DeletedMediaIds { get; set; }

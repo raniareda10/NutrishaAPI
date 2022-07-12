@@ -63,7 +63,10 @@ namespace DL.Repositories.MobileUser
                     Created = m.CreatedOn,
                     SubscribeDate = null,
                     TotalPaidAmount = null,
-                    Totals = m.Totals
+                    Totals = m.Totals,
+                    Age = m.Age,
+                    Height = m.Height,
+                    Gender = m.Gender.Name
                 })
                 .FirstOrDefaultAsync(m => m.Id == userId);
 
