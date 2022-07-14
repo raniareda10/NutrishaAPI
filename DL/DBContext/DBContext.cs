@@ -100,28 +100,25 @@ namespace DL.DBContext
 
         #region Meals
 
-        // public DbSet<MealEntity> Meals { get; set; }
+        public DbSet<MealEntity> Meals { get; set; }
+        public DbSet<MealPlan> MealPlans { get; set; }
+        public DbSet<PlanMeal> PlanMeals { get; set; }
 
         #endregion
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<MUser>().HasIndex(p => new { p.Mobile }).IsUnique();
             ConfigureBlogs(modelBuilder);
             ConfigureUsers(modelBuilder);
             ConfigureUserMeasurements(modelBuilder);
             ConfigureUserPreventions(modelBuilder);
-
-            // modelBuilder.Entity<ReminderEntity>()
-            //     .HasIndex(p => p.IsOn).IsUnique(false);
-            // modelBuilder.Entity<ReminderEntity>()
-            //     .HasIndex(p => p.Time).IsUnique(false);
         }
 
         private void ConfigureUsers(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<MUser>()
                 .ApplyTotalToJson();
+            
             modelBuilder.Entity<MUser>()
                 .Property(m => m.Totals)
                 .IsRequired()

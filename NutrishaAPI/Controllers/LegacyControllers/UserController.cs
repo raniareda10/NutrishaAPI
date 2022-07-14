@@ -576,9 +576,9 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                     _uow.Save();
 
 
-                    _mailService.SendWelcomeEmailAsync(new WelcomeRequest
+                    await _mailService.SendWelcomeEmailAsync(new WelcomeRequest
                     {
-                        ToEmail = "abdoadel791@gmail.com",
+                        ToEmail = user.Email,
                         UserName = userMobileEmaiDTO.Email, Id = 0,
                         VerifyCode = num.ToString()
                     });

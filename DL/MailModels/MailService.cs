@@ -1,22 +1,27 @@
-﻿using MailKit.Net.Smtp;
-using MailKit.Security;
+﻿using MailKit.Security;
 using Microsoft.Extensions.Options;
 using MimeKit;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Mail;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using SmtpClient = MailKit.Net.Smtp.SmtpClient;
 
 namespace DL.MailModels
 {
     public class MailService : IMailService
     {
+        private readonly ILogger<MailService> _logger;
         private readonly MailSettings _mailSettings;
 
-        public MailService(IOptions<MailSettings> mailSettings)
+        public MailService(IOptions<MailSettings> mailSettings, ILogger<MailService> logger)
         {
+            _logger = logger;
             _mailSettings = mailSettings.Value;
         }
 
@@ -56,30 +61,55 @@ namespace DL.MailModels
 
         public async Task<string> SendWelcomeEmailAsync(WelcomeRequest request)
         {
-            // var filePath = Directory.GetCurrentDirectory() + @"\wwwroot\EmailTemps\ActivateTemp.html";
-            // StreamReader str = new StreamReader(filePath);
-            // str.Close();
-            var mailText = "Otp:" + request.VerifyCode;
-            var email = new MimeMessage
+            var objMessage = new MailMessage()
             {
-                Sender = MailboxAddress.Parse(_mailSettings.Mail),
-                To = {MailboxAddress.Parse(request.ToEmail)},
-                Subject = $"Welcome {request.UserName}"
-            };
-            var builder = new BodyBuilder
-            {
-                HtmlBody = mailText
+                From = new MailAddress(_mailSettings.Mail),
+                To = { request.ToEmail },
+                Subject = $"Welcome {request.UserName}",
+                IsBodyHtml = true,
+                Body = "Otp:" + request.VerifyCode
             };
 
-            email.Body = builder.ToMessageBody();
+            var serializedMailMessage = JsonConvert.SerializeObject(objMessage);
+            _logger.LogInformation($"Sending  mail to {request.ToEmail}: {serializedMailMessage}");
 
-            using var smtp = new SmtpClient();
-            await smtp.ConnectAsync(_mailSettings.Host, _mailSettings.Port);
-            await smtp.AuthenticateAsync(_mailSettings.Mail, _mailSettings.Password);
-            await smtp.SendAsync(email);
-            await smtp.DisconnectAsync(true);
+            var smtp = new System.Net.Mail.SmtpClient(_mailSettings.Host, _mailSettings.Port); // OR 25
+            // smtp.UseDefaultCredentials = false;
+            smtp.DeliveryMethod = SmtpDeliveryMethod.Network;
+            //smtp.EnableSsl = true;
+            smtp.Credentials = new System.Net.NetworkCredential(
+                _mailSettings.Mail, _mailSettings.Password);
+            smtp.Send(objMessage);
+            _logger.LogInformation($"mail to {request.ToEmail} sent: {JsonConvert.SerializeObject(objMessage)}");
             return "OK";
         }
+
+        // public async Task<string> SendWelcomeEmailAsync(WelcomeRequest request)
+        // {
+        //     // var filePath = Directory.GetCurrentDirectory() + @"\wwwroot\EmailTemps\ActivateTemp.html";
+        //     // StreamReader str = new StreamReader(filePath);
+        //     // str.Close();
+        //     var mailText = "Otp:" + request.VerifyCode;
+        //     var email = new MimeMessage
+        //     {
+        //         Sender = MailboxAddress.Parse(_mailSettings.Mail),
+        //         To = { MailboxAddress.Parse(request.ToEmail) },
+        //         Subject = $"Welcome {request.UserName}"
+        //     };
+        //     var builder = new BodyBuilder
+        //     {
+        //         HtmlBody = mailText
+        //     };
+        //
+        //     email.Body = builder.ToMessageBody();
+        //
+        //     using var smtp = new SmtpClient();
+        //     await smtp.ConnectAsync(_mailSettings.Host, _mailSettings.Port);
+        //     await smtp.AuthenticateAsync(_mailSettings.Mail, _mailSettings.Password);
+        //     await smtp.SendAsync(email);
+        //     await smtp.DisconnectAsync(true);
+        //     return "OK";
+        // }
 
 
         public async Task<string> SendActivateEmailAsync(WelcomeRequest request)

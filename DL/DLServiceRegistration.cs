@@ -8,6 +8,7 @@ using DL.Repositories.BlogVideo;
 using DL.Repositories.Comments;
 using DL.Repositories.ContactSupport;
 using DL.Repositories.Dislikes;
+using DL.Repositories.Meals;
 using DL.Repositories.MobileUser;
 using DL.Repositories.Polls;
 using DL.Repositories.Profiles;
@@ -44,6 +45,7 @@ namespace DL
             service.AddScoped<DislikesMealService>();
             service.AddScoped<MobileProfileService>();
             service.AddScoped<ReminderService>();
+            service.AddScoped<MealsRepository>();
 
 
             service.AddScoped<UserMeasurementRepository>();
