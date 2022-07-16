@@ -23,6 +23,8 @@ using DL.StorageServices;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
+using DL.Repositories.Roles;
+
 namespace DL
 {
     public static class DLServiceRegistration
@@ -54,6 +56,7 @@ namespace DL
             service.AddScoped<ContactSupportService>();
             service.AddScoped<BlogVideoRepository>();
             service.AddScoped<AdminUserRepository>();
+            service.AddScoped<RollRepository>();
 
             service.AddSingleton<IStorageService, StorageService>();
 

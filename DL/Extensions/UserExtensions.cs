@@ -1,5 +1,8 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
+using DL.DBContext;
 using DL.Entities;
 using DL.Repositories.Users.Models;
 using Microsoft.EntityFrameworkCore;
@@ -23,6 +26,36 @@ namespace DL.Extensions
                     PersonalImage = u.PersonalImage
                 })
                 .FirstOrDefaultAsync();
+        }
+
+        public static async Task<AdminUserModel> GetUserAsync(this AppDBContext users, Expression<Func<MUser, bool>> predicate)
+        {
+            var user = await users.MUser.Where(predicate)
+                .Select(u => new AdminUserModel()
+                {
+                    Id = u.Id,
+                    Email = u.Email,
+                    Password = u.Password,
+                    Name = u.Name,
+                    Language = u.Language,
+                    PersonalImage = u.PersonalImage
+                })
+                .FirstOrDefaultAsync();
+
+            if (user == null) return null;
+
+            var userRole = await users.MUserRoles
+                .Where(r => r.UserId == user.Id)
+                .Select(r => r.RoleId)
+                .FirstOrDefaultAsync();
+                
+            user.Permissions =
+                await users.RolePermissions
+                    .Where(r => r.RoleId == userRole)
+                    .Select(r => r.Permission.Name)
+                    .ToListAsync();
+
+            return user;
         }
     }
 }

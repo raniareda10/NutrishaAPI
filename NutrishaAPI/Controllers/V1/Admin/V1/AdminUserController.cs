@@ -18,13 +18,20 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1
         {
             _adminAuthRepository = adminAuthRepository;
         }
-        
+
         [HttpGet("GetUser")]
         public async Task<IActionResult> GetUserAsync()
         {
             var serviceResult = await _adminAuthRepository.GetCurrentUserAsync();
 
             return ItemResult(serviceResult);
+        }
+
+        [HttpPost("AssignRoleToUser")]
+        public async Task<IActionResult> AssignRoleToUserAsync([FromBody] AssignRoleToUserDto assignRoleToUserDto)
+        {
+            await _adminAuthRepository.AssignRoleToUserAsync(assignRoleToUserDto);
+            return EmptyResult();
         }
     }
 }

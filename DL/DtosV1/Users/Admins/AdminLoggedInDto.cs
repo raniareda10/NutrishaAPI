@@ -1,4 +1,5 @@
-﻿using DL.Repositories.Users.Models;
+﻿using System.Collections.Generic;
+using DL.Repositories.Users.Models;
 
 namespace DL.DtosV1.Users.Admins
 {
@@ -8,6 +9,7 @@ namespace DL.DtosV1.Users.Admins
         public string Email { get; set; }
         public string Language { get; set; }
         public string PersonalImage { get; set; }
+        public IEnumerable<string> Permissions { get; set; }
 
         public static AdminLoggedInDto FromAdminModel(AdminUserModel adminUserModel)
         {
@@ -16,7 +18,8 @@ namespace DL.DtosV1.Users.Admins
                 Email = adminUserModel.Email,
                 Id = adminUserModel.Id,
                 Language = adminUserModel.Language,
-                PersonalImage = adminUserModel.PersonalImage
+                PersonalImage = adminUserModel.PersonalImage,
+                Permissions = adminUserModel.Permissions
             };
         }
     }

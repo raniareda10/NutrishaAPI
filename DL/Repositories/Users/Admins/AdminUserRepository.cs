@@ -1,8 +1,11 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using DL.DBContext;
 using DL.DtosV1.Users.Admins;
+using DL.Entities;
 using DL.Extensions;
+using DL.Repositories.Roles;
 using DL.Repositories.Users.Models;
 using DL.ResultModels;
 using Microsoft.EntityFrameworkCore;
@@ -14,17 +17,34 @@ namespace DL.Repositories.Users.Admins
         private readonly AppDBContext _dbContext;
         private readonly ICurrentUserService _currentUserService;
 
+
         public AdminUserRepository(
             AppDBContext dbContext,
-            ICurrentUserService currentUserService)
+            ICurrentUserService currentUserService
+)
         {
             _dbContext = dbContext;
             _currentUserService = currentUserService;
         }
-        
+
         public async Task<AdminUserModel> GetCurrentUserAsync()
         {
-            return await _dbContext.MUser.GetUserByIdAsync(_currentUserService.UserId);
+            var user = await _dbContext.GetUserAsync(u => u.Id == _currentUserService.UserId);
+            return user;
+        }
+
+
+        public async Task AssignRoleToUserAsync(AssignRoleToUserDto assignRoleToUserDto)
+        {
+            await _dbContext.AddAsync(new MUserRoles
+            {
+                CreatedBy = _currentUserService.UserId,
+                RoleId = assignRoleToUserDto.RoleId,
+                UserId = assignRoleToUserDto.UserId,
+                CreatedOn = DateTime.UtcNow,
+
+            });
+            await _dbContext.SaveChangesAsync();
         }
     }
 }
