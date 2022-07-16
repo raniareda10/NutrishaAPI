@@ -1,10 +1,9 @@
-﻿using DL.Entities;
-using Microsoft.EntityFrameworkCore;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DL.Entities;
 using DL.EntitiesV1;
 using DL.EntitiesV1.Allergies;
 using DL.EntitiesV1.Blogs;
@@ -18,10 +17,11 @@ using DL.EntitiesV1.Measurements;
 using DL.EntitiesV1.Media;
 using DL.EntitiesV1.Reactions;
 using DL.EntitiesV1.Reminders;
+using DL.EntitiesV1.Roles;
 using DL.EntitiesV1.Users;
 using DL.EntityTypeBuilders;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-using DL.EntitiesV1.Roles;
 
 namespace DL.DBContext
 {
@@ -116,13 +116,26 @@ namespace DL.DBContext
             ConfigureUsers(modelBuilder);
             ConfigureUserMeasurements(modelBuilder);
             ConfigureUserPreventions(modelBuilder);
+            ConfigurePermissions(modelBuilder);
+
+        }
+
+        private void ConfigurePermissions(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<PermissionEntity>()
+                .Property(p => p.Name)
+                .IsRequired()
+                .HasMaxLength(500);
+
+            modelBuilder.Entity<PermissionEntity>().HasIndex(p => p.Name)
+            .IsUnique();
         }
 
         private void ConfigureUsers(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<MUser>()
                 .ApplyTotalToJson();
-            
+
             modelBuilder.Entity<MUser>()
                 .Property(m => m.Totals)
                 .IsRequired()
