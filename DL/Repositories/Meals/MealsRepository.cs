@@ -51,7 +51,7 @@ namespace DL.Repositories.Meals
             return meal.Id;
         }
 
-        public async Task<PagedResult<MealEntity>> GetMealsAsync(GetMealsPagedListQuery model)
+        public async Task<PagedResult<MealListModelDto>> GetMealsAsync(GetMealsPagedListQuery model)
         {
             var query = _dbContext.Meals
                 .AsNoTracking()
@@ -70,9 +70,26 @@ namespace DL.Repositories.Meals
                     .Where(m => m.MealType == model.MealType);
             }
 
-            return await query.ToPagedListAsync(model);
+            return await query.Select(m => new MealListModelDto
+            {
+                Id = m.Id,
+                Name = m.Name,
+                MealType = m.MealType,
+                CookingTime = m.CockingTime,
+                PreparingTime = m.PreparingTime
+            }).ToPagedListAsync(model);
         }
 
+        public async Task<MealEntity> GetByIdAsync(long id)
+        {
+            return await _dbContext.Meals
+                .AsNoTracking()
+                .Where(m => m.Id == id)
+                // .Select(m => new MealDetailsDto
+                // {
+                // })
+                .FirstOrDefaultAsync();
+        }
         public async Task<long> PostMealPlanAsync(PostMealPlanDto plans)
         {
             var currentDate = DateTime.UtcNow;

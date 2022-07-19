@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using DL.CommonModels;
+using DL.CommonModels.Paging;
 using DL.DBContext;
 using DL.DtosV1.Users.Admins;
 using DL.Entities;
@@ -45,6 +47,21 @@ namespace DL.Repositories.Users.Admins
 
             });
             await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task<PagedResult<dynamic>> GetPageListAsync(GetPagedListQueryModel model)
+        {
+            var userQuery = _dbContext.MUser.Where(m => m.IsAdmin);
+
+            if (!string.IsNullOrWhiteSpace(model.SearchWord))
+            {
+                userQuery = userQuery.Where(m => m.Email.Contains(model.SearchWord) || m.Name.Contains(model.SearchWord));
+            }
+
+
+            return await userQuery
+                .Select(u => (dynamic)u)
+                .ToPagedListAsync(model);
         }
     }
 }

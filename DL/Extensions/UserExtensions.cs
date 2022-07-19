@@ -3,6 +3,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using DL.DBContext;
+using DL.DtosV1.Users.Roles;
 using DL.Entities;
 using DL.Repositories.Users.Models;
 using Microsoft.EntityFrameworkCore;
@@ -48,7 +49,8 @@ namespace DL.Extensions
                 .Where(r => r.UserId == user.Id)
                 .Select(r => r.RoleId)
                 .FirstOrDefaultAsync();
-                
+
+            // user.Roles = new[] { userRole};
             user.Permissions =
                 await users.RolePermissions
                     .Where(r => r.RoleId == userRole)

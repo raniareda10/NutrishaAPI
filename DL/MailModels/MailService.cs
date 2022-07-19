@@ -1,14 +1,14 @@
-﻿using MailKit.Security;
-using Microsoft.Extensions.Options;
-using MimeKit;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Mail;
 using System.Text;
 using System.Threading.Tasks;
+using MailKit.Security;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using MimeKit;
 using Newtonsoft.Json;
 using SmtpClient = MailKit.Net.Smtp.SmtpClient;
 
@@ -27,61 +27,77 @@ namespace DL.MailModels
 
         public async Task SendEmailAsync(MailRequest mailRequest)
         {
-            var email = new MimeMessage();
-            email.Sender = MailboxAddress.Parse(_mailSettings.Mail);
-            email.To.Add(MailboxAddress.Parse(mailRequest.ToEmail));
-            email.Subject = mailRequest.Subject;
-            var builder = new BodyBuilder();
-            if (mailRequest.Attachments != null)
+            try
             {
-                byte[] fileBytes;
-                foreach (var file in mailRequest.Attachments)
+                var email = new MimeMessage();
+                email.Sender = MailboxAddress.Parse(_mailSettings.Mail);
+                email.To.Add(MailboxAddress.Parse(mailRequest.ToEmail));
+                email.Subject = mailRequest.Subject;
+                var builder = new BodyBuilder();
+                if (mailRequest.Attachments != null)
                 {
-                    if (file.Length > 0)
+                    byte[] fileBytes;
+                    foreach (var file in mailRequest.Attachments)
                     {
-                        using (var ms = new MemoryStream())
+                        if (file.Length > 0)
                         {
-                            file.CopyTo(ms);
-                            fileBytes = ms.ToArray();
-                        }
+                            using (var ms = new MemoryStream())
+                            {
+                                file.CopyTo(ms);
+                                fileBytes = ms.ToArray();
+                            }
 
-                        builder.Attachments.Add(file.FileName, fileBytes, ContentType.Parse(file.ContentType));
+                            builder.Attachments.Add(file.FileName, fileBytes, ContentType.Parse(file.ContentType));
+                        }
                     }
                 }
-            }
 
-            builder.HtmlBody = mailRequest.Body;
-            email.Body = builder.ToMessageBody();
-            using var smtp = new SmtpClient();
-            smtp.Connect(_mailSettings.Host, _mailSettings.Port, SecureSocketOptions.StartTls);
-            smtp.Authenticate(_mailSettings.Mail, _mailSettings.Password);
-            await smtp.SendAsync(email);
-            await smtp.DisconnectAsync(true);
+                builder.HtmlBody = mailRequest.Body;
+                email.Body = builder.ToMessageBody();
+                using var smtp = new SmtpClient();
+                smtp.Connect(_mailSettings.Host, _mailSettings.Port, SecureSocketOptions.StartTls);
+                smtp.Authenticate(_mailSettings.Mail, _mailSettings.Password);
+                await smtp.SendAsync(email);
+                await smtp.DisconnectAsync(true);
+            }
+            catch (Exception ex)
+            {
+
+            }
         }
 
         public async Task<string> SendWelcomeEmailAsync(WelcomeRequest request)
         {
-            var objMessage = new MailMessage()
+            try
             {
-                From = new MailAddress(_mailSettings.Mail),
-                To = { request.ToEmail },
-                Subject = $"Welcome {request.UserName}",
-                IsBodyHtml = true,
-                Body = "Otp:" + request.VerifyCode
-            };
+                var objMessage = new MailMessage()
+                {
+                    From = new MailAddress(_mailSettings.Mail),
+                    To = { request.ToEmail },
+                    Subject = $"Welcome {request.UserName}",
+                    IsBodyHtml = true,
+                    Body = "Otp:" + request.VerifyCode
+                };
 
-            var serializedMailMessage = JsonConvert.SerializeObject(objMessage);
-            _logger.LogInformation($"Sending  mail to {request.ToEmail}: {serializedMailMessage}");
+                var serializedMailMessage = JsonConvert.SerializeObject(objMessage);
+                _logger.LogInformation($"Sending  mail to {request.ToEmail}: {serializedMailMessage}");
 
-            var smtp = new System.Net.Mail.SmtpClient(_mailSettings.Host, _mailSettings.Port); // OR 25
-            // smtp.UseDefaultCredentials = false;
-            smtp.DeliveryMethod = SmtpDeliveryMethod.Network;
-            //smtp.EnableSsl = true;
-            smtp.Credentials = new System.Net.NetworkCredential(
-                _mailSettings.Mail, _mailSettings.Password);
-            smtp.Send(objMessage);
-            _logger.LogInformation($"mail to {request.ToEmail} sent: {JsonConvert.SerializeObject(objMessage)}");
-            return "OK";
+                var smtp = new System.Net.Mail.SmtpClient(_mailSettings.Host, _mailSettings.Port); // OR 25
+                                                                                                   // smtp.UseDefaultCredentials = false;
+                smtp.DeliveryMethod = SmtpDeliveryMethod.Network;
+                //smtp.EnableSsl = true;
+                smtp.Credentials = new System.Net.NetworkCredential(
+                    _mailSettings.Mail, _mailSettings.Password);
+                smtp.Send(objMessage);
+                _logger.LogInformation($"mail to {request.ToEmail} sent: {JsonConvert.SerializeObject(objMessage)}");
+                return "OK";
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error While Sending Email To {request.ToEmail}, ex: {JsonConvert.SerializeObject(ex)}");
+                return ex.Message;
+            }
         }
 
         // public async Task<string> SendWelcomeEmailAsync(WelcomeRequest request)

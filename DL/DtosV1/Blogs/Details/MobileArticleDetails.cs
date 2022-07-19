@@ -5,6 +5,7 @@ using DL.DtosV1.Common;
 using DL.DtosV1.Users;
 using DL.EntitiesV1.Media;
 using DL.EntitiesV1.Reactions;
+using DL.Enums;
 using DL.HelperInterfaces;
 
 namespace DL.DtosV1.Blogs.Details
@@ -22,5 +23,6 @@ namespace DL.DtosV1.Blogs.Details
         public string Subject { get; set; }
         public ReactionType? ReactionType { get; set; }
         public IList<MediaFile> Media { get; set; }
+        public EntityType EntityType { get; set; } = EntityType.Article;
     }
 }
