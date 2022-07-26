@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using DL.CommonModels;
 using DL.CommonModels.Paging;
 using DL.DBContext;
 using DL.DtosV1.Meals;
@@ -10,7 +8,7 @@ using DL.EntitiesV1.Meals;
 using DL.Extensions;
 using DL.StorageServices;
 using Microsoft.EntityFrameworkCore;
-using MimeKit.IO;
+
 
 namespace DL.Repositories.Meals
 {
@@ -28,6 +26,19 @@ namespace DL.Repositories.Meals
             _storageService = storageService;
         }
 
+
+        public async Task<object> GetMealsLookupAsync()
+        {
+            var allMeals = await _dbContext.Meals.OrderByDescending(m => m.Name)
+                .ToListAsync();
+
+            return allMeals.GroupBy(m => m.MealType)
+                .ToDictionary(m => (int)m.Key, entities => entities.Select(m => new
+                {
+                    m.Id,
+                    m.Name
+                }));
+        }
 
         public async Task<long> PostAsync(PostMealDto model)
         {
@@ -90,6 +101,7 @@ namespace DL.Repositories.Meals
                 // })
                 .FirstOrDefaultAsync();
         }
+
         public async Task<long> PostMealPlanAsync(PostMealPlanDto plans)
         {
             var currentDate = DateTime.UtcNow;
@@ -99,14 +111,14 @@ namespace DL.Repositories.Meals
                     Day = model.Day,
                     MealId = l,
                     Created = currentDate,
+                    // Notes = model.Notes
                 });
 
             var plan = new MealPlan()
             {
                 Created = currentDate,
                 UserId = plans.UserId,
-                Notes = plans.Notes,
-                Meals = meals.ToList()
+                Days = meals.ToList()
             };
 
             await _dbContext.AddAsync(plan);
@@ -115,28 +127,79 @@ namespace DL.Repositories.Meals
             return plan.Id;
         }
 
-        public async Task<dynamic> GetCurrentPlanAsync(int? userId)
+        // public async Task<dynamic> GetCurrentPlanAsync(int? userId)
+        // {
+        //     var plan = await _dbContext.MealPlans
+        //         .AsNoTracking()
+        //         .Include(p => p.Days)
+        //         .ThenInclude(m => m.Meal)
+        //         .Where(p => p.UserId == (userId ?? _currentUserService.UserId))
+        //         .OrderByDescending(p => p.Created)
+        //         .FirstOrDefaultAsync();
+        //
+        //     var result = plan.Meals.GroupBy(m => m.Day)
+        //         .Select(p => new
+        //         {
+        //             Day = p.Key,
+        //             Meals = p.Select(m => new
+        //             {
+        //                 m.Meal.Name,
+        //                 m.Meal.MealType,
+        //             })
+        //         });
+        //
+        //     return result;
+        // }
+
+        public async Task<dynamic> GetUserPlansAsync(int? userId)
         {
-            var plan = await _dbContext.MealPlans
+            var plans = await _dbContext.MealPlans
                 .AsNoTracking()
-                .Include(p => p.Meals)
+                .Include(m => m.Days)
+                .ThenInclude(m => m.PlanMeals)
                 .ThenInclude(m => m.Meal)
-                .Where(p => p.UserId == (userId ?? _currentUserService.UserId))
-                .OrderByDescending(p => p.Created)
-                .FirstOrDefaultAsync();
+                .OrderByDescending(m => m.Created)
+                .Take(2)
+                .ToListAsync();
 
-            var result = plan.Meals.GroupBy(m => m.Day)
-                .Select(p => new
-                {
-                    Day = p.Key,
-                    Meals = p.Select(m => new
+            if (plans.Count == 0)
+            {
+                return null;
+            }
+
+            var planes = plans.Select((p, i) => new
+            {
+                rank = i,
+                id = p.Id,
+                plan = p.Meals.GroupBy(m => m.Day)
+                    .Select(m => new
                     {
-                        m.Meal.Name,
-                        m.Meal.MealType,
+                        Day = m.Key,
+                        Meals = m.GroupBy(planMeal =>planMeal.Meal.MealType).Select(meal => new
+                        {
+                            Label = meal.Key,
+                            Meals = meal.Select(m => new
+                            {
+                                m.Id
+                            })
+                        })
                     })
-                });
+            }).ToList();
 
-            return result;
+            if (plans.Count == 1)
+            {
+                return new
+                {
+                    Current = planes.FirstOrDefault(),
+                    // Previous = null
+                };
+            }
+
+            return new
+            {
+                Current = planes.FirstOrDefault(),
+                Preivious = planes.LastOrDefault()
+            };
         }
     }
 }

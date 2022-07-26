@@ -6,8 +6,8 @@ namespace DL.EntitiesV1.Meals
     {
         public string Name { get; set; }
         public MealType MealType { get; set; }
-        public TimeSpan CockingTime { get; set; }
-        public TimeSpan PreparingTime { get; set; }
+        public string CockingTime { get; set; }
+        public string PreparingTime { get; set; }
         public string CoverImage { get; set; }
         public string MealSteps { get; set; }
         public string Allergies { get; set; }

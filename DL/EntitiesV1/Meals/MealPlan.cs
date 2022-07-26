@@ -8,7 +8,7 @@ namespace DL.EntitiesV1.Meals
         public MUser User { get; set; }
         public int UserId { get; set; }
 
-        public  ICollection<PlanMeal> Meals { get; set; }
-        public string Notes { get; set; }
+        public  ICollection<PlanDay> Days { get; set; }
+        // public string Notes { get; set; }
     }
 }
