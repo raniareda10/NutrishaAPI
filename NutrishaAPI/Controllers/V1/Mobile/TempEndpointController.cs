@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using DL.DBContext;
 using DL.Repositories.Allergy;
@@ -98,9 +99,21 @@ namespace NutrishaAPI.Controllers.V1.Mobile
             //     return Ok();
             // }
 
-            return !string.IsNullOrWhiteSpace(section) ? 
-                Ok(_configuration.GetSection(section).AsEnumerable()) : 
-                Ok(_configuration[path]);
+            return !string.IsNullOrWhiteSpace(section)
+                ? Ok(_configuration.GetSection(section).AsEnumerable())
+                : Ok(_configuration[path]);
+        }
+
+        [SecureByCode]
+        [AllowAnonymous]
+        [HttpGet("GetEnv")]
+        public IActionResult GetEnv()
+        {
+            return Ok(new
+            {
+                env = Environment.GetEnvironmentVariables(),
+                HostingEnv = _webHostEnvironment
+            });
         }
     }
 }

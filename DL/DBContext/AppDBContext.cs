@@ -11,6 +11,7 @@ using DL.EntitiesV1.Blogs.Articles;
 using DL.EntitiesV1.Blogs.Polls;
 using DL.EntitiesV1.Comments;
 using DL.EntitiesV1.ContactSupport;
+using DL.EntitiesV1.Dairies;
 using DL.EntitiesV1.Enum;
 using DL.EntitiesV1.Meals;
 using DL.EntitiesV1.Measurements;
@@ -25,7 +26,7 @@ using Newtonsoft.Json;
 
 namespace DL.DBContext
 {
-    public class AppDBContext : DbContext
+    public sealed class AppDBContext : DbContext
     {
         public AppDBContext(DbContextOptions<AppDBContext> options)
             : base(options)
@@ -103,10 +104,18 @@ namespace DL.DBContext
 
         public DbSet<MealEntity> Meals { get; set; }
         public DbSet<MealPlan> MealPlans { get; set; }
-        public DbSet<PlanMeal> PlanMeals { get; set; }
+        public DbSet<PlanDayEntity> PlanDays { get; set; }
+        public DbSet<PlanDayMenuEntity> PlanDayMenus { get; set; }
+        public DbSet<PlanDayMenuMealEntity> PlanDayMenuMeals { get; set; }
 
         #endregion
 
+        #region Dairies
+
+        public DbSet<DairyEntity> Dairies { get; set; }
+        
+
+        #endregion
         public DbSet<PermissionEntity> Permissions { get; set; }
         public DbSet<RolePermissionEntity> RolePermissions { get; set; }
 
@@ -119,6 +128,7 @@ namespace DL.DBContext
             ConfigurePermissions(modelBuilder);
 
         }
+        
 
         private void ConfigurePermissions(ModelBuilder modelBuilder)
         {
@@ -179,45 +189,45 @@ namespace DL.DBContext
 
         #region Legacy Entities
 
-        public virtual DbSet<MUser> MUser { get; set; }
-        public virtual DbSet<MRole> MRoles { get; set; }
-        public virtual DbSet<MUserRoles> MUserRoles { get; set; }
-        public virtual DbSet<MNotificationType> MNotificationType { get; set; }
-        public virtual DbSet<MGoalType> MGoalType { get; set; }
-        public virtual DbSet<MAllergy> MAllergy { get; set; }
-        public virtual DbSet<MFrequency> MFrequency { get; set; }
-        public virtual DbSet<MGender> MGender { get; set; }
-        public virtual DbSet<MRisk> MRisk { get; set; }
-        public virtual DbSet<MJourneyPlan> MJourneyPlan { get; set; }
-        public virtual DbSet<MNotification> MNotification { get; set; }
-        public virtual DbSet<MNotificationUser> MNotificationUser { get; set; }
-        public virtual DbSet<MContactUs> MContactUs { get; set; }
-        public virtual DbSet<MGroup> MGroups { get; set; }
-        public virtual DbSet<MUserGroup> MUserGroups { get; set; }
-        public virtual DbSet<MRolesGroup> MRolesGroups { get; set; }
-        public virtual DbSet<MVerfiyCode> MVerfiyCode { get; set; }
+        public DbSet<MUser> MUser { get; set; }
+        public DbSet<MRole> MRoles { get; set; }
+        public DbSet<MUserRoles> MUserRoles { get; set; }
+        public DbSet<MNotificationType> MNotificationType { get; set; }
+        public DbSet<MGoalType> MGoalType { get; set; }
+        public DbSet<MAllergy> MAllergy { get; set; }
+        public DbSet<MFrequency> MFrequency { get; set; }
+        public DbSet<MGender> MGender { get; set; }
+        public DbSet<MRisk> MRisk { get; set; }
+        public DbSet<MJourneyPlan> MJourneyPlan { get; set; }
+        public DbSet<MNotification> MNotification { get; set; }
+        public DbSet<MNotificationUser> MNotificationUser { get; set; }
+        public DbSet<MContactUs> MContactUs { get; set; }
+        public DbSet<MGroup> MGroups { get; set; }
+        public DbSet<MUserGroup> MUserGroups { get; set; }
+        public DbSet<MRolesGroup> MRolesGroups { get; set; }
+        public DbSet<MVerfiyCode> MVerfiyCode { get; set; }
 
-        public virtual DbSet<MGoal> MGoal { get; set; }
-        public virtual DbSet<MUserAllergy> MUserAllergy { get; set; }
-        public virtual DbSet<MUserGoal> MUserGoal { get; set; }
-        public virtual DbSet<MUserRisk> MUserRisk { get; set; }
-        public virtual DbSet<MMealType> MMealType { get; set; }
-        public virtual DbSet<MFoodSteps> MFoodSteps { get; set; }
-        public virtual DbSet<MIngredient> MIngredient { get; set; }
+        public DbSet<MGoal> MGoal { get; set; }
+        public DbSet<MUserAllergy> MUserAllergy { get; set; }
+        public DbSet<MUserGoal> MUserGoal { get; set; }
+        public DbSet<MUserRisk> MUserRisk { get; set; }
+        public DbSet<MMealType> MMealType { get; set; }
+        public DbSet<MFoodSteps> MFoodSteps { get; set; }
+        public DbSet<MIngredient> MIngredient { get; set; }
 
-        public virtual DbSet<MMeal> MMeal { get; set; }
-        public virtual DbSet<MDislikeMeal> MDislikeMeal { get; set; }
-        public virtual DbSet<MMealIngredient> MMealIngredient { get; set; }
-        public virtual DbSet<MUserMeal> MUserMeal { get; set; }
-        public virtual DbSet<MMealSteps> MMealSteps { get; set; }
+        public DbSet<MMeal> MMeal { get; set; }
+        public DbSet<MDislikeMeal> MDislikeMeal { get; set; }
+        public DbSet<MMealIngredient> MMealIngredient { get; set; }
+        public DbSet<MUserMeal> MUserMeal { get; set; }
+        public DbSet<MMealSteps> MMealSteps { get; set; }
 
-        public virtual DbSet<MVideo> MVideo { get; set; }
-        public virtual DbSet<MBlogType> MBlogType { get; set; }
-        public virtual DbSet<MMediaType> MMediaType { get; set; }
-        public virtual DbSet<MAttachmentType> MAttachmentType { get; set; }
+        public DbSet<MVideo> MVideo { get; set; }
+        public DbSet<MBlogType> MBlogType { get; set; }
+        public DbSet<MMediaType> MMediaType { get; set; }
+        public DbSet<MAttachmentType> MAttachmentType { get; set; }
 
-        public virtual DbSet<SecUser> SecUser { get; set; }
-        public virtual DbSet<MSplash> MSplash { get; set; }
+        public DbSet<SecUser> SecUser { get; set; }
+        public DbSet<MSplash> MSplash { get; set; }
 
         #endregion
     }

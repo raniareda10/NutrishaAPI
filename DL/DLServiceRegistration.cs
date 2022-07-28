@@ -1,4 +1,5 @@
 ﻿using DL.EntitiesV1.Blogs;
+using DL.Repositories;
 using DL.Repositories.Allergy;
 using DL.Repositories.Blogs;
 using DL.Repositories.Blogs.Articles;
@@ -57,6 +58,7 @@ namespace DL
             service.AddScoped<BlogVideoRepository>();
             service.AddScoped<AdminUserRepository>();
             service.AddScoped<RollRepository>();
+            service.AddScoped<DairyRepository>();
 
             service.AddSingleton<IStorageService, StorageService>();
 

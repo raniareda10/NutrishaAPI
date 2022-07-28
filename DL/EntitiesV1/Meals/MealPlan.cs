@@ -5,10 +5,9 @@ namespace DL.EntitiesV1.Meals
 {
     public class MealPlan : BaseEntityV1
     {
-        public MUser User { get; set; }
         public int UserId { get; set; }
-
-        public  ICollection<PlanDay> Days { get; set; }
-        // public string Notes { get; set; }
+        public MUser User { get; set; }
+        public ICollection<PlanDayEntity> PlanDays { get; set; }
+        public string Notes { get; set; }
     }
 }

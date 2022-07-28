@@ -20,6 +20,8 @@ namespace DL.EntitiesV1.Meals
         Lunch,
         Dinner,
         Snack,
-        Supplement
+        Supplement,
+        Water,
+        Extra
     }
 }

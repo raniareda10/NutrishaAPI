@@ -105,21 +105,28 @@ namespace DL.Repositories.Meals
         public async Task<long> PostMealPlanAsync(PostMealPlanDto plans)
         {
             var currentDate = DateTime.UtcNow;
-            var meals = plans.Meals.SelectMany(m => m.MealIds,
-                (model, l) => new PlanMeal()
-                {
-                    Day = model.Day,
-                    MealId = l,
-                    Created = currentDate,
-                    // Notes = model.Notes
-                });
-
-            var plan = new MealPlan()
+            var plan = new MealPlan
             {
-                Created = currentDate,
                 UserId = plans.UserId,
-                Days = meals.ToList()
+                Notes = plans.Notes,
+                Created = currentDate,
+                PlanDays = plans.Meals.Select(m => new PlanDayEntity()
+                {
+                    Created = currentDate,
+                    Day = m.Day,
+                    PlanMeals = m.Menus.Select(menu => new PlanDayMenuEntity
+                    {
+                        Created = currentDate,
+                        MealType = menu.Type,
+                        Meals = menu.MealIds.Select(mealId => new PlanDayMenuMealEntity()
+                        {
+                            Created = currentDate,
+                            MealId = mealId
+                        }).ToList()
+                    }).ToList(),
+                }).ToList(),
             };
+            
 
             await _dbContext.AddAsync(plan);
             await _dbContext.SaveChangesAsync();
@@ -151,55 +158,21 @@ namespace DL.Repositories.Meals
         //     return result;
         // }
 
-        public async Task<dynamic> GetUserPlansAsync(int? userId)
-        {
-            var plans = await _dbContext.MealPlans
-                .AsNoTracking()
-                .Include(m => m.Days)
-                .ThenInclude(m => m.PlanMeals)
-                .ThenInclude(m => m.Meal)
-                .OrderByDescending(m => m.Created)
-                .Take(2)
-                .ToListAsync();
-
-            if (plans.Count == 0)
-            {
-                return null;
-            }
-
-            var planes = plans.Select((p, i) => new
-            {
-                rank = i,
-                id = p.Id,
-                plan = p.Meals.GroupBy(m => m.Day)
-                    .Select(m => new
-                    {
-                        Day = m.Key,
-                        Meals = m.GroupBy(planMeal =>planMeal.Meal.MealType).Select(meal => new
-                        {
-                            Label = meal.Key,
-                            Meals = meal.Select(m => new
-                            {
-                                m.Id
-                            })
-                        })
-                    })
-            }).ToList();
-
-            if (plans.Count == 1)
-            {
-                return new
-                {
-                    Current = planes.FirstOrDefault(),
-                    // Previous = null
-                };
-            }
-
-            return new
-            {
-                Current = planes.FirstOrDefault(),
-                Preivious = planes.LastOrDefault()
-            };
-        }
+        // public async Task<dynamic> GetUserPlansAsync(int? userId)
+        // {
+        // var plans = await _dbContext.MealPlans
+        //     .AsNoTracking()
+        //     .Include(m => m.Days)
+        //     .ThenInclude(m => m.PlanMeals)
+        //     // .ThenInclude(m => m.Meal)
+        //     // .OrderByDescending(m => m.Created)
+        //     // .Take(2)
+        //     .ToListAsync();
+        //
+        // if (plans.Count == 0)
+        // {
+        //     return null;
+        // }
+        // }
     }
 }

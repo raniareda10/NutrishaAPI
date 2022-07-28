@@ -4,14 +4,16 @@ using DL.DBContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace DL.Migrations
 {
     [DbContext(typeof(AppDBContext))]
-    partial class AppDBContextModelSnapshot : ModelSnapshot
+    [Migration("20220727002601_Add Dairies table")]
+    partial class AddDairiestable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1501,100 +1503,6 @@ namespace DL.Migrations
                     b.ToTable("Meals");
                 });
 
-            modelBuilder.Entity("DL.EntitiesV1.Meals.MealPlan", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Notes")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("MealPlans");
-                });
-
-            modelBuilder.Entity("DL.EntitiesV1.Meals.PlanDayEntity", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("Day")
-                        .HasColumnType("int");
-
-                    b.Property<long>("MealPlanId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("MealPlanId");
-
-                    b.ToTable("PlanDays");
-                });
-
-            modelBuilder.Entity("DL.EntitiesV1.Meals.PlanDayMenuEntity", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("MealType")
-                        .HasColumnType("int");
-
-                    b.Property<long>("PlanDayId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PlanDayId");
-
-                    b.ToTable("PlanDayMenus");
-                });
-
-            modelBuilder.Entity("DL.EntitiesV1.Meals.PlanDayMenuMealEntity", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("datetime2");
-
-                    b.Property<long>("MealId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("PlanDayMenuId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("MealId");
-
-                    b.HasIndex("PlanDayMenuId");
-
-                    b.ToTable("PlanDayMenuMeals");
-                });
-
             modelBuilder.Entity("DL.EntitiesV1.Measurements.UserMeasurementEntity", b =>
                 {
                     b.Property<long>("Id")
@@ -2092,58 +2000,6 @@ namespace DL.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("DL.EntitiesV1.Meals.MealPlan", b =>
-                {
-                    b.HasOne("DL.Entities.MUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("DL.EntitiesV1.Meals.PlanDayEntity", b =>
-                {
-                    b.HasOne("DL.EntitiesV1.Meals.MealPlan", "MealPlan")
-                        .WithMany("PlanDays")
-                        .HasForeignKey("MealPlanId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("MealPlan");
-                });
-
-            modelBuilder.Entity("DL.EntitiesV1.Meals.PlanDayMenuEntity", b =>
-                {
-                    b.HasOne("DL.EntitiesV1.Meals.PlanDayEntity", "PlanDay")
-                        .WithMany("PlanMeals")
-                        .HasForeignKey("PlanDayId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("PlanDay");
-                });
-
-            modelBuilder.Entity("DL.EntitiesV1.Meals.PlanDayMenuMealEntity", b =>
-                {
-                    b.HasOne("DL.EntitiesV1.Meals.MealEntity", "Meal")
-                        .WithMany()
-                        .HasForeignKey("MealId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("DL.EntitiesV1.Meals.PlanDayMenuEntity", "PlanDayMenu")
-                        .WithMany("Meals")
-                        .HasForeignKey("PlanDayMenuId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Meal");
-
-                    b.Navigation("PlanDayMenu");
-                });
-
             modelBuilder.Entity("DL.EntitiesV1.Measurements.UserMeasurementEntity", b =>
                 {
                     b.HasOne("DL.Entities.MUser", "User")
@@ -2228,21 +2084,6 @@ namespace DL.Migrations
             modelBuilder.Entity("DL.EntitiesV1.Blogs.Polls.Poll", b =>
                 {
                     b.Navigation("Questions");
-                });
-
-            modelBuilder.Entity("DL.EntitiesV1.Meals.MealPlan", b =>
-                {
-                    b.Navigation("PlanDays");
-                });
-
-            modelBuilder.Entity("DL.EntitiesV1.Meals.PlanDayEntity", b =>
-                {
-                    b.Navigation("PlanMeals");
-                });
-
-            modelBuilder.Entity("DL.EntitiesV1.Meals.PlanDayMenuEntity", b =>
-                {
-                    b.Navigation("Meals");
                 });
 #pragma warning restore 612, 618
         }
