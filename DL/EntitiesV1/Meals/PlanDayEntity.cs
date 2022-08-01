@@ -9,6 +9,6 @@ namespace DL.EntitiesV1.Meals
         public DayOfWeek Day { get; set; }
         public ICollection<PlanDayMenuEntity> PlanMeals { get; set; }
         public long MealPlanId { get; set; }
-        public MealPlan MealPlan { get; set; }
+        public MealPlanEntity MealPlan { get; set; }
     }
 }

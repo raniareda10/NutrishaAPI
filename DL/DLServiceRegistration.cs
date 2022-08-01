@@ -9,6 +9,7 @@ using DL.Repositories.BlogVideo;
 using DL.Repositories.Comments;
 using DL.Repositories.ContactSupport;
 using DL.Repositories.Dislikes;
+using DL.Repositories.MealPlan;
 using DL.Repositories.Meals;
 using DL.Repositories.MobileUser;
 using DL.Repositories.Polls;
@@ -59,6 +60,8 @@ namespace DL
             service.AddScoped<AdminUserRepository>();
             service.AddScoped<RollRepository>();
             service.AddScoped<DairyRepository>();
+            service.AddScoped<MobileMealPlanRepository>();
+            service.AddScoped<MealPlanRepository>();
 
             service.AddSingleton<IStorageService, StorageService>();
 

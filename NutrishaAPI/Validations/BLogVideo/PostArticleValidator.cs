@@ -23,17 +23,18 @@ namespace NutrishaAPI.Validations.BLogVideo
                 result.AddError("Please Add Valid Files");
                 return result;
             }
-            if (model.Files == null || model.Files.Count < 1)
-            {
-                result.AddError("Please Add Cover Image.");
-                return result;
-            }
             
-            if (model.Files.All(f => f.Flags?.Contains(MediaFlags.MainMedia) == false))
-            {
-                result.AddError("Please Add Correct Video.");
-                return result;
-            }
+            // if (model.Files == null || model.Files.Count < 1)
+            // {
+            //     result.AddError("Please Add Cover Image.");
+            //     return result;
+            // }
+            //
+            // if (model.Files.All(f => f.Flags?.Contains(MediaFlags.MainMedia) == false))
+            // {
+            //     result.AddError("Please Add Correct Video.");
+            //     return result;
+            // }
 
             return result;
         }

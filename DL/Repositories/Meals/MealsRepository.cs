@@ -102,37 +102,7 @@ namespace DL.Repositories.Meals
                 .FirstOrDefaultAsync();
         }
 
-        public async Task<long> PostMealPlanAsync(PostMealPlanDto plans)
-        {
-            var currentDate = DateTime.UtcNow;
-            var plan = new MealPlan
-            {
-                UserId = plans.UserId,
-                Notes = plans.Notes,
-                Created = currentDate,
-                PlanDays = plans.Meals.Select(m => new PlanDayEntity()
-                {
-                    Created = currentDate,
-                    Day = m.Day,
-                    PlanMeals = m.Menus.Select(menu => new PlanDayMenuEntity
-                    {
-                        Created = currentDate,
-                        MealType = menu.Type,
-                        Meals = menu.MealIds.Select(mealId => new PlanDayMenuMealEntity()
-                        {
-                            Created = currentDate,
-                            MealId = mealId
-                        }).ToList()
-                    }).ToList(),
-                }).ToList(),
-            };
-            
-
-            await _dbContext.AddAsync(plan);
-            await _dbContext.SaveChangesAsync();
-
-            return plan.Id;
-        }
+       
 
         // public async Task<dynamic> GetCurrentPlanAsync(int? userId)
         // {

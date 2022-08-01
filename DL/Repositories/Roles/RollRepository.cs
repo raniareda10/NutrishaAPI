@@ -46,10 +46,10 @@ namespace DL.Repositories.Roles
         {
             var role = new MRole
             {
-                CreatedBy = _currentUserService.UserId,
+                // CreatedBy = _currentUserService.UserId,
                 Name = roleName,
-                IsActive = true,
-                CreatedOn = DateTime.UtcNow,
+                // IsActive = true,
+                // CreatedOn = DateTime.UtcNow,
             };
 
             await _dbContext.AddAsync(role);

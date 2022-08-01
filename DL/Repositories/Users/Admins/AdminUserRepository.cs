@@ -40,10 +40,10 @@ namespace DL.Repositories.Users.Admins
         {
             await _dbContext.AddAsync(new MUserRoles
             {
-                CreatedBy = _currentUserService.UserId,
+                // CreatedBy = _currentUserService.UserId,
                 RoleId = assignRoleToUserDto.RoleId,
                 UserId = assignRoleToUserDto.UserId,
-                CreatedOn = DateTime.UtcNow,
+                Created = DateTime.UtcNow,
 
             });
             await _dbContext.SaveChangesAsync();

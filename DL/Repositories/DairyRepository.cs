@@ -41,7 +41,7 @@ namespace DL.Repositories
             return dairyEntity.Id;
         }
 
-        public async Task<IDictionary<int, IEnumerable<DairyEntity>>> GetTodayDairiesAsync()
+        public async Task<IDictionary<int, IEnumerable<GetDairiesDto>>> GetTodayDairiesAsync()
         {
             var dairies = await _dbContext.Dairies
                 .AsNoTracking()
@@ -50,22 +50,25 @@ namespace DL.Repositories
                 .ToListAsync();
 
             return dairies.GroupBy(d => d.Type)
-                .ToDictionary( d => (int) d.Key,
+                .ToDictionary(d => (int)d.Key,
                     d => d
                         .OrderByDescending(d => d.Name)
-                        .Select(m => m));
+                        .Select(m => new GetDairiesDto
+                        {
+                            Id = m.Id,
+                            Details = m.Details,
+                            Name = m.Name,
+                            Type = m.Type
+                        }));
         }
-
-        // public async Task<int> GetTodayMealCountByTypeAsync()
-        // {
-        // }
 
         private Expression<Func<T, bool>> GetTodayFilter<T>() where T : BaseEntityV1
         {
-            var yesterday = DateTime.UtcNow.Date;
+            var yesterday = DateTime.UtcNow.AddHours(_currentUserService.UserTimeZoneDifference).Date;
             var tomorrow = yesterday.AddDays(1);
 
-            return d => d.Created >= yesterday && d.Created <= tomorrow;
+            return d => d.Created.AddHours(_currentUserService.UserTimeZoneDifference) >= yesterday &&
+                        d.Created.AddHours(_currentUserService.UserTimeZoneDifference) <= tomorrow;
         }
     }
 }

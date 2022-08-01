@@ -6,10 +6,12 @@ namespace DL.DtosV1.Meals
 {
     public class PostMealPlanDto
     {
-        public IEnumerable<MealPlanModel> Meals { get; set; }
-        public int UserId { get; set; }
+        public IList<MealPlanModel> Meals { get; set; }
+        public int? UserId { get; set; }
         public string Notes { get; set; }
-        
+
+        public bool IsTemplate { get; set; }
+        public string TemplateName { get; set; }
     }
 
     public class MealPlanModel

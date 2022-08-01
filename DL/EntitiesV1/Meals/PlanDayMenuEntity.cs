@@ -9,5 +9,6 @@ namespace DL.EntitiesV1.Meals
 
         public long PlanDayId { get; set; }
         public PlanDayEntity PlanDay { get; set; }
+        public PlanMealStatus? Status { get; set; }
     }
 }
