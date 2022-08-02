@@ -10,5 +10,7 @@ namespace DL.EntitiesV1.Meals
         public ICollection<PlanDayMenuEntity> PlanMeals { get; set; }
         public long MealPlanId { get; set; }
         public MealPlanEntity MealPlan { get; set; }
+        public byte TakenWaterCupsCount { get; set; }
+        
     }
 }

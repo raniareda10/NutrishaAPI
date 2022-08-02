@@ -20,17 +20,24 @@ namespace NutrishaAPI.Controllers.V1.Mobile
         {
             return ItemResult(await _mobileMealPlanRepository.GetTodayMealsAsync());
         }
-        
+
         [HttpGet("GetCurrentPlan")]
         public async Task<IActionResult> GetCurrentPlanAsync()
         {
             return ItemResult(await _mobileMealPlanRepository.GetCurrentPlanAsync());
         }
-        
+
         [HttpGet("GetRecommendedMeals")]
         public async Task<IActionResult> GetRecommendedMealsAsync([FromQuery] SwapMealDto swapMealDto)
         {
             return ItemResult(await _mobileMealPlanRepository.GetRecommendedMealsAsync(swapMealDto));
+        }
+
+        [HttpPut("AddCupOfWaterToDay")]
+        public async Task<IActionResult> AddCupOfWaterToDayAsync([FromQuery] long dayId)
+        {
+            await _mobileMealPlanRepository.AddCupOfWaterToDayAsync(dayId);
+            return EmptyResult();
         }
     }
 }

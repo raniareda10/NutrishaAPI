@@ -16,6 +16,7 @@ using DL.MailModels;
 using DL.Repositories.Allergy;
 using DL.Repositories.Dislikes;
 using DL.Repositories.Reminders;
+using DL.Repositories.ShoppingCart;
 using DL.Services.Sms;
 using HELPER;
 using Helpers;
@@ -46,6 +47,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
         private readonly AllergyService _allergyService;
         private readonly DislikesMealService _dislikesMealService;
         private readonly ReminderService _reminderService;
+        private readonly ShoppingCartRepository _shoppingCartRepository;
         private readonly ICheckUniqes _checkUniq;
         public IConfiguration configuration { get; set; }
 
@@ -64,6 +66,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
             DislikesMealService dislikesMealService,
             IHttpContextAccessor httpContextAccessor,
             ReminderService reminderService,
+            ShoppingCartRepository shoppingCartRepository,
             IOptions<TokenManagement> tokenManagement)
         {
             _smsGetaway = smsGetaway;
@@ -74,6 +77,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
             _allergyService = allergyService;
             _dislikesMealService = dislikesMealService;
             _reminderService = reminderService;
+            _shoppingCartRepository = shoppingCartRepository;
             _hostingEnvironment = hostingEnvironment;
             _mapper = mapper;
             _mailService = mailService;

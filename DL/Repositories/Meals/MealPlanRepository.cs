@@ -1,10 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using DL.CommonModels;
 using DL.CommonModels.Paging;
 using DL.DBContext;
+using DL.DtosV1.Common;
 using DL.DtosV1.Meals;
 using DL.EntitiesV1.Meals;
 using DL.Extensions;
@@ -62,7 +62,7 @@ namespace DL.Repositories.Meals
             return plan.Id;
         }
 
-        public async Task<PagedResult<string>> GetTemplatePagedListAsync(GetPagedListQueryModel model)
+        public async Task<PagedResult<LookupItem>> GetTemplatePagedListAsync(GetPagedListQueryModel model)
         {
             var query = _dbContext.MealPlans.Where(p => p.IsTemplate)
                 .OrderByDescending(p => p.Created)
@@ -73,7 +73,8 @@ namespace DL.Repositories.Meals
                 query = query.Where(p => p.TemplateName.Contains(model.SearchWord));
             }
 
-            return await query.Select(m => m.TemplateName)
+            return await query
+                .Select(m => new LookupItem(m.Id, m.TemplateName))
                 .ToPagedListAsync(model);
         }
         

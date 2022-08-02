@@ -19,6 +19,7 @@ using DL.EntitiesV1.Media;
 using DL.EntitiesV1.Reactions;
 using DL.EntitiesV1.Reminders;
 using DL.EntitiesV1.Roles;
+using DL.EntitiesV1.ShoppingCartEntity;
 using DL.EntitiesV1.Users;
 using DL.EntityTypeBuilders;
 using Microsoft.EntityFrameworkCore;
@@ -103,10 +104,17 @@ namespace DL.DBContext
         #region Meals
 
         public DbSet<MealEntity> Meals { get; set; }
+        public DbSet<IngredientLookupEntity> IngredientLookups { get; set; }
         public DbSet<MealPlanEntity> MealPlans { get; set; }
         public DbSet<PlanDayEntity> PlanDays { get; set; }
         public DbSet<PlanDayMenuEntity> PlanDayMenus { get; set; }
         public DbSet<PlanDayMenuMealEntity> PlanDayMenuMeals { get; set; }
+
+        #endregion
+
+        #region MyRegion
+        public DbSet<ShoppingCartEntity> ShoppingCarts { get; set; }
+        public DbSet<ShoppingCartItemEntity> ShoppingCartItems { get; set; }
 
         #endregion
 
@@ -127,10 +135,9 @@ namespace DL.DBContext
             ConfigureUserPreventions(modelBuilder);
             ConfigurePermissions(modelBuilder);
 
-            // modelBuilder.Entity<PlanDayEntity>()
-            //     .HasOne<MealPlanEntity>()
-            //     .WithMany(p => p.PlanDays)
-            //     .HasForeignKey(p => p.MealPlanId);
+            modelBuilder.Entity<IngredientLookupEntity>()
+                .HasIndex(m => m.Name)
+                .IsUnique();
             //
             // modelBuilder.Entity<PlanDayMenuEntity>()
             //     .HasOne<PlanDayEntity>()

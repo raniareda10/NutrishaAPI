@@ -4,14 +4,16 @@ using DL.DBContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace DL.Migrations
 {
     [DbContext(typeof(AppDBContext))]
-    partial class AppDBContextModelSnapshot : ModelSnapshot
+    [Migration("20220801130240_Support Ingredient")]
+    partial class SupportIngredient
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1432,28 +1434,6 @@ namespace DL.Migrations
                     b.ToTable("Dairies");
                 });
 
-            modelBuilder.Entity("DL.EntitiesV1.IngredientLookupEntity", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Name")
-                        .IsUnique()
-                        .HasFilter("[Name] IS NOT NULL");
-
-                    b.ToTable("IngredientLookups");
-                });
-
             modelBuilder.Entity("DL.EntitiesV1.Meals.MealEntity", b =>
                 {
                     b.Property<long>("Id")
@@ -1760,58 +1740,6 @@ namespace DL.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("RolePermissions");
-                });
-
-            modelBuilder.Entity("DL.EntitiesV1.ShoppingCartEntity.ShoppingCartEntity", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("ShoppingCarts");
-                });
-
-            modelBuilder.Entity("DL.EntitiesV1.ShoppingCartEntity.ShoppingCartItemEntity", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsBought")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("ItemName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<float>("Quantity")
-                        .HasColumnType("real");
-
-                    b.Property<long>("ShoppingCartId")
-                        .HasColumnType("bigint");
-
-                    b.Property<int>("UnitType")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ShoppingCartId");
-
-                    b.ToTable("ShoppingCartItems");
                 });
 
             modelBuilder.Entity("DL.EntitiesV1.UserDislikes", b =>
@@ -2284,28 +2212,6 @@ namespace DL.Migrations
                     b.Navigation("Role");
                 });
 
-            modelBuilder.Entity("DL.EntitiesV1.ShoppingCartEntity.ShoppingCartEntity", b =>
-                {
-                    b.HasOne("DL.Entities.MUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("DL.EntitiesV1.ShoppingCartEntity.ShoppingCartItemEntity", b =>
-                {
-                    b.HasOne("DL.EntitiesV1.ShoppingCartEntity.ShoppingCartEntity", "ShoppingCart")
-                        .WithMany("Items")
-                        .HasForeignKey("ShoppingCartId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ShoppingCart");
-                });
-
             modelBuilder.Entity("DL.EntitiesV1.UserDislikes", b =>
                 {
                     b.HasOne("DL.Entities.MUser", "User")
@@ -2358,11 +2264,6 @@ namespace DL.Migrations
             modelBuilder.Entity("DL.EntitiesV1.Meals.PlanDayMenuEntity", b =>
                 {
                     b.Navigation("Meals");
-                });
-
-            modelBuilder.Entity("DL.EntitiesV1.ShoppingCartEntity.ShoppingCartEntity", b =>
-                {
-                    b.Navigation("Items");
                 });
 #pragma warning restore 612, 618
         }

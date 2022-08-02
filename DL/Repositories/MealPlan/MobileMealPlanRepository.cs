@@ -60,6 +60,18 @@ namespace DL.Repositories.MealPlan
             };
         }
 
+
+        public async Task AddCupOfWaterToDayAsync(long dayId)
+        {
+            var day = await _dbContext.PlanDays
+                .Where(d => d.Id == dayId && d.MealPlan.UserId == _currentUserService.UserId)
+                .FirstOrDefaultAsync();
+
+            day.TakenWaterCupsCount++;
+            _dbContext.Update(day);
+            await _dbContext.SaveChangesAsync();
+        }
+        
         public async Task<object> GetTodayMealsAsync()
         {
             var currentDay = DateTime.UtcNow.DayOfWeek;
@@ -88,6 +100,7 @@ namespace DL.Repositories.MealPlan
             }).ToDictionary(m => m.MealType);
             return new
             {
+                water = mealPlans.TakenWaterCupsCount,
                 meals
             };
         }

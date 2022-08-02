@@ -27,6 +27,12 @@ namespace DL.Repositories
 
         public async Task<long> PostAsync(CreateDairyDto dto)
         {
+            if (dto.Type == MealType.Water)
+            {
+                dto.Name = null;
+                dto.Details = null;
+            }
+            
             var dairyEntity = new DairyEntity()
             {
                 Created = DateTime.UtcNow,

@@ -26,6 +26,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using DL.Repositories.Roles;
+using DL.Repositories.ShoppingCart;
 
 namespace DL
 {
@@ -62,6 +63,7 @@ namespace DL
             service.AddScoped<DairyRepository>();
             service.AddScoped<MobileMealPlanRepository>();
             service.AddScoped<MealPlanRepository>();
+            service.AddScoped<ShoppingCartRepository>();
 
             service.AddSingleton<IStorageService, StorageService>();
 

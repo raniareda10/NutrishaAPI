@@ -1,7 +1,11 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.IO;
+using System.Runtime.InteropServices;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Newtonsoft.Json;
 using NutrishaAPI.Controllers.V1.Mobile.Bases;
 
@@ -13,12 +17,27 @@ namespace NutrishaAPI.Controllers.V1.Mobile.RevenueCat
     public class RevenueCatController : ControllerBase
     {
         [HttpPost("Event")]
-        public async Task<IActionResult> PostAsync([FromBody] dynamic data)
+        [AllowBuffering]
+        public async Task<IActionResult> PostAsync([FromBody] JsonElement json)
         {
-            return Ok();
+            HttpContext.Request.Body.Seek(0, SeekOrigin.Begin);
+            using var stringReader = new StreamReader(HttpContext.Request.Body);
+            var value = await stringReader.ReadToEndAsync();
+            return Ok(value);
+            var body = json.GetRawText();
+            var baseEvent = JsonConvert.DeserializeObject<BaseRevenueCatEventBody>(body);
+            return Ok(baseEvent);
         }
     }
 
+    public class AllowBufferingAttribute : ActionFilterAttribute
+    {
+        public override Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
+        {
+            context.HttpContext.Request.EnableBuffering();
+            return base.OnActionExecutionAsync(context, next);
+        }
+    }
     public class BaseRevenueCatEventBody
     {
         [JsonProperty("api_version")] public float ApiVersion { get; set; }

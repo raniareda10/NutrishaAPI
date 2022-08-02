@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using DL.DtosV1.MealPlans;
 using DL.Entities;
 
 namespace DL.DtosV1.Users.Mobiles
@@ -13,5 +14,6 @@ namespace DL.DtosV1.Users.Mobiles
         public float WeightLoss { get; set; }
         public string Gender { get; set; }
         public decimal? Age { get; set; }
+        public UserMealPlans UserMealPlan { get; set; }
     }
 }

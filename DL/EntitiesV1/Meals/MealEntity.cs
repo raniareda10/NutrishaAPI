@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace DL.EntitiesV1.Meals
 {
@@ -11,7 +12,7 @@ namespace DL.EntitiesV1.Meals
         public string CoverImage { get; set; }
         public string MealSteps { get; set; }
         public string Allergies { get; set; }
-        public string Ingredients { get; set; }
+        public ICollection<MealIngredientEntity> Ingredients { get; set; }
     }
 
     public enum MealType

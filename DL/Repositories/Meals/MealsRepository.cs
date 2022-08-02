@@ -1,11 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using DL.CommonModels.Paging;
 using DL.DBContext;
+using DL.DtosV1.Common;
 using DL.DtosV1.Meals;
+using DL.EntitiesV1;
 using DL.EntitiesV1.Meals;
 using DL.Extensions;
+using DL.ResultModels;
 using DL.StorageServices;
 using Microsoft.EntityFrameworkCore;
 
@@ -47,7 +51,13 @@ namespace DL.Repositories.Meals
             {
                 Name = model.Name,
                 Allergies = model.Allergies,
-                Ingredients = model.Ingredients,
+                Ingredients = model.Ingredients.Select(i => new MealIngredientEntity()
+                {
+                    Created = DateTime.UtcNow,
+                    UnitType = i.UnitType,
+                    IngredientName = i.IngredientName,
+                    Quantity = i.Quantity
+                }).ToList(),
                 Created = DateTime.UtcNow,
                 CockingTime = model.CockingTime,
                 PreparingTime = model.PreparingTime,
@@ -94,55 +104,44 @@ namespace DL.Repositories.Meals
         public async Task<MealEntity> GetByIdAsync(long id)
         {
             return await _dbContext.Meals
+                .Include(m => m.Ingredients)
                 .AsNoTracking()
                 .Where(m => m.Id == id)
-                // .Select(m => new MealDetailsDto
-                // {
-                // })
                 .FirstOrDefaultAsync();
         }
 
-       
+        public async Task<IEnumerable<string>> GetIngredientLookupAsync(string search)
+        {
+            var ingredient = _dbContext.IngredientLookups.Select(m => m.Name);
 
-        // public async Task<dynamic> GetCurrentPlanAsync(int? userId)
-        // {
-        //     var plan = await _dbContext.MealPlans
-        //         .AsNoTracking()
-        //         .Include(p => p.Days)
-        //         .ThenInclude(m => m.Meal)
-        //         .Where(p => p.UserId == (userId ?? _currentUserService.UserId))
-        //         .OrderByDescending(p => p.Created)
-        //         .FirstOrDefaultAsync();
-        //
-        //     var result = plan.Meals.GroupBy(m => m.Day)
-        //         .Select(p => new
-        //         {
-        //             Day = p.Key,
-        //             Meals = p.Select(m => new
-        //             {
-        //                 m.Meal.Name,
-        //                 m.Meal.MealType,
-        //             })
-        //         });
-        //
-        //     return result;
-        // }
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                ingredient = ingredient.Where(m => m.Contains(search));
+            }
 
-        // public async Task<dynamic> GetUserPlansAsync(int? userId)
-        // {
-        // var plans = await _dbContext.MealPlans
-        //     .AsNoTracking()
-        //     .Include(m => m.Days)
-        //     .ThenInclude(m => m.PlanMeals)
-        //     // .ThenInclude(m => m.Meal)
-        //     // .OrderByDescending(m => m.Created)
-        //     // .Take(2)
-        //     .ToListAsync();
-        //
-        // if (plans.Count == 0)
-        // {
-        //     return null;
-        // }
-        // }
+            return await ingredient.ToListAsync();
+        }
+        
+        public async Task<BaseServiceResult> PostIngredientAsync(PostLookupItem postLookupItem)
+        {
+            var serviceResult = new BaseServiceResult();
+            try
+            {
+                await _dbContext.AddAsync(new IngredientLookupEntity()
+                {
+                    Created = DateTime.UtcNow,
+                    Name = postLookupItem.Name
+                });
+                
+                await _dbContext.SaveChangesAsync();
+            }
+            catch (DbUpdateException e)
+            {
+                serviceResult.Errors.Add("This Ingredient Already Exists.");
+            }
+            
+
+            return serviceResult;
+        }
     }
 }
