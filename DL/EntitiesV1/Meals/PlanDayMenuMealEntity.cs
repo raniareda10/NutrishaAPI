@@ -1,4 +1,6 @@
-﻿namespace DL.EntitiesV1.Meals
+﻿using System;
+
+namespace DL.EntitiesV1.Meals
 {
     public class PlanDayMenuMealEntity : BaseEntityV1
     {
@@ -6,5 +8,7 @@
         public MealEntity Meal { get; set; }
         public long PlanDayMenuId { get; set; }
         public PlanDayMenuEntity PlanDayMenu { get; set; }
+
+        public bool IsEaten { get; set; }
     }
 }

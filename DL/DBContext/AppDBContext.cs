@@ -104,6 +104,7 @@ namespace DL.DBContext
         #region Meals
 
         public DbSet<MealEntity> Meals { get; set; }
+        public DbSet<UserFavoriteMealEntity> UserFavoriteMeals { get; set; }
         public DbSet<IngredientLookupEntity> IngredientLookups { get; set; }
         public DbSet<MealPlanEntity> MealPlans { get; set; }
         public DbSet<PlanDayEntity> PlanDays { get; set; }
@@ -117,6 +118,7 @@ namespace DL.DBContext
         public DbSet<ShoppingCartItemEntity> ShoppingCartItems { get; set; }
 
         #endregion
+        
 
         #region Dairies
 
@@ -138,6 +140,9 @@ namespace DL.DBContext
             modelBuilder.Entity<IngredientLookupEntity>()
                 .HasIndex(m => m.Name)
                 .IsUnique();
+
+            modelBuilder.Entity<UserFavoriteMealEntity>()
+                .HasKey(m => new { m.MealId, m.UserId });
             //
             // modelBuilder.Entity<PlanDayMenuEntity>()
             //     .HasOne<PlanDayEntity>()

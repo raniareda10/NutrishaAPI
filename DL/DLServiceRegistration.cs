@@ -63,6 +63,7 @@ namespace DL
             service.AddScoped<DairyRepository>();
             service.AddScoped<MobileMealPlanRepository>();
             service.AddScoped<MealPlanRepository>();
+            service.AddScoped<MobileMealsService>();
             service.AddScoped<ShoppingCartRepository>();
 
             service.AddSingleton<IStorageService, StorageService>();

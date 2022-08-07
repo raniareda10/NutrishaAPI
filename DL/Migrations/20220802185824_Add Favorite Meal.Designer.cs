@@ -4,14 +4,16 @@ using DL.DBContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace DL.Migrations
 {
     [DbContext(typeof(AppDBContext))]
-    partial class AppDBContextModelSnapshot : ModelSnapshot
+    [Migration("20220802185824_Add Favorite Meal")]
+    partial class AddFavoriteMeal
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1584,20 +1586,14 @@ namespace DL.Migrations
                     b.Property<DateTime>("Created")
                         .HasColumnType("datetime2");
 
-                    b.Property<bool>("IsEaten")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsSkipped")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsSwapped")
-                        .HasColumnType("bit");
-
                     b.Property<int>("MealType")
                         .HasColumnType("int");
 
                     b.Property<long>("PlanDayId")
                         .HasColumnType("bigint");
+
+                    b.Property<int?>("Status")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -1615,9 +1611,6 @@ namespace DL.Migrations
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsEaten")
-                        .HasColumnType("bit");
 
                     b.Property<long>("MealId")
                         .HasColumnType("bigint");

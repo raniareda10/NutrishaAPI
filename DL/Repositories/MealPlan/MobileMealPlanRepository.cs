@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using DL.DBContext;
 using DL.DtosV1.MealPlans;
 using DL.EntitiesV1.Meals;
+using DL.ErrorMessages;
+using DL.ResultModels;
 using Microsoft.EntityFrameworkCore;
 using Org.BouncyCastle.Crypto.Engines;
 
@@ -61,70 +63,201 @@ namespace DL.Repositories.MealPlan
         }
 
 
-        public async Task AddCupOfWaterToDayAsync(long dayId)
+        public async Task AddCupOfWaterToDayAsync(long dayId, byte cupsCount)
         {
+            if (cupsCount < 1)
+            {
+                cupsCount = 1;
+            }
+
             var day = await _dbContext.PlanDays
                 .Where(d => d.Id == dayId && d.MealPlan.UserId == _currentUserService.UserId)
                 .FirstOrDefaultAsync();
 
-            day.TakenWaterCupsCount++;
+            day.TakenWaterCupsCount += cupsCount;
             _dbContext.Update(day);
             await _dbContext.SaveChangesAsync();
         }
-        
+
         public async Task<object> GetTodayMealsAsync()
         {
-            var currentDay = DateTime.UtcNow.DayOfWeek;
+            var currentDay = DateTime
+                .UtcNow
+                .AddHours(_currentUserService.UserTimeZoneDifference)
+                .DayOfWeek;
 
-            var mealPlans = await _dbContext.MealPlans.AsNoTracking()
-                .Include(m => m.PlanDays)
-                .ThenInclude(m => m.PlanMeals)
+            var planDayEntity = await _dbContext.PlanDays.AsNoTracking()
+                .Where(m => m.MealPlan.UserId == _currentUserService.UserId)
+                .Where(p => p.Day == currentDay)
+                .OrderByDescending(m => m.Created)
+                .Take(1)
+                .Include(m => m.MealPlan)
+                .Include(m => m.PlanMeals)
                 .ThenInclude(m => m.Meals)
                 .ThenInclude(m => m.Meal)
-                .Where(m => m.UserId == _currentUserService.UserId)
-                .Take(1)
-                .Select(plan => plan.PlanDays.First(day => day.Day == currentDay))
+                // .Select(plan => plan.PlanDays.First(day => day.Day == currentDay))
                 .FirstOrDefaultAsync();
 
-
-            var meals = mealPlans.PlanMeals.Select(m => new
+            if (planDayEntity == null)
             {
-                m.Id,
-                m.MealType,
-                Status = m.Status,
-                Meals = m.Meals.Select(meal => new
+                return null;
+            }
+
+            var meals = planDayEntity.PlanMeals
+                .Select(m => new
                 {
-                    Image = meal.Meal.CoverImage,
-                    meal.Meal.Name
+                    m.Id,
+                    m.MealType,
+                    IsSwapped = m.IsSwapped,
+                    IsSkipped = m.IsSkipped,
+                    IsEaten = m.IsEaten,
+                    Meals = m.Meals.Select(meal => new
+                    {
+                        Id = meal.Id,
+                        IsEaten = meal.IsEaten,
+                        Meal = new
+                        {
+                            Id = meal.MealId,
+                            Image = meal.Meal.CoverImage,
+                            meal.Meal.Name,
+                        }
+                    })
                 })
-            }).ToDictionary(m => m.MealType);
+                .ToDictionary(m => m.MealType);
+
             return new
             {
-                water = mealPlans.TakenWaterCupsCount,
-                meals
+                PlanId = planDayEntity.MealPlanId,
+                DayId = planDayEntity.Id,
+                DayOfWeek = currentDay,
+                TakenWaterCupsCount = planDayEntity.TakenWaterCupsCount,
+                Meals = meals
             };
         }
 
-        public async Task<object> GetRecommendedMealsAsync(SwapMealDto swapMealDto)
+        public async Task<object> GetRecommendedMealsForSwapAsync(SwapMealDto swapMealDto)
         {
-            var plan = await _dbContext.PlanDays.AsNoTracking()
-                .Include(m => m.PlanMeals)
-                .ThenInclude(m => m.Meals)
-                .Where(m => m.MealPlanId == swapMealDto.PlanId && m.Day != swapMealDto.Day)
-                // .Where(m => m.PlanMeals.Any(menu => menu.MealType == swapMealDto.Type))
-                .Select(m => m.PlanMeals.Select(menu => new
+            return await _dbContext.PlanDayMenus
+                .Where(m => m.PlanDay.MealPlan.UserId == _currentUserService.UserId)
+                .Where(m => m.PlanDay.MealPlan.Id == swapMealDto.PlanId)
+                .Where(m => m.MealType == swapMealDto.Type)
+                .Where(m => m.PlanDay.Day != swapMealDto.Day)
+                .Select(m => new
                 {
-                    menu.Id,
-                    menu.MealType,
-                    Meals = menu.Meals.Select(meal => new
+                    Id = m.Id,
+                    Day = m.PlanDay.Day,
+                    Meals = m.Meals.Select(meal => new
                     {
                         meal.Meal.CoverImage,
-                        meal.Meal.Name
+                        meal.Meal.Name,
                     })
-                }))
+                }).ToListAsync();
+        }
+
+        public async Task<BaseServiceResult> SwapMenuAsync(long oldMenuId, long swapWithMenuId)
+        {
+            var result = new BaseServiceResult();
+            if (oldMenuId == swapWithMenuId)
+            {
+                result.Errors.Add(NonLocalizedErrorMessages.InvalidParameters);
+                return result;
+            }
+
+            var menus = await _dbContext.PlanDayMenus
+                .Include(m => m.Meals)
+                .Where(m =>
+                    (m.Id == oldMenuId || m.Id == swapWithMenuId) &&
+                    m.PlanDay.MealPlan.UserId == _currentUserService.UserId)
                 .ToListAsync();
 
-            return plan;
+            var oldMenu = menus.FirstOrDefault(m => m.Id == oldMenuId);
+            var newMenu = menus.FirstOrDefault(m => m.Id == swapWithMenuId);
+
+            if (oldMenu == null || newMenu == null)
+            {
+                result.Errors.Add(NonLocalizedErrorMessages.InvalidParameters);
+                return result;
+            }
+
+            _dbContext.PlanDayMenus.Remove(oldMenu);
+
+            await _dbContext.PlanDayMenus.AddAsync(new PlanDayMenuEntity()
+            {
+                IsSwapped = true,
+                Meals = newMenu.Meals.Select(meals => new PlanDayMenuMealEntity()
+                {
+                    MealId = meals.MealId
+                }).ToList(),
+                MealType = oldMenu.MealType,
+                PlanDayId = oldMenu.PlanDayId,
+                Created = oldMenu.Created
+            });
+
+            await _dbContext.SaveChangesAsync();
+            return result;
+        }
+
+
+        public async Task<BaseServiceResult> SkipMenuAsync(long menuId)
+        {
+            var result = new BaseServiceResult();
+            var menu = await GetMenuAsync(menuId);
+
+            if (menu == null)
+            {
+                result.Errors.Add(NonLocalizedErrorMessages.InvalidParameters);
+                return result;
+            }
+
+
+            menu.IsSkipped = true;
+            await _dbContext.SaveChangesAsync();
+            return result;
+        }
+
+        public async Task<BaseServiceResult> MarkMenuAsEatenAsync(long menuId)
+        {
+            var result = new BaseServiceResult();
+            var menu = await GetMenuAsync(menuId);
+
+            if (menu == null)
+            {
+                result.Errors.Add(NonLocalizedErrorMessages.InvalidParameters);
+                return result;
+            }
+
+            menu.IsEaten = true;
+            await _dbContext.SaveChangesAsync();
+            return result;
+        }
+
+        public async Task<BaseServiceResult> MarkMenuMealAsEatenAsync(long mealId)
+        {
+            var menu = await _dbContext.PlanDayMenuMeals.Where(m =>
+                    m.Id == mealId &&
+                    m.PlanDayMenu.PlanDay.MealPlan.UserId == _currentUserService.UserId)
+                .FirstOrDefaultAsync();
+
+            var result = new BaseServiceResult();
+
+            if (menu == null)
+            {
+                result.Errors.Add(NonLocalizedErrorMessages.InvalidParameters);
+                return result;
+            }
+
+            menu.IsEaten = true;
+            await _dbContext.SaveChangesAsync();
+            return result;
+        }
+
+        private async Task<PlanDayMenuEntity> GetMenuAsync(long menuId)
+        {
+            var menu = await _dbContext.PlanDayMenus.Where(m =>
+                    m.Id == menuId && m.PlanDay.MealPlan.UserId == _currentUserService.UserId)
+                .FirstOrDefaultAsync();
+
+            return menu;
         }
     }
 }

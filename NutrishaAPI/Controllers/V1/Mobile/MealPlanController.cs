@@ -27,17 +27,45 @@ namespace NutrishaAPI.Controllers.V1.Mobile
             return ItemResult(await _mobileMealPlanRepository.GetCurrentPlanAsync());
         }
 
-        [HttpGet("GetRecommendedMeals")]
+        [HttpGet("GetRecommendedMealsForSwap")]
         public async Task<IActionResult> GetRecommendedMealsAsync([FromQuery] SwapMealDto swapMealDto)
         {
-            return ItemResult(await _mobileMealPlanRepository.GetRecommendedMealsAsync(swapMealDto));
+            return ItemResult(await _mobileMealPlanRepository.GetRecommendedMealsForSwapAsync(swapMealDto));
         }
 
         [HttpPut("AddCupOfWaterToDay")]
-        public async Task<IActionResult> AddCupOfWaterToDayAsync([FromQuery] long dayId)
+        public async Task<IActionResult> AddCupOfWaterToDayAsync([FromBody] AddDrunkWaterCupDto dto)
         {
-            await _mobileMealPlanRepository.AddCupOfWaterToDayAsync(dayId);
+            await _mobileMealPlanRepository.AddCupOfWaterToDayAsync(dto.DayId, dto.NumberOfCups);
             return EmptyResult();
+        }
+
+        [HttpPut("SwapMenu")]
+        public async Task<IActionResult> SwapMenuAsync([FromQuery] long oldMenuId,[FromQuery] long swapWithMenuId)
+        {
+            var result = await _mobileMealPlanRepository.SwapMenuAsync(oldMenuId, swapWithMenuId);
+            return result.Success ? EmptyResult() : InvalidResult(result.Errors);
+        }
+        
+        [HttpPut("SkipMeal")]
+        public async Task<IActionResult> SkipMealAsync([FromQuery] long menuId)
+        {
+            var result = await _mobileMealPlanRepository.SkipMenuAsync(menuId);
+            return result.Success ? EmptyResult() : InvalidResult(result.Errors);
+        }
+
+        [HttpPut("MarkAsEaten")]
+        public async Task<IActionResult> MarkAsEatenAsync([FromQuery] long menuId)
+        {
+            var result = await _mobileMealPlanRepository.MarkMenuAsEatenAsync(menuId);
+            return result.Success ? EmptyResult() : InvalidResult(result.Errors);
+        }
+        
+        [HttpPut("MarkMenuMealAsEaten")]
+        public async Task<IActionResult> MarkMenuMealAsEatenAsync([FromQuery] long mealId)
+        {
+            var result = await _mobileMealPlanRepository.MarkMenuMealAsEatenAsync(mealId);
+            return result.Success ? EmptyResult() : InvalidResult(result.Errors);
         }
     }
 }

@@ -1,12 +1,16 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading.Tasks;
+using DL.Repositories.MobileUser;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NutrishaAPI.Controllers.V1.Mobile.Bases;
 
 namespace NutrishaAPI.Controllers.V1.Mobile.RevenueCat
@@ -16,28 +20,46 @@ namespace NutrishaAPI.Controllers.V1.Mobile.RevenueCat
     [Route("[controller]")]
     public class RevenueCatController : ControllerBase
     {
-        [HttpPost("Event")]
-        [AllowBuffering]
-        public async Task<IActionResult> PostAsync([FromBody] JsonElement json)
+        private readonly MobileUserRepository _mobileUserRepository;
+
+        public RevenueCatController(MobileUserRepository mobileUserRepository)
         {
-            HttpContext.Request.Body.Seek(0, SeekOrigin.Begin);
-            using var stringReader = new StreamReader(HttpContext.Request.Body);
-            var value = await stringReader.ReadToEndAsync();
-            return Ok(value);
-            var body = json.GetRawText();
-            var baseEvent = JsonConvert.DeserializeObject<BaseRevenueCatEventBody>(body);
-            return Ok(baseEvent);
+            _mobileUserRepository = mobileUserRepository;
+        }
+
+        [HttpPost("Event")]
+        public async Task<IActionResult> PostAsync([FromBody] JObject json)
+        {
+            var apiVersion = json.GetValue("api_version");
+            if (apiVersion.ToString() != "1.0") throw new Exception("Not Supported RevenueCat Event Type");
+            var revenueCatEvent = json.GetValue("event") as JObject;
+            var eventType = revenueCatEvent.GetValue("type")?.ToString();
+
+            switch (eventType)
+            {
+                case RevenueCatEventTypes.InitialPurchase:
+                {
+                    var initialPurchaseEvent = revenueCatEvent.ToObject<InitialPurchaseEvent>();
+                    await _mobileUserRepository.UserPayedAsync(initialPurchaseEvent.AppUserId,
+                        initialPurchaseEvent.Price);
+                    return Ok(initialPurchaseEvent);
+                    break;
+                }
+
+                case RevenueCatEventTypes.Renewal:
+                {
+                    var initialPurchaseEvent = revenueCatEvent.ToObject<InitialPurchaseEvent>();
+                    await _mobileUserRepository.UserPayedAsync(initialPurchaseEvent.AppUserId,
+                        initialPurchaseEvent.Price);
+                    return Ok(initialPurchaseEvent);
+                    break;
+                }
+            }
+
+            return Ok();
         }
     }
 
-    public class AllowBufferingAttribute : ActionFilterAttribute
-    {
-        public override Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
-        {
-            context.HttpContext.Request.EnableBuffering();
-            return base.OnActionExecutionAsync(context, next);
-        }
-    }
     public class BaseRevenueCatEventBody
     {
         [JsonProperty("api_version")] public float ApiVersion { get; set; }
@@ -49,9 +71,15 @@ namespace NutrishaAPI.Controllers.V1.Mobile.RevenueCat
     {
         [JsonProperty("type")] public string Type { get; set; }
         [JsonProperty("id")] public string Id { get; set; }
-        [JsonProperty("app_user_id")] public string AppUserId { get; set; }
+        [JsonProperty("app_user_id")] public int AppUserId { get; set; }
+        [JsonProperty("entitlement_id")] public string EntitlementId { get; set; }
+        [JsonProperty("price")] public float Price { get; set; }
     }
 
+
+    public class InitialPurchaseEvent : BaseRevenueCatEvent
+    {
+    }
 
     public class TestRevenueEvent : BaseRevenueCatEvent
     {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using DL.CommonModels;
 using DL.CommonModels.Paging;
@@ -77,8 +78,8 @@ namespace DL.Repositories.Meals
                 .Select(m => new LookupItem(m.Id, m.TemplateName))
                 .ToPagedListAsync(model);
         }
-        
-        public async Task<object> GetPlanByIdAsync(long id)
+
+        public async Task<object> GetTemplateByIdAsync(long id)
         {
             var mealPlans = await _dbContext.MealPlans.AsNoTracking()
                 .Include(m => m.PlanDays)
@@ -87,16 +88,20 @@ namespace DL.Repositories.Meals
                 .ThenInclude(m => m.Meal)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
-            return new
+            return mealPlans;
+        }
+
+        public async Task<long> UpdateTemplateAsync(UpdateMealPlan updateMealPlan)
+        {
+            var effectedRowsCount = await _dbContext.Database.ExecuteSqlRawAsync(
+                $"DELETE FROM MealPlans WHERE Id = {updateMealPlan.Id} AND IsTemplate = 1");
+
+            if (effectedRowsCount == 0)
             {
-                templateName = mealPlans.TemplateName,
-                notes = mealPlans.Notes,
-                // meals = mealPlans.PlanDays.Select(m => new
-                // {
-                //     m.Day,
-                //     m.
-                // })
-            };
+                return 0;
+            }
+            
+            return await PostMealPlanAsync(updateMealPlan);
         }
     }
 }

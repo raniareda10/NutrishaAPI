@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using DL.CommonModels;
 using DL.CommonModels.Paging;
 using DL.DBContext;
+using DL.DtosV1.MealPlans;
 using DL.DtosV1.Users.Mobiles;
 using DL.EntitiesV1.Users;
 using DL.Extensions;
@@ -48,8 +50,7 @@ namespace DL.Repositories.MobileUser
                 })
                 .ToPagedListAsync(model);
         }
-
-
+        
         public async Task<MobileUserDetailsDto> GetUserDetailsAsync(int userId)
         {
             var user = await _dbContext.MUser
@@ -83,6 +84,45 @@ namespace DL.Repositories.MobileUser
                 .Where(dislike => dislike.UserId == userId && dislike.IsSelected)
                 .Select(dislike => dislike.Title).ToListAsync();
 
+            var plans = await _dbContext.MealPlans.Where(m => m.UserId == userId)
+                .Include(m => m.PlanDays)
+                .ThenInclude(m => m.PlanMeals)
+                .ThenInclude(m => m.Meals)
+                .ThenInclude(m => m.Meal)
+                .OrderByDescending(m => m.Created)
+                .Take(2)
+                .Select(m => new
+                {
+                    Id = m.Id,
+                    Created = m.Created,
+                    Notes = m.Notes,
+                    Days = m.PlanDays.Select(day => new
+                    {
+                        day = day.Day,
+                        WaterCount = day.TakenWaterCupsCount,
+                        Menus = day.PlanMeals.Select(menu => new 
+                        {
+                            Id = menu.Id,
+                            IsEaten = menu.IsEaten,
+                            IsSkipped = menu.IsSkipped,
+                            IsSwapped = menu.IsSwapped,
+                            MealType = menu.MealType,
+                            Meals = menu.Meals.Select(meal => meal.Meal.Name)
+                        })
+                    })
+                })
+                .ToListAsync();
+
+            user.UserMealPlans = new UserMealPlans();
+            if (plans.Count == 0) return user;
+            user.UserMealPlans.LastPlan = plans.First();
+            
+            if (plans.Count == 1)
+            {
+                return user;
+            }
+
+            user.UserMealPlans.PreviousPlan = plans.Last();
             return user;
         }
 
@@ -98,5 +138,11 @@ namespace DL.Repositories.MobileUser
             await _dbContext.UserPreventions.AddAsync(userPrevention);
             await _dbContext.SaveChangesAsync();
         }
+
+        public async Task UserPayedAsync(int userId, float amountPayed)
+        {
+            
+        }
+        
     }
 }

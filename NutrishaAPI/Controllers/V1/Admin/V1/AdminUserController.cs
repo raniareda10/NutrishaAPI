@@ -33,5 +33,13 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1
             await _adminAuthRepository.AssignRoleToUserAsync(assignRoleToUserDto);
             return EmptyResult();
         }
+
+        [HttpGet("GetPagedList")]
+        public async Task<IActionResult> GetPagedListAsync()
+        {
+            return EmptyResult();
+        }
+        
+        
     }
 }

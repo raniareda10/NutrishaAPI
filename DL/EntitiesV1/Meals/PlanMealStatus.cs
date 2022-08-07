@@ -2,8 +2,8 @@
 {
     public enum PlanMealStatus
     {
-        Skipped,
-        Eaten,
-        Swapped
+        Skipped = 0,
+        Eaten = 1,
+        Swapped = 2
     }
 }
