@@ -10,6 +10,7 @@ using NutrishaAPI.Responses;
 namespace NutrishaAPI.Controllers.V1.Mobile.Bases
 {
     [OnlyMobileUsers]
+    [Authorize]
     [Route("mobile/api/v1/[controller]")]
     public class BaseMobileController : SharedApiController
     {
