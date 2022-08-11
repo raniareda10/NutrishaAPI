@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using DL.DBContext;
 using DL.Repositories.Allergy;
@@ -109,8 +110,11 @@ namespace NutrishaAPI.Controllers.V1.Mobile
         [HttpGet("GetEnv")]
         public IActionResult GetEnv()
         {
+            var providers = ((ConfigurationRoot)_configuration).Providers;
+            
             return Ok(new
             {
+                LoadedCOnfigurationFiles = providers,
                 env = Environment.GetEnvironmentVariables(),
                 HostingEnv = _webHostEnvironment
             });

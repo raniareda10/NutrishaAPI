@@ -1,17 +1,10 @@
 ﻿using System;
-using System.IO;
-using System.Runtime.InteropServices;
-using System.Text.Json;
 using System.Threading.Tasks;
 using DL.Repositories.MobileUser;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Newtonsoft.Json;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
-using NutrishaAPI.Controllers.V1.Mobile.Bases;
 
 namespace NutrishaAPI.Controllers.V1.Mobile.RevenueCat
 {
@@ -21,84 +14,74 @@ namespace NutrishaAPI.Controllers.V1.Mobile.RevenueCat
     public class RevenueCatController : ControllerBase
     {
         private readonly MobileUserRepository _mobileUserRepository;
+        private readonly ILogger<RevenueCatController> _logger;
 
-        public RevenueCatController(MobileUserRepository mobileUserRepository)
+        public RevenueCatController(MobileUserRepository mobileUserRepository,
+            ILogger<RevenueCatController> logger)
         {
             _mobileUserRepository = mobileUserRepository;
+            _logger = logger;
         }
 
         [HttpPost("Event")]
-        public async Task<IActionResult> PostAsync([FromBody] JObject json)
+        public async Task<IActionResult> PostAsync([FromBody] RevenueCatEventBody body)
         {
-            var apiVersion = json.GetValue("api_version");
-            if (apiVersion.ToString() != "1.0") throw new Exception("Not Supported RevenueCat Event Type");
-            var revenueCatEvent = json.GetValue("event") as JObject;
-            var eventType = revenueCatEvent.GetValue("type")?.ToString();
+            if (body.ApiVersion != "1.0" || body.Event == null)
+            {
+                _logger.LogError("RevenueCat Start Using ApiVersion Than Not Supported.");
+                return Ok();
+            }
 
+            var eventType = body.Event?.GetValue("type")?.ToString();
             switch (eventType)
             {
                 case RevenueCatEventTypes.InitialPurchase:
                 {
-                    var initialPurchaseEvent = revenueCatEvent.ToObject<InitialPurchaseEvent>();
-                    await _mobileUserRepository.UserPayedAsync(initialPurchaseEvent.AppUserId,
-                        initialPurchaseEvent.Price);
-                    return Ok(initialPurchaseEvent);
+                    var initialPurchaseEvent = body.Event.ToObject<InitialPurchaseEvent>();
+                    await _mobileUserRepository.UserSubscribedAsync(initialPurchaseEvent.AppUserId,
+                        initialPurchaseEvent.PriceInPurchasedCurrency);
                     break;
                 }
 
                 case RevenueCatEventTypes.Renewal:
                 {
-                    var initialPurchaseEvent = revenueCatEvent.ToObject<InitialPurchaseEvent>();
-                    await _mobileUserRepository.UserPayedAsync(initialPurchaseEvent.AppUserId,
-                        initialPurchaseEvent.Price);
-                    return Ok(initialPurchaseEvent);
+                    var initialPurchaseEvent = body.Event.ToObject<InitialPurchaseEvent>();
+                    await _mobileUserRepository.UserPayedAsync(initialPurchaseEvent.AppUserId, initialPurchaseEvent.PriceInPurchasedCurrency);
+                    break;
+                }
+
+                case RevenueCatEventTypes.Cancellation:
+                {
+                    var initialPurchaseEvent = body.Event.ToObject<InitialPurchaseEvent>();
+                    await _mobileUserRepository.UserSubscribedAsync(initialPurchaseEvent.AppUserId,
+                        initialPurchaseEvent.PriceInPurchasedCurrency);
+                    break;
+                }
+
+                case RevenueCatEventTypes.SubscriptionPaused:
+                {
+                    var initialPurchaseEvent = body.Event.ToObject<InitialPurchaseEvent>();
+                    await _mobileUserRepository.UserSubscribedAsync(initialPurchaseEvent.AppUserId,
+                        initialPurchaseEvent.PriceInPurchasedCurrency);
+                    break;
+                }
+
+                case RevenueCatEventTypes.Expiration:
+                {
+                    var initialPurchaseEvent = body.Event.ToObject<InitialPurchaseEvent>();
+                    await _mobileUserRepository.UserSubscribedAsync(initialPurchaseEvent.AppUserId,
+                        initialPurchaseEvent.PriceInPurchasedCurrency);
+                    break;
+                }
+
+                case null:
+                {
+                    _logger.LogError("Critical: RevenueCat Request Body Changed.");
                     break;
                 }
             }
 
             return Ok();
         }
-    }
-
-    public class BaseRevenueCatEventBody
-    {
-        [JsonProperty("api_version")] public float ApiVersion { get; set; }
-
-        [JsonProperty("event")] public BaseRevenueCatEvent Event { get; set; }
-    }
-
-    public class BaseRevenueCatEvent
-    {
-        [JsonProperty("type")] public string Type { get; set; }
-        [JsonProperty("id")] public string Id { get; set; }
-        [JsonProperty("app_user_id")] public int AppUserId { get; set; }
-        [JsonProperty("entitlement_id")] public string EntitlementId { get; set; }
-        [JsonProperty("price")] public float Price { get; set; }
-    }
-
-
-    public class InitialPurchaseEvent : BaseRevenueCatEvent
-    {
-    }
-
-    public class TestRevenueEvent : BaseRevenueCatEvent
-    {
-        [JsonProperty("entitlement_id")] public string SubscriptionPlan { get; set; }
-    }
-
-    public class RevenueCatEventTypes
-    {
-        public const string Test = "TEST";
-        public const string InitialPurchase = "INITIAL_PURCHASE";
-        public const string NonRenewingPurchase = "NON_RENEWING_PURCHASE";
-        public const string Renewal = "RENEWAL";
-        public const string ProductChange = "PRODUCT_CHANGE";
-        public const string Cancellation = "CANCELLATION";
-        public const string UnCancellation = "UNCANCELLATION";
-        public const string BillingIssue = "BILLING_ISSUE";
-        public const string SubscriberAlias = "SUBSCRIBER_ALIAS";
-        public const string SubscriptionPaused = "SUBSCRIPTION_PAUSED";
-        public const string Transfer = "TRANSFER";
-        public const string Expiration = "EXPIRATION";
     }
 }

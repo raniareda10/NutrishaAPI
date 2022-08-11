@@ -8,6 +8,7 @@ using DL.CommonModels.Paging;
 using DL.DBContext;
 using DL.DtosV1.MealPlans;
 using DL.DtosV1.Users.Mobiles;
+using DL.EntitiesV1.Measurements;
 using DL.EntitiesV1.Users;
 using DL.Extensions;
 using Microsoft.EntityFrameworkCore;
@@ -45,12 +46,13 @@ namespace DL.Repositories.MobileUser
                     PhoneNumber = m.Mobile,
                     ProfileImage = m.PersonalImage,
                     Created = m.CreatedOn,
-                    SubscribeDate = null,
-                    TotalPaidAmount = null
+                    SubscriptionDate = m.SubscriptionDate,
+                    SubscriptionType = m.SubscriptionType,
+                    TotalPaidAmount = m.TotalAmountPaid
                 })
                 .ToPagedListAsync(model);
         }
-        
+
         public async Task<MobileUserDetailsDto> GetUserDetailsAsync(int userId)
         {
             var user = await _dbContext.MUser
@@ -62,8 +64,9 @@ namespace DL.Repositories.MobileUser
                     PhoneNumber = m.Mobile,
                     ProfileImage = m.PersonalImage,
                     Created = m.CreatedOn,
-                    SubscribeDate = null,
-                    TotalPaidAmount = null,
+                    SubscriptionDate = m.SubscriptionDate,
+                    SubscriptionType = m.SubscriptionType,
+                    TotalPaidAmount = m.TotalAmountPaid,
                     Totals = m.Totals,
                     Age = m.Age,
                     Height = m.Height,
@@ -75,6 +78,20 @@ namespace DL.Repositories.MobileUser
             {
                 return null;
             }
+
+            var firstWeight = await _dbContext.UserMeasurements
+                .OrderByDescending(m => m.Created)
+                .Where(m => m.MeasurementType == MeasurementType.Weight)
+                .Select(w => w.MeasurementValue)
+                .FirstOrDefaultAsync();
+
+            var lastWeight = await _dbContext.UserMeasurements
+                .OrderByDescending(m => m.Created)
+                .Where(m => m.MeasurementType == MeasurementType.Weight)
+                .Select(w => w.MeasurementValue)
+                .LastOrDefaultAsync();
+
+            user.WeightLoss = firstWeight - lastWeight;
 
             user.Allergies = await _dbContext.UserAllergy
                 .Where(allergy => allergy.UserId == userId && allergy.IsSelected)
@@ -100,7 +117,7 @@ namespace DL.Repositories.MobileUser
                     {
                         day = day.Day,
                         WaterCount = day.TakenWaterCupsCount,
-                        Menus = day.PlanMeals.Select(menu => new 
+                        Menus = day.PlanMeals.Select(menu => new
                         {
                             Id = menu.Id,
                             IsEaten = menu.IsEaten,
@@ -116,7 +133,7 @@ namespace DL.Repositories.MobileUser
             user.UserMealPlans = new UserMealPlans();
             if (plans.Count == 0) return user;
             user.UserMealPlans.LastPlan = plans.First();
-            
+
             if (plans.Count == 1)
             {
                 return user;
@@ -139,10 +156,22 @@ namespace DL.Repositories.MobileUser
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task UserPayedAsync(int userId, float amountPayed)
+        public async Task UserSubscribedAsync(int userId, double amountPayed)
         {
-            
+            var user = await _dbContext.Database.ExecuteSqlRawAsync(
+                @$"UPDATE MUSER 
+                SET TotalAmountPaid = TotalAmountPaid + {amountPayed}, 
+                    SubscriptionType = 'Pro',
+                    SubscriptionDate = '{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}'
+                WHERE Id = {userId}");
         }
         
+        public async Task UserPayedAsync(int userId, double amountPayed)
+        {
+            var user = await _dbContext.Database.ExecuteSqlRawAsync(
+                @$"UPDATE MUSER 
+                SET TotalAmountPaid = TotalAmountPaid + {amountPayed}
+                WHERE Id = {userId}");
+        }
     }
 }

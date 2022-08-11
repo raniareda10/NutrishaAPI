@@ -25,7 +25,8 @@ namespace DL.Repositories.MealPlan
 
         public async Task<object> GetCurrentPlanAsync()
         {
-            var mealPlans = await _dbContext.MealPlans.AsNoTracking()
+            var mealPlans = await _dbContext.MealPlans
+                .AsNoTracking()
                 .OrderByDescending(m => m.Created)
                 .Include(m => m.PlanDays)
                 .ThenInclude(m => m.PlanMeals)
@@ -86,7 +87,8 @@ namespace DL.Repositories.MealPlan
                 .AddHours(_currentUserService.UserTimeZoneDifference)
                 .DayOfWeek;
 
-            var planDayEntity = await _dbContext.PlanDays.AsNoTracking()
+            var planDayEntity = await _dbContext.PlanDays
+                .AsNoTracking()
                 .Where(m => m.MealPlan.UserId == _currentUserService.UserId)
                 .Where(p => p.Day == currentDay)
                 .OrderByDescending(m => m.Created)
@@ -138,6 +140,7 @@ namespace DL.Repositories.MealPlan
         public async Task<object> GetRecommendedMealsForSwapAsync(SwapMealDto swapMealDto)
         {
             return await _dbContext.PlanDayMenus
+                .AsNoTracking()
                 .Where(m => m.PlanDay.MealPlan.UserId == _currentUserService.UserId)
                 .Where(m => m.PlanDay.MealPlan.Id == swapMealDto.PlanId)
                 .Where(m => m.MealType == swapMealDto.Type)
@@ -179,6 +182,12 @@ namespace DL.Repositories.MealPlan
                 return result;
             }
 
+            if (oldMenu.PlanDayId == newMenu.PlanDayId)
+            {
+                result.Errors.Add(NonLocalizedErrorMessages.InvalidParameters);
+                return result;
+            }
+            
             _dbContext.PlanDayMenus.Remove(oldMenu);
 
             await _dbContext.PlanDayMenus.AddAsync(new PlanDayMenuEntity()
@@ -258,6 +267,27 @@ namespace DL.Repositories.MealPlan
                 .FirstOrDefaultAsync();
 
             return menu;
+        }
+
+        public async Task<BaseServiceResult> AddExtraBiteMealAsync()
+        {
+            var result = new BaseServiceResult();
+            var isUserMeal = await _dbContext.PlanDays
+                .AsNoTracking()
+                .Where(day => day.Id == Decimal.One && day.MealPlan.UserId == _currentUserService.UserId)
+                .AnyAsync();
+
+            if (!isUserMeal)
+            {
+                result.Errors.Add(NonLocalizedErrorMessages.InvalidParameters);
+                return result;
+            }
+
+            // var menu = new PlanDayMenuEntity()
+            // {
+            // };
+
+            return result;
         }
     }
 }

@@ -17,7 +17,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "NutrishaAPIAPI": {
+    "Development": {
       "commandName": "Project",
       "dotnetRunMessages": "true",
       "launchBrowser": false,
@@ -25,6 +25,36 @@
       "applicationUrl": "https://localhost:5033;http://localhost:5034",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+    "Dev": {
+      "commandName": "Project",
+      "dotnetRunMessages": "true",
+      "launchBrowser": false,
+      "launchUrl": "swagger",
+      "applicationUrl": "https://localhost:5033;http://localhost:5034",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "dev"
+      }
+    },
+    "Stage": {
+      "commandName": "Project",
+      "dotnetRunMessages": "true",
+      "launchBrowser": false,
+      "launchUrl": "swagger",
+      "applicationUrl": "https://localhost:5033;http://localhost:5034",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "stage"
+      }
+    },
+    "Production": {
+      "commandName": "Project",
+      "dotnetRunMessages": "true",
+      "launchBrowser": false,
+      "launchUrl": "swagger",
+      "applicationUrl": "https://localhost:5033;http://localhost:5034",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "production"
       }
     }
   }

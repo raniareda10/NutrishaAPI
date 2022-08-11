@@ -62,7 +62,6 @@ namespace KSEEngineeringJobs
             IServiceProvider serviceProvider)
         {
             app.UseMiddleware<ExceptionMiddleware>();
-            // app.UseElmah();
             app.UseSwagger();
             app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Api v1"));
             app.UseHttpsRedirection();

@@ -67,5 +67,13 @@ namespace NutrishaAPI.Controllers.V1.Mobile
             var result = await _mobileMealPlanRepository.MarkMenuMealAsEatenAsync(mealId);
             return result.Success ? EmptyResult() : InvalidResult(result.Errors);
         }
+        
+        [HttpPut("AddExtraBiteMeal")]
+        public async Task<IActionResult> AddExtraBiteMealAsync()
+        {
+            var result = await _mobileMealPlanRepository.AddExtraBiteMealAsync();
+            return result.Success ? EmptyResult() : InvalidResult(result.Errors);
+        }
+
     }
 }

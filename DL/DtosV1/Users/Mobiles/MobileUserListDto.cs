@@ -11,8 +11,11 @@ namespace DL.DtosV1.Users.Mobiles
         public string PhoneNumber { get; set; }
         public string ProfileImage { get; set; }
         public DateTime Created { get; set; }
-        public DateTime? SubscribeDate { get; set; }
-        public int? TotalPaidAmount { get; set; }
-
+        
+        public DateTime? SubscriptionDate { get; set; }
+        public string SubscriptionType { get; set; }
+        public double? TotalPaidAmount { get; set; }
     }
+    
+    
 }
