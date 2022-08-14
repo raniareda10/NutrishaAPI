@@ -162,16 +162,24 @@ namespace DL.Repositories.MobileUser
                 @$"UPDATE MUSER 
                 SET TotalAmountPaid = TotalAmountPaid + {amountPayed}, 
                     SubscriptionType = 'Pro',
-                    SubscriptionDate = '{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}'
+                    SubscriptionDate = '{DateTime.UtcNow}'
                 WHERE Id = {userId}");
         }
-        
+
         public async Task UserPayedAsync(int userId, double amountPayed)
         {
             var user = await _dbContext.Database.ExecuteSqlRawAsync(
                 @$"UPDATE MUSER 
                 SET TotalAmountPaid = TotalAmountPaid + {amountPayed}
                 WHERE Id = {userId}");
+        }
+
+        public async Task UserUnSubscribedAsync(int appUserId)
+        {
+            await _dbContext.Database.ExecuteSqlRawAsync(
+                @$"UPDATE MUSER 
+                SET  SubscriptionType = null
+                WHERE Id = {appUserId}");
         }
     }
 }

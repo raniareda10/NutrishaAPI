@@ -120,8 +120,8 @@ namespace DL.Repositories.MealPlan
                         Meal = new
                         {
                             Id = meal.MealId,
-                            Image = meal.Meal.CoverImage,
-                            meal.Meal.Name,
+                            Image = meal.Meal?.CoverImage,
+                            Name = meal?.Meal?.Name ?? meal.MealName,
                         }
                     })
                 })
@@ -187,7 +187,7 @@ namespace DL.Repositories.MealPlan
                 result.Errors.Add(NonLocalizedErrorMessages.InvalidParameters);
                 return result;
             }
-            
+
             _dbContext.PlanDayMenus.Remove(oldMenu);
 
             await _dbContext.PlanDayMenus.AddAsync(new PlanDayMenuEntity()
@@ -219,7 +219,7 @@ namespace DL.Repositories.MealPlan
             }
 
 
-            menu.IsSkipped = true;
+            menu.IsSkipped = !menu.IsSkipped;
             await _dbContext.SaveChangesAsync();
             return result;
         }
@@ -235,7 +235,7 @@ namespace DL.Repositories.MealPlan
                 return result;
             }
 
-            menu.IsEaten = true;
+            menu.IsEaten = !menu.IsEaten;
             await _dbContext.SaveChangesAsync();
             return result;
         }
@@ -255,7 +255,7 @@ namespace DL.Repositories.MealPlan
                 return result;
             }
 
-            menu.IsEaten = true;
+            menu.IsEaten = !menu.IsEaten;
             await _dbContext.SaveChangesAsync();
             return result;
         }
@@ -269,12 +269,13 @@ namespace DL.Repositories.MealPlan
             return menu;
         }
 
-        public async Task<BaseServiceResult> AddExtraBiteMealAsync()
+        public async Task<BaseServiceResult> AddExtraBiteMealAsync(AddExtraBitesDto dto)
         {
             var result = new BaseServiceResult();
-            var isUserMeal = await _dbContext.PlanDays
+            var isUserMeal = await _dbContext
+                .PlanDays
                 .AsNoTracking()
-                .Where(day => day.Id == Decimal.One && day.MealPlan.UserId == _currentUserService.UserId)
+                .Where(day => day.Id == dto.DayId && day.MealPlan.UserId == _currentUserService.UserId)
                 .AnyAsync();
 
             if (!isUserMeal)
@@ -283,10 +284,29 @@ namespace DL.Repositories.MealPlan
                 return result;
             }
 
-            // var menu = new PlanDayMenuEntity()
-            // {
-            // };
+            var currentDate = DateTime.UtcNow;
+            var menu = new PlanDayMenuEntity()
+            {
+                PlanDayId = dto.DayId,
+                Created = currentDate,
+                MealType = MealType.Extra,
+                Meals = new List<PlanDayMenuMealEntity>()
+            };
 
+            menu.Meals.Add(dto.MealId.HasValue
+                ? new PlanDayMenuMealEntity()
+                {
+                    MealId = dto.MealId,
+                    Created = currentDate
+                }
+                : new PlanDayMenuMealEntity()
+                {
+                    MealName = dto.MealName,
+                    Created = currentDate
+                });
+
+            await _dbContext.AddAsync(menu);
+            await _dbContext.SaveChangesAsync();
             return result;
         }
     }

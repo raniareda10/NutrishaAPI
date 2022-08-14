@@ -52,25 +52,22 @@ namespace NutrishaAPI.Controllers.V1.Mobile.RevenueCat
 
                 case RevenueCatEventTypes.Cancellation:
                 {
-                    var initialPurchaseEvent = body.Event.ToObject<InitialPurchaseEvent>();
-                    await _mobileUserRepository.UserSubscribedAsync(initialPurchaseEvent.AppUserId,
-                        initialPurchaseEvent.PriceInPurchasedCurrency);
+                    var initialPurchaseEvent = body.Event.ToObject<BaseRevenueCatEvent>();
+                    await _mobileUserRepository.UserUnSubscribedAsync(initialPurchaseEvent.AppUserId);
                     break;
                 }
 
                 case RevenueCatEventTypes.SubscriptionPaused:
                 {
-                    var initialPurchaseEvent = body.Event.ToObject<InitialPurchaseEvent>();
-                    await _mobileUserRepository.UserSubscribedAsync(initialPurchaseEvent.AppUserId,
-                        initialPurchaseEvent.PriceInPurchasedCurrency);
+                    var initialPurchaseEvent = body.Event.ToObject<BaseRevenueCatEvent>();
+                    await _mobileUserRepository.UserUnSubscribedAsync(initialPurchaseEvent.AppUserId);
                     break;
                 }
 
                 case RevenueCatEventTypes.Expiration:
                 {
-                    var initialPurchaseEvent = body.Event.ToObject<InitialPurchaseEvent>();
-                    await _mobileUserRepository.UserSubscribedAsync(initialPurchaseEvent.AppUserId,
-                        initialPurchaseEvent.PriceInPurchasedCurrency);
+                    var initialPurchaseEvent = body.Event.ToObject<BaseRevenueCatEvent>();
+                    await _mobileUserRepository.UserUnSubscribedAsync(initialPurchaseEvent.AppUserId);
                     break;
                 }
 
