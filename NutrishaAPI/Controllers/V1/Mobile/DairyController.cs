@@ -3,6 +3,7 @@ using DL.DtosV1.Dairies;
 using DL.EntitiesV1.Meals;
 using DL.Repositories;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.JSInterop.Infrastructure;
 using NutrishaAPI.Controllers.V1.Mobile.Bases;
 
 namespace NutrishaAPI.Controllers.V1.Mobile
@@ -25,6 +26,18 @@ namespace NutrishaAPI.Controllers.V1.Mobile
             }
             
             return ItemResult(await _dairyRepository.PostAsync(dto));
+        }
+        
+        [HttpPut("Put")]
+        public async Task<IActionResult> PutAsync([FromBody] PutDairyDto dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.Name))
+            {
+                return InvalidResult("Please Add Name");
+            }
+
+            await _dairyRepository.PutAsync(dto);
+            return EmptyResult();
         }
         
         [HttpGet("GetTodayDairies")]

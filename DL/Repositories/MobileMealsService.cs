@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using DL.CommonModels.Paging;
 using DL.DBContext;
+using DL.DtosV1.Meals;
 using DL.EntitiesV1.Meals;
 using Microsoft.EntityFrameworkCore;
 
@@ -41,7 +44,7 @@ namespace DL.Repositories
                 CoverImage = meal.CoverImage,
                 MealSteps = meal.MealSteps,
                 Allergies = meal.Allergies,
-                Ingredients = meal.Ingredients,
+                Ingredients = meal.Ingredients.Select(m => m.IngredientName),
                 isFavorite = isFavorite
             };
         }
@@ -65,6 +68,21 @@ namespace DL.Repositories
 
             _dbContext.UserFavoriteMeals.Remove(favorite);
             await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task<IEnumerable<MealLookupDto>> GetRecommendedMealsAsync()
+        {
+            return await _dbContext.Meals
+                .FromSqlRaw("SELECT Top 5 * FROM Meals ORDER BY NEWID()")
+                .Include(meal => meal.Ingredients)
+                .Where(m => m.MealType == MealType.Recommended)
+                .Select(m => new MealLookupDto
+                {
+                    Id = m.Id,
+                    Name = m.Name,
+                    CoverImage = m.CoverImage
+                })
+                .ToListAsync();
         }
     }
 }

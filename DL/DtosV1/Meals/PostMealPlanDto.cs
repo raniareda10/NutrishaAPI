@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace DL.DtosV1.Meals
 {
@@ -6,6 +7,7 @@ namespace DL.DtosV1.Meals
     {
         public IList<MealPlanModel> Meals { get; set; }
         public int? UserId { get; set; }
+        public DateTime? StartDate { get; set; }
         public string Notes { get; set; }
 
         public bool IsTemplate { get; set; }

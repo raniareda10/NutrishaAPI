@@ -35,9 +35,9 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1
         }
 
         [HttpGet("GetPagedList")]
-        public async Task<IActionResult> GetPagedListAsync()
+        public async Task<IActionResult> GetPagedListAsync([FromQuery] GetAdminUserPagedListQueryDto query)
         {
-            return EmptyResult();
+            return PagedResult(await _adminAuthRepository.GetPagedListAsync(query));
         }
         
         

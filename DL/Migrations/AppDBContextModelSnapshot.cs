@@ -1538,11 +1538,20 @@ namespace DL.Migrations
                     b.Property<DateTime>("Created")
                         .HasColumnType("datetime2");
 
+                    b.Property<int>("CreatedById")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<bool>("IsTemplate")
                         .HasColumnType("bit");
 
                     b.Property<string>("Notes")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("StartDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("TemplateName")
                         .HasColumnType("nvarchar(max)");
@@ -1551,6 +1560,8 @@ namespace DL.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CreatedById");
 
                     b.HasIndex("UserId");
 
@@ -1840,20 +1851,39 @@ namespace DL.Migrations
                     b.Property<string>("ItemName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<float>("Quantity")
-                        .HasColumnType("real");
-
                     b.Property<long>("ShoppingCartId")
                         .HasColumnType("bigint");
-
-                    b.Property<int>("UnitType")
-                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ShoppingCartId");
 
                     b.ToTable("ShoppingCartItems");
+                });
+
+            modelBuilder.Entity("DL.EntitiesV1.ShoppingCartEntity.ShoppingCartItemMealEntity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("MealId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ShoppingCartItemId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MealId");
+
+                    b.HasIndex("ShoppingCartItemId");
+
+                    b.ToTable("ShoppingCartItemMealEntity");
                 });
 
             modelBuilder.Entity("DL.EntitiesV1.UserDislikes", b =>
@@ -2089,7 +2119,7 @@ namespace DL.Migrations
                         .IsRequired();
 
                     b.HasOne("DL.Entities.MUser", "User")
-                        .WithMany()
+                        .WithMany("Roles")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -2226,9 +2256,17 @@ namespace DL.Migrations
 
             modelBuilder.Entity("DL.EntitiesV1.Meals.MealPlanEntity", b =>
                 {
-                    b.HasOne("DL.Entities.MUser", "User")
+                    b.HasOne("DL.Entities.MUser", "CreatedBy")
                         .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DL.Entities.MUser", "User")
+                        .WithMany("Plans")
                         .HasForeignKey("UserId");
+
+                    b.Navigation("CreatedBy");
 
                     b.Navigation("User");
                 });
@@ -2365,6 +2403,25 @@ namespace DL.Migrations
                     b.Navigation("ShoppingCart");
                 });
 
+            modelBuilder.Entity("DL.EntitiesV1.ShoppingCartEntity.ShoppingCartItemMealEntity", b =>
+                {
+                    b.HasOne("DL.EntitiesV1.Meals.MealEntity", "Meal")
+                        .WithMany()
+                        .HasForeignKey("MealId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DL.EntitiesV1.ShoppingCartEntity.ShoppingCartItemEntity", "ShoppingCartItem")
+                        .WithMany("Meals")
+                        .HasForeignKey("ShoppingCartItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Meal");
+
+                    b.Navigation("ShoppingCartItem");
+                });
+
             modelBuilder.Entity("DL.EntitiesV1.UserDislikes", b =>
                 {
                     b.HasOne("DL.Entities.MUser", "User")
@@ -2385,6 +2442,13 @@ namespace DL.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("DL.Entities.MUser", b =>
+                {
+                    b.Navigation("Plans");
+
+                    b.Navigation("Roles");
                 });
 
             modelBuilder.Entity("DL.EntitiesV1.Blogs.Blog", b =>
@@ -2422,6 +2486,11 @@ namespace DL.Migrations
             modelBuilder.Entity("DL.EntitiesV1.ShoppingCartEntity.ShoppingCartEntity", b =>
                 {
                     b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("DL.EntitiesV1.ShoppingCartEntity.ShoppingCartItemEntity", b =>
+                {
+                    b.Navigation("Meals");
                 });
 #pragma warning restore 612, 618
         }

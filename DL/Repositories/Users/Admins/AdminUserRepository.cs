@@ -23,7 +23,7 @@ namespace DL.Repositories.Users.Admins
         public AdminUserRepository(
             AppDBContext dbContext,
             ICurrentUserService currentUserService
-)
+        )
         {
             _dbContext = dbContext;
             _currentUserService = currentUserService;
@@ -44,21 +44,22 @@ namespace DL.Repositories.Users.Admins
                 RoleId = assignRoleToUserDto.RoleId,
                 UserId = assignRoleToUserDto.UserId,
                 Created = DateTime.UtcNow,
-
             });
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task<PagedResult<dynamic>> GetPageListAsync(GetPagedListQueryModel model)
+        public async Task<PagedResult<dynamic>> GetPagedListAsync(GetAdminUserPagedListQueryDto model)
         {
             var userQuery = _dbContext.MUser.Where(m => m.IsAdmin);
 
             if (!string.IsNullOrWhiteSpace(model.SearchWord))
             {
-                userQuery = userQuery.Where(m => m.Email.Contains(model.SearchWord) || m.Name.Contains(model.SearchWord));
+                userQuery = userQuery.Where(
+                    m => m.Email.Contains(model.SearchWord) || m.Name.Contains(model.SearchWord));
             }
 
-
+            userQuery = userQuery.Where(m => m.Roles.Any(r => r.RoleId == 1));
+            
             return await userQuery
                 .Select(u => (dynamic)u)
                 .ToPagedListAsync(model);

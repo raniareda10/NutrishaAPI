@@ -7,6 +7,7 @@ using DL.CommonModels;
 using DL.CommonModels.Paging;
 using DL.DBContext;
 using DL.DtosV1.MealPlans;
+using DL.DtosV1.Users.Admins;
 using DL.DtosV1.Users.Mobiles;
 using DL.EntitiesV1.Measurements;
 using DL.EntitiesV1.Users;
@@ -24,7 +25,7 @@ namespace DL.Repositories.MobileUser
             _dbContext = dbContext;
         }
 
-        public async Task<PagedResult<MobileUserListDto>> GetPagedListAsync(GetPagedListQueryModel model)
+        public async Task<PagedResult<MobileUserListDto>> GetPagedListAsync(GetUserMobilePagedListQueryModel model)
         {
             var query = _dbContext.MUser
                 .Where(m => !m.IsAdmin)
@@ -35,6 +36,17 @@ namespace DL.Repositories.MobileUser
                 query = query.Where(m => m.Email.Contains(model.SearchWord) ||
                                          m.Mobile.Contains(model.SearchWord) ||
                                          m.Name.Contains(model.SearchWord));
+            }
+
+            if (model.OnlyUserWithoutPlan)
+            {
+                query = query.Where(m => !m.Plans.Any());
+            }
+
+            if (model.UserWithAboutToFinishPlan)
+            {
+                // query = query.Where(m => !m.Plans.Any(plan => plan.StartDate.HasValue
+                //                                               && plan.StartDate.Value.AddDays(6)));
             }
 
             return await query
@@ -124,7 +136,7 @@ namespace DL.Repositories.MobileUser
                             IsSkipped = menu.IsSkipped,
                             IsSwapped = menu.IsSwapped,
                             MealType = menu.MealType,
-                            Meals = menu.Meals.Select(meal => meal.Meal.Name)
+                            Meals = menu.Meals.Select(meal => meal.Meal.Name ?? meal.MealName)
                         })
                     })
                 })

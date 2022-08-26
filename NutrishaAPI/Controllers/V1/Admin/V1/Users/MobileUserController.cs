@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using DL.CommonModels;
+using DL.DtosV1.Users.Admins;
 using DL.DtosV1.Users.Mobiles;
 using DL.Repositories.MobileUser;
 using DL.ResultModels;
@@ -17,7 +18,7 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Users
         }
 
         [HttpGet("GetPagedList")]
-        public async Task<IActionResult> GetPagedListAsync([FromQuery] GetPagedListQueryModel model)
+        public async Task<IActionResult> GetPagedListAsync([FromQuery] GetUserMobilePagedListQueryModel model)
         {
             return PagedResult(await _mobileUserRepository.GetPagedListAsync(model));
         }

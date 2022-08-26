@@ -6,6 +6,7 @@ namespace DL.DtosV1.Meals
     {
         public float Quantity { get; set; }
         public IngredientUnitType UnitType { get; set; }
+        public long MealId { get; set; }
         public string IngredientName { get; set; }
     }
 }

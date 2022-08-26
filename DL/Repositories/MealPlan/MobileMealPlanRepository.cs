@@ -5,10 +5,8 @@ using System.Threading.Tasks;
 using DL.DBContext;
 using DL.DtosV1.MealPlans;
 using DL.EntitiesV1.Meals;
-using DL.ErrorMessages;
 using DL.ResultModels;
 using Microsoft.EntityFrameworkCore;
-using Org.BouncyCastle.Crypto.Engines;
 
 namespace DL.Repositories.MealPlan
 {
@@ -36,48 +34,29 @@ namespace DL.Repositories.MealPlan
                 .Take(1)
                 .FirstOrDefaultAsync();
 
-            var days = new List<object>(mealPlans.PlanDays.Count);
-            foreach (var planDay in mealPlans.PlanDays)
-            {
-                var meals = new List<object>();
-                foreach (var dayMenu in planDay.PlanMeals)
-                {
-                    // var PrepTime = dayMenu.Meals.Sum(m => m.Meal.PreparingTime);
-                    meals.Add(new
-                    {
-                        Type = dayMenu.MealType,
-                    });
-                }
-
-                days.Add(new
-                {
-                    Id = planDay.Id,
-                    meals
-                });
-            }
-
             return new
             {
                 PlanId = mealPlans.Id,
-                days
+                Days = mealPlans.PlanDays
+                    .OrderByDescending(m => m.Day)
+                    .Select(day => new PlanDayDto()
+                    {
+                        Id = day.Id,
+                        DayOfWeek = day.Day,
+                        Menus = day.PlanMeals.OrderBy(m => m.MealType)
+                            .Select(m => new
+                            {
+                                Id = m.Id,
+                                MenuType = m.MealType,
+                                Meals = m.Meals.Select(meal => new
+                                {
+                                    meal.Meal.Id,
+                                    meal.Meal.Name,
+                                    meal.Meal.CoverImage,
+                                })
+                            })
+                    })
             };
-        }
-
-
-        public async Task AddCupOfWaterToDayAsync(long dayId, byte cupsCount)
-        {
-            if (cupsCount < 1)
-            {
-                cupsCount = 1;
-            }
-
-            var day = await _dbContext.PlanDays
-                .Where(d => d.Id == dayId && d.MealPlan.UserId == _currentUserService.UserId)
-                .FirstOrDefaultAsync();
-
-            day.TakenWaterCupsCount += cupsCount;
-            _dbContext.Update(day);
-            await _dbContext.SaveChangesAsync();
         }
 
         public async Task<object> GetTodayMealsAsync()
@@ -97,7 +76,6 @@ namespace DL.Repositories.MealPlan
                 .Include(m => m.PlanMeals)
                 .ThenInclude(m => m.Meals)
                 .ThenInclude(m => m.Meal)
-                // .Select(plan => plan.PlanDays.First(day => day.Day == currentDay))
                 .FirstOrDefaultAsync();
 
             if (planDayEntity == null)
@@ -155,6 +133,23 @@ namespace DL.Repositories.MealPlan
                         meal.Meal.Name,
                     })
                 }).ToListAsync();
+        }
+
+
+        public async Task AddCupOfWaterToDayAsync(long dayId, byte cupsCount)
+        {
+            if (cupsCount < 1)
+            {
+                cupsCount = 1;
+            }
+
+            var day = await _dbContext.PlanDays
+                .Where(d => d.Id == dayId && d.MealPlan.UserId == _currentUserService.UserId)
+                .FirstOrDefaultAsync();
+
+            day.TakenWaterCupsCount += cupsCount;
+            _dbContext.Update(day);
+            await _dbContext.SaveChangesAsync();
         }
 
         public async Task<BaseServiceResult> SwapMenuAsync(long oldMenuId, long swapWithMenuId)
@@ -272,28 +267,26 @@ namespace DL.Repositories.MealPlan
         public async Task<BaseServiceResult> AddExtraBiteMealAsync(AddExtraBitesDto dto)
         {
             var result = new BaseServiceResult();
-            var isUserMeal = await _dbContext
-                .PlanDays
+            var extraBitesMenu = await _dbContext.PlanDays
                 .AsNoTracking()
                 .Where(day => day.Id == dto.DayId && day.MealPlan.UserId == _currentUserService.UserId)
-                .AnyAsync();
+                .Select(m => new
+                {
+                    MenuId = m.PlanMeals
+                        .Where(entity => entity.MealType == MealType.ExtraBites)
+                        .Select(planDayMenuEntity => planDayMenuEntity.Id).FirstOrDefault()
+                })
+                .FirstOrDefaultAsync();
 
-            if (!isUserMeal)
+
+            if (extraBitesMenu == null)
             {
                 result.Errors.Add(NonLocalizedErrorMessages.InvalidParameters);
                 return result;
             }
 
             var currentDate = DateTime.UtcNow;
-            var menu = new PlanDayMenuEntity()
-            {
-                PlanDayId = dto.DayId,
-                Created = currentDate,
-                MealType = MealType.Extra,
-                Meals = new List<PlanDayMenuMealEntity>()
-            };
-
-            menu.Meals.Add(dto.MealId.HasValue
+            var meal = dto.MealId.HasValue
                 ? new PlanDayMenuMealEntity()
                 {
                     MealId = dto.MealId,
@@ -303,9 +296,26 @@ namespace DL.Repositories.MealPlan
                 {
                     MealName = dto.MealName,
                     Created = currentDate
-                });
+                };
 
-            await _dbContext.AddAsync(menu);
+            if (extraBitesMenu.MenuId == 0)
+            {
+                var menu = new PlanDayMenuEntity()
+                {
+                    PlanDayId = dto.DayId,
+                    Created = currentDate,
+                    MealType = MealType.ExtraBites,
+                    Meals = new List<PlanDayMenuMealEntity>()
+                };
+                menu.Meals.Add(meal);
+                await _dbContext.AddAsync(menu);
+            }
+            else
+            {
+                meal.PlanDayMenuId = extraBitesMenu.MenuId;
+                await _dbContext.AddAsync(meal);
+            }
+
             await _dbContext.SaveChangesAsync();
             return result;
         }

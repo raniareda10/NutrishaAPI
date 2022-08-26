@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DL.EntitiesV1.Meals;
 using DL.Enums;
 using DL.HelperInterfaces;
 
@@ -58,5 +60,8 @@ namespace DL.Entities
         public string SubscriptionType { get; set; }
         
         public double TotalAmountPaid { get; set; }
+
+        public ICollection<MealPlanEntity> Plans { get; set; }
+        public ICollection<MUserRoles> Roles { get; set; }
     }
 }

@@ -19,22 +19,13 @@ namespace NutrishaAPI.Controllers.V1.Mobile.Meals
         {
             _mealRepository = mealRepository;
         }
-
-  
-        // [HttpGet("GetPagedList")]
-        // public async Task<IActionResult> GetPagedListAsync([FromQuery] GetMealsPagedListQuery getPagedListQueryModel)
-        // {
-        //     var result = await _mealRepository.GetMealsAsync(getPagedListQueryModel);
-        //     return PagedResult(result);
-        // }
-        //
-        // [HttpGet("GetMealsLookup")]
-        // public async Task<IActionResult> GetMealsLookupAsync()
-        // {
-        //     var result = await _mealRepository.GetMealsLookupAsync();
-        //     return ItemResult(result);
-        // }
-
+        
+        [HttpGet("GetRecommendedMeals")]
+        public async Task<IActionResult> GetPagedListAsync()
+        {
+            var result = await _mealRepository.GetRecommendedMealsAsync();
+            return ListResult(result);
+        }
 
         [HttpGet("GetById")]
         public async Task<IActionResult> GetByIdAsync([FromQuery] long id)
@@ -49,12 +40,5 @@ namespace NutrishaAPI.Controllers.V1.Mobile.Meals
             await _mealRepository.MarkAsFavoriteAsync(mealId);
             return EmptyResult();
         }
-        
-        // [HttpGet("GetIngredientLookup")]
-        // public async Task<IActionResult> GetIngredientLookupAsync([FromQuery] string searchWord)
-        // {
-        //     var result = await _mealRepository.GetIngredientLookupAsync(searchWord);
-        //     return ItemResult(result);
-        // }
     }
 }

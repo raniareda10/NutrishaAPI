@@ -32,7 +32,7 @@ namespace DL.Repositories
                 dto.Name = null;
                 dto.Details = null;
             }
-            
+
             var dairyEntity = new DairyEntity()
             {
                 Created = DateTime.UtcNow,
@@ -75,6 +75,12 @@ namespace DL.Repositories
 
             return d => d.Created.AddHours(_currentUserService.UserTimeZoneDifference) >= yesterday &&
                         d.Created.AddHours(_currentUserService.UserTimeZoneDifference) <= tomorrow;
+        }
+
+        public async Task PutAsync(PutDairyDto putDairyDto)
+        {
+            await _dbContext.Database.ExecuteSqlRawAsync(
+                $@"UPDATE Dairies SET Name = '{putDairyDto.Name}', Details = '{putDairyDto.Details}' WHERE Id = {putDairyDto.Id}");
         }
     }
 }

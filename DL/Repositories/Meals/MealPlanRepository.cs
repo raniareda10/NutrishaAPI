@@ -34,6 +34,7 @@ namespace DL.Repositories.Meals
             var currentDate = DateTime.UtcNow;
             var plan = new MealPlanEntity
             {
+                CreatedById = _currentUserService.UserId,
                 UserId = plans.UserId,
                 IsTemplate = plans.IsTemplate,
                 TemplateName = plans.TemplateName,
@@ -54,9 +55,9 @@ namespace DL.Repositories.Meals
                         }).ToList()
                     }).ToList(),
                 }).ToList(),
+                StartDate = plans.StartDate,
             };
-
-
+            
             await _dbContext.AddAsync(plan);
             await _dbContext.SaveChangesAsync();
 

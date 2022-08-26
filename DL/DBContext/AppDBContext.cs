@@ -143,7 +143,12 @@ namespace DL.DBContext
 
             modelBuilder.Entity<UserFavoriteMealEntity>()
                 .HasKey(m => new { m.MealId, m.UserId });
-            //
+
+
+            modelBuilder.Entity<MUser>()
+                .HasMany(m => m.Plans)
+                .WithOne(plan => plan.User);
+            
             // modelBuilder.Entity<PlanDayMenuEntity>()
             //     .HasOne<PlanDayEntity>()
             //     .WithMany(p => p.PlanMeals)

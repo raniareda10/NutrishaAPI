@@ -2,6 +2,7 @@
 using DL.DtosV1.Meals;
 using DL.DtosV1.ShoppingCart;
 using DL.Repositories.ShoppingCart;
+using DL.ResultModels;
 using Microsoft.AspNetCore.Mvc;
 using NutrishaAPI.Controllers.V1.Mobile.Bases;
 
@@ -26,6 +27,9 @@ namespace NutrishaAPI.Controllers.V1.Mobile
         public async Task<IActionResult> AddMealIngredientsToCartAsync(
             [FromBody] AddMealIngredientsToCartDto addMealIngredientsToCartDto)
         {
+            if (addMealIngredientsToCartDto.MealId == 0)
+                return InvalidResult(NonLocalizedErrorMessages.InvalidParameters);
+            
             await _shoppingCartRepository.AddMealToShoppingCartAsync(addMealIngredientsToCartDto.MealId);
             return EmptyResult();
         }
@@ -33,21 +37,29 @@ namespace NutrishaAPI.Controllers.V1.Mobile
         [HttpPost("AddIngredientToCart")]
         public async Task<IActionResult> AddIngredientToCartAsync([FromBody] MealIngredientDto mealIngredientDto)
         {
+            if (mealIngredientDto.MealId == 0 || string.IsNullOrWhiteSpace(mealIngredientDto.IngredientName))
+                return InvalidResult(NonLocalizedErrorMessages.InvalidParameters);
+            
             await _shoppingCartRepository.AddToShoppingCartAsync(mealIngredientDto);
             return EmptyResult();
         }
-        
-        
+
+
         [HttpPut("MarkAsBought")]
         public async Task<IActionResult> MarkAsBoughtAsync([FromQuery] long itemId)
         {
+            if (itemId == 0)
+                return InvalidResult(NonLocalizedErrorMessages.InvalidParameters);
             await _shoppingCartRepository.MarkAsBoughtAsync(itemId);
             return EmptyResult();
         }
-        
+
         [HttpDelete("RemoveItem")]
         public async Task<IActionResult> RemoveItemAsync([FromQuery] long itemId)
         {
+            if (itemId == 0)
+                return InvalidResult(NonLocalizedErrorMessages.InvalidParameters);
+            
             await _shoppingCartRepository.RemoveItemAsync(itemId);
             return EmptyResult();
         }
