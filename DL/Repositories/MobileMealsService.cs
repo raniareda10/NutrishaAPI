@@ -73,9 +73,11 @@ namespace DL.Repositories
         public async Task<IEnumerable<MealLookupDto>> GetRecommendedMealsAsync()
         {
             return await _dbContext.Meals
-                .FromSqlRaw("SELECT Top 5 * FROM Meals ORDER BY NEWID()")
-                .Include(meal => meal.Ingredients)
+                // .Include(meal => meal.Ingredients)
                 .Where(m => m.MealType == MealType.Recommended)
+                .OrderBy(m => Guid.NewGuid())
+                .Skip(0)
+                .Take(5)
                 .Select(m => new MealLookupDto
                 {
                     Id = m.Id,

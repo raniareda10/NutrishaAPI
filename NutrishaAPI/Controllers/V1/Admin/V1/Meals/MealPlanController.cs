@@ -38,35 +38,60 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Meals
             var result = await _mealRepository.PostMealPlanAsync(postMealDto);
             return ItemResult(result);
         }
-
-
+        
         [HttpPut("UpdateMealPlan")]
-        public async Task<IActionResult> UpdateMealPlanAsync([FromBody] UpdateMealPlan postMealDto)
+        public async Task<IActionResult> UpdateMealPlanAsync([FromBody] UpdateMealPlan updateMealDto)
         {
-            if (postMealDto.Id < 1)
+            if (updateMealDto.Id < 1)
             {
                 return InvalidResult(NonLocalizedErrorMessages.InvalidParameters);
             }
 
-            if (postMealDto.Meals == null ||
-                postMealDto.Meals.Count is < 1 or > 7 ||
-                postMealDto.Meals.Select(m => m.Day).Distinct().Count() < 7)
+            if (updateMealDto.Meals == null ||
+                updateMealDto.Meals.Count is < 1 or > 7 ||
+                updateMealDto.Meals.Select(m => m.Day).Distinct().Count() < 7)
             {
                 return InvalidResult(NonLocalizedErrorMessages.InvalidParameters);
             }
 
-            switch (postMealDto.IsTemplate)
+            switch (updateMealDto.IsTemplate)
             {
-                case true when string.IsNullOrWhiteSpace(postMealDto.TemplateName):
+                case true when string.IsNullOrWhiteSpace(updateMealDto.TemplateName):
                     return InvalidResult(NonLocalizedErrorMessages.InvalidParameters);
-                case false when !postMealDto.UserId.HasValue:
+                case false when !updateMealDto.UserId.HasValue:
                     return InvalidResult(NonLocalizedErrorMessages.InvalidParameters);
             }
-            
-            return ItemResult(await _mealRepository.UpdateTemplateAsync(postMealDto));
+
+            await _mealRepository.UpdateTemplateAsync(updateMealDto);
+            return EmptyResult();
         }
-
-
+        
+        // [HttpPut("UpdateMealPlan")]
+        // public async Task<IActionResult> UpdateMealPlanAsync([FromBody] UpdateMealPlan postMealDto)
+        // {
+        //     if (postMealDto.Id < 1)
+        //     {
+        //         return InvalidResult(NonLocalizedErrorMessages.InvalidParameters);
+        //     }
+        //
+        //     if (postMealDto.Meals == null ||
+        //         postMealDto.Meals.Count is < 1 or > 7 ||
+        //         postMealDto.Meals.Select(m => m.Day).Distinct().Count() < 7)
+        //     {
+        //         return InvalidResult(NonLocalizedErrorMessages.InvalidParameters);
+        //     }
+        //
+        //     switch (postMealDto.IsTemplate)
+        //     {
+        //         case true when string.IsNullOrWhiteSpace(postMealDto.TemplateName):
+        //             return InvalidResult(NonLocalizedErrorMessages.InvalidParameters);
+        //         case false when !postMealDto.UserId.HasValue:
+        //             return InvalidResult(NonLocalizedErrorMessages.InvalidParameters);
+        //     }
+        //     
+        //     return ItemResult(await _mealRepository.UpdateTemplateAsync(postMealDto));
+        // }
+        //
         [HttpGet("GetTemplatePagedList")]
         public async Task<IActionResult> GetTemplatePagedListAsync([FromQuery] GetPagedListQueryModel query)
         {

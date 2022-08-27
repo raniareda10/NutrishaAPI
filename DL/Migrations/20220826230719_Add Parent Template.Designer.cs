@@ -4,14 +4,16 @@ using DL.DBContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace DL.Migrations
 {
     [DbContext(typeof(AppDBContext))]
-    partial class AppDBContextModelSnapshot : ModelSnapshot
+    [Migration("20220826230719_Add Parent Template")]
+    partial class AddParentTemplate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1549,9 +1551,6 @@ namespace DL.Migrations
 
                     b.Property<string>("Notes")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<byte>("NumberOfIAmHungryClicked")
-                        .HasColumnType("tinyint");
 
                     b.Property<long?>("ParentTemplateId")
                         .HasColumnType("bigint");

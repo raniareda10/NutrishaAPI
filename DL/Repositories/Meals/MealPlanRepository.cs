@@ -15,6 +15,7 @@ namespace DL.Repositories.Meals
 {
     public class MealPlanRepository
     {
+        private const int NumberOfDaysForMealPlan = 7;
         private readonly ICurrentUserService _currentUserService;
         private readonly AppDBContext _dbContext;
 
@@ -29,6 +30,11 @@ namespace DL.Repositories.Meals
             if (plans.IsTemplate)
             {
                 plans.UserId = null;
+                plans.StartDate = null;
+            }
+            else
+            {
+                plans.TemplateName = null;
             }
 
             var currentDate = DateTime.UtcNow;
@@ -38,6 +44,7 @@ namespace DL.Repositories.Meals
                 UserId = plans.UserId,
                 IsTemplate = plans.IsTemplate,
                 TemplateName = plans.TemplateName,
+                ParentTemplateId = plans.TemplateId,
                 Notes = plans.Notes,
                 Created = currentDate,
                 PlanDays = plans.Meals.Select(m => new PlanDayEntity()
@@ -56,8 +63,9 @@ namespace DL.Repositories.Meals
                     }).ToList(),
                 }).ToList(),
                 StartDate = plans.StartDate,
+                EndDate = plans.StartDate?.AddDays(NumberOfDaysForMealPlan)
             };
-            
+
             await _dbContext.AddAsync(plan);
             await _dbContext.SaveChangesAsync();
 
@@ -83,6 +91,7 @@ namespace DL.Repositories.Meals
         public async Task<object> GetTemplateByIdAsync(long id)
         {
             var mealPlans = await _dbContext.MealPlans.AsNoTracking()
+                .Include(m => m.CreatedBy)
                 .Include(m => m.PlanDays)
                 .ThenInclude(m => m.PlanMeals)
                 .ThenInclude(m => m.Meals)
@@ -92,17 +101,56 @@ namespace DL.Repositories.Meals
             return mealPlans;
         }
 
-        public async Task<long> UpdateTemplateAsync(UpdateMealPlan updateMealPlan)
+        public async Task UpdateTemplateAsync(UpdateMealPlan updateMealPlan)
         {
+            var plan = await _dbContext.MealPlans
+                .Where(plan => plan.Id == updateMealPlan.Id && plan.IsTemplate)
+                .FirstOrDefaultAsync();
+            if (plan?.IsTemplate != true) return;
+
             var effectedRowsCount = await _dbContext.Database.ExecuteSqlRawAsync(
-                $"DELETE FROM MealPlans WHERE Id = {updateMealPlan.Id} AND IsTemplate = 1");
+                $"DELETE FROM PlanDays WHERE MealPlanId = {updateMealPlan.Id} ");
 
             if (effectedRowsCount == 0)
             {
-                return 0;
+                return;
             }
-            
-            return await PostMealPlanAsync(updateMealPlan);
+
+            var currentDate = DateTime.UtcNow;
+            await _dbContext.AddRangeAsync(updateMealPlan.Meals.Select(m => new PlanDayEntity()
+            {
+                MealPlanId = updateMealPlan.Id,
+                Created = currentDate,
+                Day = m.Day,
+                PlanMeals = m.Menus.Select(menu => new PlanDayMenuEntity
+                {
+                    Created = currentDate,
+                    MealType = menu.Type,
+                    Meals = menu.MealIds.Select(mealId => new PlanDayMenuMealEntity()
+                    {
+                        Created = currentDate,
+                        MealId = mealId
+                    }).ToList()
+                }).ToList(),
+            }).ToList());
+
+            plan.TemplateName = updateMealPlan.TemplateName;
+            plan.Notes = updateMealPlan.Notes;
+            _dbContext.MealPlans.Update(plan);
+            await _dbContext.SaveChangesAsync();
         }
+
+        // public async Task<long> UpdateTemplateAsync(UpdateMealPlan updateMealPlan)
+        // {
+        //     var effectedRowsCount = await _dbContext.Database.ExecuteSqlRawAsync(
+        //         $"DELETE FROM MealPlans WHERE Id = {updateMealPlan.Id} AND IsTemplate = 1");
+        //
+        //     if (effectedRowsCount == 0)
+        //     {
+        //         return 0;
+        //     }
+        //     
+        //     return await PostMealPlanAsync(updateMealPlan);
+        // }
     }
 }

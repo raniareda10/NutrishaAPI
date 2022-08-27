@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using DL.DBContext;
 using DL.DtosV1.MealPlans;
@@ -23,8 +24,18 @@ namespace DL.Repositories.MealPlan
 
         public async Task<object> GetCurrentPlanAsync()
         {
+            var currentDate = DateTime
+                .UtcNow
+                .AddHours(_currentUserService.UserTimeZoneDifference);
+
             var mealPlans = await _dbContext.MealPlans
                 .AsNoTracking()
+                .Where(m =>
+                    m.StartDate.Value.AddHours(_currentUserService.UserTimeZoneDifference) <=
+                    currentDate)
+                .Where(m =>
+                    m.EndDate.Value.AddHours(_currentUserService.UserTimeZoneDifference) >=
+                    currentDate)
                 .OrderByDescending(m => m.Created)
                 .Include(m => m.PlanDays)
                 .ThenInclude(m => m.PlanMeals)
@@ -34,6 +45,7 @@ namespace DL.Repositories.MealPlan
                 .Take(1)
                 .FirstOrDefaultAsync();
 
+            if (mealPlans == null) return null;
             return new
             {
                 PlanId = mealPlans.Id,
@@ -61,14 +73,20 @@ namespace DL.Repositories.MealPlan
 
         public async Task<object> GetTodayMealsAsync()
         {
-            var currentDay = DateTime
+            var currentDate = DateTime
                 .UtcNow
-                .AddHours(_currentUserService.UserTimeZoneDifference)
-                .DayOfWeek;
+                .AddHours(_currentUserService.UserTimeZoneDifference);
 
+            var currentDay = currentDate.DayOfWeek;
             var planDayEntity = await _dbContext.PlanDays
                 .AsNoTracking()
                 .Where(m => m.MealPlan.UserId == _currentUserService.UserId)
+                .Where(m =>
+                    m.MealPlan.StartDate.Value.AddHours(_currentUserService.UserTimeZoneDifference) <=
+                    currentDate)
+                .Where(m =>
+                    m.MealPlan.EndDate.Value.AddHours(_currentUserService.UserTimeZoneDifference) >=
+                    currentDate)
                 .Where(p => p.Day == currentDay)
                 .OrderByDescending(m => m.Created)
                 .Take(1)
@@ -152,6 +170,13 @@ namespace DL.Repositories.MealPlan
             await _dbContext.SaveChangesAsync();
         }
 
+        public async Task UserCLickedIAmHungryAsync(long planId)
+        {
+            await _dbContext.Database.ExecuteSqlRawAsync(
+                $"UPDATE MealPlans SET NumberOfIAmHungryClicked = NumberOfIAmHungryClicked + 1 " +
+                $"WHERE Id = {planId} AND userId = {_currentUserService.UserId}");
+        }
+
         public async Task<BaseServiceResult> SwapMenuAsync(long oldMenuId, long swapWithMenuId)
         {
             var result = new BaseServiceResult();
@@ -200,7 +225,6 @@ namespace DL.Repositories.MealPlan
             await _dbContext.SaveChangesAsync();
             return result;
         }
-
 
         public async Task<BaseServiceResult> SkipMenuAsync(long menuId)
         {

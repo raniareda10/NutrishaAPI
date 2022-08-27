@@ -105,6 +105,17 @@ namespace DL.Repositories.MobileUser
 
             user.WeightLoss = firstWeight - lastWeight;
 
+            user.LastUsedTemplates = _dbContext
+                .MealPlans
+                .Where(plan => plan.UserId == userId)
+                .OrderByDescending(plan => plan.StartDate)
+                .Take(8)
+                .Select(plan => new UserPlanTemplateDto
+                {
+                    StartDate = plan.StartDate,
+                    TemplateName = plan.ParentTemplate.TemplateName
+                }).ToList().OrderBy(template => template.StartDate).ToList();
+            
             user.Allergies = await _dbContext.UserAllergy
                 .Where(allergy => allergy.UserId == userId && allergy.IsSelected)
                 .Select(allergy => allergy.Title).ToListAsync();
@@ -138,7 +149,8 @@ namespace DL.Repositories.MobileUser
                             MealType = menu.MealType,
                             Meals = menu.Meals.Select(meal => meal.Meal.Name ?? meal.MealName)
                         })
-                    })
+                    }),
+                    NumberOfIAmHungryClicked = m.NumberOfIAmHungryClicked
                 })
                 .ToListAsync();
 

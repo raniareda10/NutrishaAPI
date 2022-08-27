@@ -4,14 +4,16 @@ using DL.DBContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace DL.Migrations
 {
     [DbContext(typeof(AppDBContext))]
-    partial class AppDBContextModelSnapshot : ModelSnapshot
+    [Migration("20220826135906_Update Shopping Cart")]
+    partial class UpdateShoppingCart
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1550,12 +1552,6 @@ namespace DL.Migrations
                     b.Property<string>("Notes")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<byte>("NumberOfIAmHungryClicked")
-                        .HasColumnType("tinyint");
-
-                    b.Property<long?>("ParentTemplateId")
-                        .HasColumnType("bigint");
-
                     b.Property<DateTime?>("StartDate")
                         .HasColumnType("datetime2");
 
@@ -1568,8 +1564,6 @@ namespace DL.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedById");
-
-                    b.HasIndex("ParentTemplateId");
 
                     b.HasIndex("UserId");
 
@@ -2270,17 +2264,11 @@ namespace DL.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("DL.EntitiesV1.Meals.MealPlanEntity", "ParentTemplate")
-                        .WithMany()
-                        .HasForeignKey("ParentTemplateId");
-
                     b.HasOne("DL.Entities.MUser", "User")
                         .WithMany("Plans")
                         .HasForeignKey("UserId");
 
                     b.Navigation("CreatedBy");
-
-                    b.Navigation("ParentTemplate");
 
                     b.Navigation("User");
                 });

@@ -15,5 +15,6 @@ namespace DL.DtosV1.Users.Mobiles
         public string Gender { get; set; }
         public decimal? Age { get; set; }
         public UserMealPlans UserMealPlans { get; set; }
+        public IList<UserPlanTemplateDto> LastUsedTemplates { get; set; }
     }
 }

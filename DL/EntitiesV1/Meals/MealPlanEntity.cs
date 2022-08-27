@@ -17,6 +17,10 @@ namespace DL.EntitiesV1.Meals
         public MUser User { get; set; }
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
+
+        public long? ParentTemplateId { get; set; }
+        public MealPlanEntity ParentTemplate { get; set; }
+        public byte NumberOfIAmHungryClicked { get; set; }
         
         // Template Fields
         public string TemplateName { get; set; }

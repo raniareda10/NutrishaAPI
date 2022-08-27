@@ -40,6 +40,13 @@ namespace NutrishaAPI.Controllers.V1.Mobile
             await _mobileMealPlanRepository.AddCupOfWaterToDayAsync(dto.DayId, dto.NumberOfCups);
             return EmptyResult();
         }
+        
+        [HttpPut("UserCLickedIAmHungry")]
+        public async Task<IActionResult> UserCLickedIAmHungryAsync([FromQuery] long planId)
+        {
+            await _mobileMealPlanRepository.UserCLickedIAmHungryAsync(planId);
+            return EmptyResult();
+        }
 
         [HttpPut("SwapMenu")]
         public async Task<IActionResult> SwapMenuAsync([FromQuery] long oldMenuId, [FromQuery] long swapWithMenuId)
