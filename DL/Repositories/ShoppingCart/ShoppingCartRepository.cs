@@ -28,6 +28,9 @@ namespace DL.Repositories.ShoppingCart
             {
                 Items = cart.Items?.Select(m => new
                 {
+                    Id = m.Id,
+                    m.IsBought,
+                    
                     m.ItemName,
                     Meals = m.Meals?.Select(meal => meal.Meal.Name)
                 })
