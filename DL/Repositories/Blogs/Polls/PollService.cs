@@ -74,16 +74,16 @@ namespace DL.Repositories.Blogs.Polls
             {
                 pollsQuery = pollsQuery.Where(p => p.Subject.Contains(model.SearchWord));
             }
-            
+
             var result = await pollsQuery.ToPagedListAsync(model);
             return result;
         }
 
         public async Task DeletePollAsync(long id)
         {
-            var blog = await _dbContext.Blogs.FirstOrDefaultAsync(b => b.Id == id);
-             _dbContext.Blogs.Remove(blog);
-             await _dbContext.SaveChangesAsync();
+            await _dbContext.Database.ExecuteSqlRawAsync(
+                $"DELETE From PollAnswers where PollId = {id};" +
+                $"DELETE From Blogs where Id = {id};");
         }
     }
 

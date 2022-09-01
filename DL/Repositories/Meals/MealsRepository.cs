@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Principal;
 using System.Threading.Tasks;
 using DL.CommonModels.Paging;
 using DL.DBContext;
@@ -72,6 +73,49 @@ namespace DL.Repositories.Meals
             return meal.Id;
         }
 
+
+        public async Task<BaseServiceResult> EditAsync(EditMealDto model)
+        {
+            var result = new BaseServiceResult();
+            var meal = await _dbContext.Meals.Include(m => m.Ingredients)
+                .FirstOrDefaultAsync(meal => meal.Id == model.Id);
+
+            if (meal == null)
+            {
+                result.Errors.Add(NonLocalizedErrorMessages.InvalidId);
+                return result;
+            }
+
+            ;
+
+            if (model.CoverImage != null)
+            {
+                meal.CoverImage = await _storageService.UploadFileAsync(model.CoverImage, "meals");
+            }
+
+            _dbContext.RemoveRange(meal.Ingredients);
+
+            meal.Name = model.Name;
+            meal.Allergies = model.Allergies;
+            meal.Ingredients = model.Ingredients.Select(i => new MealIngredientEntity()
+            {
+                Created = DateTime.UtcNow,
+                UnitType = i.UnitType,
+                IngredientName = i.IngredientName,
+                Quantity = i.Quantity
+            }).ToList();
+
+            meal.CockingTime = model.CockingTime;
+            meal.PreparingTime = model.PreparingTime;
+            meal.MealSteps = model.MealSteps;
+            meal.MealType = model.MealType;
+
+            _dbContext.Update(meal);
+            await _dbContext.SaveChangesAsync();
+
+            return result;
+        }
+
         public async Task<PagedResult<MealListModelDto>> GetMealsAsync(GetMealsPagedListQuery model)
         {
             var query = _dbContext.Meals
@@ -101,13 +145,46 @@ namespace DL.Repositories.Meals
             }).ToPagedListAsync(model);
         }
 
-        public async Task<MealEntity> GetByIdAsync(long id)
+        public async Task<BaseServiceResult> DeleteAsync(long id)
         {
-            return await _dbContext.Meals
+            var result = new BaseServiceResult();
+
+            var isUsedInMealPlan = _dbContext.PlanDayMenuMeals.Any(m => m.MealId == id);
+            if (isUsedInMealPlan)
+            {
+                result.Errors.Add(NonLocalizedErrorMessages.InvalidParameters);
+                return result;
+            }
+
+            var effectedRows = await
+                _dbContext.Database
+                    .ExecuteSqlRawAsync($"Delete FROM Meals where Id = {id}");
+            return result;
+        }
+
+        public async Task<object> GetByIdAsync(long id)
+        {
+            var meal = await _dbContext.Meals
                 .Include(m => m.Ingredients)
                 .AsNoTracking()
                 .Where(m => m.Id == id)
                 .FirstOrDefaultAsync();
+
+            if (meal == null) return null;
+
+            return new
+            {
+                Id = meal.Id,
+                Name = meal.Name,
+                MealType = meal.MealType,
+                CockingTime = meal.CockingTime,
+                PreparingTime = meal.PreparingTime,
+                CoverImage = meal.CoverImage,
+                MealSteps = meal.MealSteps,
+                Allergies = meal.Allergies,
+                Ingredients = meal.Ingredients,
+                CanEdit = !_dbContext.PlanDayMenuMeals.Any(m => m.MealId == id)
+            };
         }
 
         public async Task<IEnumerable<string>> GetIngredientLookupAsync(string search)
@@ -121,7 +198,7 @@ namespace DL.Repositories.Meals
 
             return await ingredient.ToListAsync();
         }
-        
+
         public async Task<BaseServiceResult> PostIngredientAsync(PostLookupItem postLookupItem)
         {
             var serviceResult = new BaseServiceResult();
@@ -132,14 +209,14 @@ namespace DL.Repositories.Meals
                     Created = DateTime.UtcNow,
                     Name = postLookupItem.Name
                 });
-                
+
                 await _dbContext.SaveChangesAsync();
             }
             catch (DbUpdateException e)
             {
                 serviceResult.Errors.Add("This Ingredient Already Exists.");
             }
-            
+
 
             return serviceResult;
         }

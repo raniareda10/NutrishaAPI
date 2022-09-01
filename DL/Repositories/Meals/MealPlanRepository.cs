@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
@@ -10,6 +11,7 @@ using DL.DtosV1.Meals;
 using DL.EntitiesV1.Meals;
 using DL.Extensions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 
 namespace DL.Repositories.Meals
 {
@@ -98,9 +100,40 @@ namespace DL.Repositories.Meals
                 .ThenInclude(m => m.Meal)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
-            return mealPlans;
+            var templates = await GetTemplatesAsync(mealPlans.ParentTemplateId);
+            
+            return new
+            {
+                mealPlans.Id,
+                mealPlans.Notes,
+                mealPlans.Created,
+                mealPlans.PlanDays,
+                mealPlans.TemplateName,
+                mealPlans.CreatedBy,
+                mealPlans.IsTemplate,
+                parentTemplates = templates
+            };
         }
 
+        private async Task<IEnumerable<string>> GetTemplatesAsync(long? parentPlanId)
+        {
+            IEnumerable<string> templates = new List<string>();
+            while (parentPlanId != null)
+            {
+                var template = await _dbContext.MealPlans.Where(p => p.Id == parentPlanId)
+                    .Select(p => new
+                    {
+                        p.Id,
+                        p.TemplateName,
+                        p.ParentTemplateId
+                    }).FirstOrDefaultAsync();
+                templates = templates.Prepend(template.TemplateName);
+
+                parentPlanId = template.ParentTemplateId;
+            }
+
+            return templates;
+        }
         public async Task UpdateTemplateAsync(UpdateMealPlan updateMealPlan)
         {
             var plan = await _dbContext.MealPlans

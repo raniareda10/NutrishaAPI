@@ -62,9 +62,9 @@ namespace DL.Repositories.MealPlan
                                 MenuType = m.MealType,
                                 Meals = m.Meals.Select(meal => new
                                 {
-                                    meal.Meal.Id,
-                                    meal.Meal.Name,
-                                    meal.Meal.CoverImage,
+                                    Id = meal.MealId,
+                                    Image = meal.Meal?.CoverImage,
+                                    Name = meal?.Meal?.Name ?? meal.MealName,
                                 })
                             })
                     })
@@ -296,19 +296,28 @@ namespace DL.Repositories.MealPlan
                 .Where(day => day.Id == dto.DayId && day.MealPlan.UserId == _currentUserService.UserId)
                 .Select(m => new
                 {
-                    MenuId = m.PlanMeals
+                    Menu = m.PlanMeals
                         .Where(entity => entity.MealType == MealType.ExtraBites)
-                        .Select(planDayMenuEntity => planDayMenuEntity.Id).FirstOrDefault()
+                        .Select(planDayMenuEntity => new
+                        {
+                            planDayMenuEntity.Id,
+                            NumberOfMeals = planDayMenuEntity.Meals.Count
+                        }).FirstOrDefault()
                 })
                 .FirstOrDefaultAsync();
-
-
+            
             if (extraBitesMenu == null)
             {
                 result.Errors.Add(NonLocalizedErrorMessages.InvalidParameters);
                 return result;
             }
 
+            if (extraBitesMenu.Menu?.NumberOfMeals >= 3)
+            {
+                result.Errors.Add("You can add 3 bites only");
+                return result;
+            }
+            
             var currentDate = DateTime.UtcNow;
             var meal = dto.MealId.HasValue
                 ? new PlanDayMenuMealEntity()
@@ -322,7 +331,7 @@ namespace DL.Repositories.MealPlan
                     Created = currentDate
                 };
 
-            if (extraBitesMenu.MenuId == 0)
+            if (extraBitesMenu.Menu?.Id == null)
             {
                 var menu = new PlanDayMenuEntity()
                 {
@@ -336,7 +345,7 @@ namespace DL.Repositories.MealPlan
             }
             else
             {
-                meal.PlanDayMenuId = extraBitesMenu.MenuId;
+                meal.PlanDayMenuId = extraBitesMenu.Menu.Id;
                 await _dbContext.AddAsync(meal);
             }
 

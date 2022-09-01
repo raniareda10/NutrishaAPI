@@ -19,10 +19,12 @@ namespace DL.Repositories.MobileUser
     public class MobileUserRepository
     {
         private readonly AppDBContext _dbContext;
+        private readonly ICurrentUserService _currentUserService;
 
-        public MobileUserRepository(AppDBContext dbContext)
+        public MobileUserRepository(AppDBContext dbContext, ICurrentUserService currentUserService)
         {
             _dbContext = dbContext;
+            _currentUserService = currentUserService;
         }
 
         public async Task<PagedResult<MobileUserListDto>> GetPagedListAsync(GetUserMobilePagedListQueryModel model)
@@ -40,13 +42,18 @@ namespace DL.Repositories.MobileUser
 
             if (model.OnlyUserWithoutPlan)
             {
-                query = query.Where(m => !m.Plans.Any());
+                query = query.Where(m => !m.Plans.Any() && m.SubscriptionType != null);
             }
 
             if (model.UserWithAboutToFinishPlan)
             {
-                // query = query.Where(m => !m.Plans.Any(plan => plan.StartDate.HasValue
-                //                                               && plan.StartDate.Value.AddDays(6)));
+                var currentDate = DateTime.UtcNow.AddHours(_currentUserService.UserTimeZoneDifference).Date;
+
+                query = query.Where(m => m.Plans.Any(plan =>
+                    plan.EndDate.HasValue &&
+                    plan.EndDate.Value
+                        .AddHours(_currentUserService.UserTimeZoneDifference)
+                        .AddDays(-1) == currentDate));
             }
 
             return await query
@@ -115,7 +122,7 @@ namespace DL.Repositories.MobileUser
                     StartDate = plan.StartDate,
                     TemplateName = plan.ParentTemplate.TemplateName
                 }).ToList().OrderBy(template => template.StartDate).ToList();
-            
+
             user.Allergies = await _dbContext.UserAllergy
                 .Where(allergy => allergy.UserId == userId && allergy.IsSelected)
                 .Select(allergy => allergy.Title).ToListAsync();

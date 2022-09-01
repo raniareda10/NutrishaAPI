@@ -18,7 +18,7 @@ namespace DL.DtosV1.Meals
         public string Allergies { get; set; }
         public ICollection<MealIngredientDto> Ingredients { get; set; }
 
-        public bool IsValid()
+        public virtual bool IsValid()
         {
             return !string.IsNullOrWhiteSpace(Name) &&
                    !string.IsNullOrWhiteSpace(CockingTime) &&

@@ -39,7 +39,15 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1
         {
             return PagedResult(await _adminAuthRepository.GetPagedListAsync(query));
         }
-        
-        
+
+
+        [HttpPost("CreateAdminUser")]
+        public async Task<IActionResult> CreateAdminUserAsync([FromBody] CreateAdminDto createAdminDto)
+        {
+            await _adminAuthRepository.CreateAdminUserAsync(createAdminDto);
+            return EmptyResult();
+        }
     }
+
+  
 }

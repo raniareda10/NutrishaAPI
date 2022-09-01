@@ -25,18 +25,45 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Meals
             {
                 return InvalidResult(NonLocalizedErrorMessages.InvalidParameters);
             }
-            
+
             var result = await _mealRepository.PostAsync(postMealDto);
             return ItemResult(result);
         }
 
+        [HttpPut("Put")]
+        public async Task<IActionResult> PutAsync([FromForm] EditMealDto editMealDto)
+        {
+            if (!editMealDto.IsValid())
+            {
+                return InvalidResult(NonLocalizedErrorMessages.InvalidParameters);
+            }
+
+            var result = await _mealRepository.EditAsync(editMealDto);
+
+            return result.Success ? EmptyResult() : InvalidResult(result.Errors);
+        }
+
+        [HttpDelete("Delete")]
+        public async Task<IActionResult> DeleteAsync([FromQuery] long id)
+        {
+            if (id < 1)
+            {
+                return InvalidResult(NonLocalizedErrorMessages.InvalidParameters);
+            }
+
+            var result = await _mealRepository.DeleteAsync(id);
+
+            return result.Success ? EmptyResult() : InvalidResult(result.Errors);
+        }
+
+        
         [HttpPost("PostIngredient")]
         public async Task<IActionResult> PostIngredient([FromBody] PostLookupItem postLookupItem)
         {
             var result = await _mealRepository.PostIngredientAsync(postLookupItem);
             return result.Success ? EmptyResult() : InvalidResult(result.Errors);
         }
-        
+
         [HttpGet("GetPagedList")]
         public async Task<IActionResult> GetPagedListAsync([FromQuery] GetMealsPagedListQuery getPagedListQueryModel)
         {
@@ -58,7 +85,7 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Meals
             var result = await _mealRepository.GetByIdAsync(id);
             return ItemResult(result);
         }
-        
+
         [HttpGet("GetIngredientLookup")]
         public async Task<IActionResult> GetIngredientLookupAsync([FromQuery] string searchWord)
         {
@@ -67,7 +94,6 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Meals
         }
 
 
-        
         // [HttpGet("GetCurrentPlan")]
         // public async Task<IActionResult> GetCurrentPlanAsync(int userId)
         // {

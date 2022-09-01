@@ -158,6 +158,15 @@ namespace DL.DBContext
             //     .HasOne<PlanDayMenuEntity>()
             //     .WithMany(p => p.Meals)
             //     .HasForeignKey(p => p.PlanDayMenuId);
+
+            modelBuilder.Entity<PollAnswer>()
+                .HasOne(m => m.Poll)
+                .WithMany()
+                .OnDelete(DeleteBehavior.NoAction);
+            modelBuilder.Entity<PollAnswer>()
+                .HasOne(m => m.PollQuestion)
+                .WithMany()
+                .OnDelete(DeleteBehavior.NoAction);
         }
         
 
@@ -215,6 +224,17 @@ namespace DL.DBContext
 
             modelBuilder.Entity<Comment>()
                 .ApplyTotalToJson();
+
+            
+            // modelBuilder.Entity<PollAnswer>()
+            //     .HasOne(q => q.PollQuestion)
+            //     .WithOne()
+            //     .OnDelete(DeleteBehavior.Cascade);
+            //
+            // modelBuilder.Entity<PollAnswer>()
+            //     .HasOne(q => q.Poll)
+            //     .WithOne()
+            //     .OnDelete(DeleteBehavior.NoAction);
         }
 
 

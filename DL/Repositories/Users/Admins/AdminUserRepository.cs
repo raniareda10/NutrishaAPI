@@ -64,5 +64,10 @@ namespace DL.Repositories.Users.Admins
                 .Select(u => (dynamic)u)
                 .ToPagedListAsync(model);
         }
+
+        public async Task CreateAdminUserAsync(CreateAdminDto createAdminDto)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

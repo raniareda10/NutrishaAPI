@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using DL.CommonModels;
 using DL.DtosV1.Meals;
@@ -104,6 +105,7 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Meals
         public async Task<IActionResult> GetTemplateByIdAsync([FromQuery] long id)
         {
             var result = await _mealRepository.GetTemplateByIdAsync(id);
+
             return ItemResult(result);
         }
     }

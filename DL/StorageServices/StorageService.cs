@@ -122,7 +122,7 @@ namespace DL.StorageServices
 
         private async Task<string> UploadFileHelperAsync(IFormFile file, string pathToCopyTo, string directory)
         {
-            var filePath = $"{pathToCopyTo}/{Guid.NewGuid()}-{file.FileName}";
+            var filePath = $"{pathToCopyTo}/{Guid.NewGuid()}-{Uri.EscapeUriString(file.FileName)}";
             using var stream = new MemoryStream();
             await using var fileStream = new FileStream($"{directory}/{filePath}", FileMode.Create);
             await file.CopyToAsync(fileStream);
