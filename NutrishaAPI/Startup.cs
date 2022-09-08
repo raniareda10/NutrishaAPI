@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using DL;
-using Hangfire;
+// using Hangfire;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -57,8 +57,8 @@ namespace KSEEngineeringJobs
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env,
-            IBackgroundJobClient backgroundJobClient,
-            IRecurringJobManager recurringJobManager,
+            // IBackgroundJobClient backgroundJobClient,
+            // IRecurringJobManager recurringJobManager,
             IServiceProvider serviceProvider)
         {
             app.UseMiddleware<ExceptionMiddleware>();

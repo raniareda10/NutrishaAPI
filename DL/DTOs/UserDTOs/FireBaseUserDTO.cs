@@ -9,6 +9,5 @@ namespace DL.DTOs.UserDTOs
     public class FireBaseUserDTO
     {
         public UserStatusDTO approval { get; set; }
-       
     }
 }

@@ -7,8 +7,8 @@ using BL.Security;
 using DL.DBContext;
 using DL.MailModels;
 using DL.Mapping;
-using Hangfire;
-using Hangfire.MemoryStorage;
+// using Hangfire;
+// using Hangfire.MemoryStorage;
 using HELPER;
 using KSEEngineeringJobs;
 using MailReader;
@@ -54,13 +54,13 @@ namespace NutrishaAPI.ServicesRegistrations
                        .AllowAnyHeader();
             }));
 
-            services.AddHangfire(config =>
-               config.SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
-               .UseSimpleAssemblyNameTypeSerializer()
-               .UseDefaultTypeSerializer()
-               .UseMemoryStorage());
-
-            services.AddHangfireServer();
+            // services.AddHangfire(config =>
+            //    config.SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+            //    .UseSimpleAssemblyNameTypeSerializer()
+            //    .UseDefaultTypeSerializer()
+            //    .UseMemoryStorage());
+            //
+            // services.AddHangfireServer();
 
          //   services.AddTransient<IClearFireBaseJob, ClearFireBaseJob>();
             services.AddTransient<IMailService, MailService>();
