@@ -26,7 +26,7 @@ namespace DL.Entities
         [EmailAddress(ErrorMessage = "Invalid Email Address")]
         public string Email { get; set; } = string.Empty;
 
-        [Required] public string Password { get; set; }
+        public string Password { get; set; }
         [MinLength(3), MaxLength(300)] public string Address { get; set; } = string.Empty;
         public string Longitude { get; set; } = string.Empty;
         public string Latitude { get; set; } = string.Empty;

@@ -159,14 +159,14 @@ namespace DL.DBContext
             //     .WithMany(p => p.Meals)
             //     .HasForeignKey(p => p.PlanDayMenuId);
 
-            modelBuilder.Entity<PollAnswer>()
-                .HasOne(m => m.Poll)
-                .WithMany()
-                .OnDelete(DeleteBehavior.NoAction);
-            modelBuilder.Entity<PollAnswer>()
-                .HasOne(m => m.PollQuestion)
-                .WithMany()
-                .OnDelete(DeleteBehavior.NoAction);
+            // modelBuilder.Entity<PollAnswer>()
+            //     .HasOne(m => m.Poll)
+            //     .WithMany()
+            //     .OnDelete(DeleteBehavior.NoAction);
+            // modelBuilder.Entity<PollAnswer>()
+            //     .HasOne(m => m.PollQuestion)
+            //     .WithMany()
+            //     .OnDelete(DeleteBehavior.NoAction);
         }
         
 

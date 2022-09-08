@@ -15,6 +15,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
+using System.Threading.Tasks;
 using DL.Secuirty.Enums;
 
 namespace BL.Security
@@ -22,6 +23,7 @@ namespace BL.Security
     public interface IAuthenticateService
     {
         MUser AuthenticateUser(ApiLoginModelDTO request, out string token);
+        string GetUserToken(MUser user);
     }
     public interface ICheckUniqes 
     {
@@ -195,6 +197,33 @@ namespace BL.Security
                 token = tokenHandler.WriteToken(tokenObj);
             }
             return user;
+        }
+
+        public string GetUserToken(MUser user)
+        {
+            var claimList = new List<Claim>();
+            claimList.Add(new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()));
+            if (!string.IsNullOrEmpty(user.Email))
+            {
+                claimList.Add(new Claim(ClaimTypes.Name, user.Email));
+            }
+            if (!string.IsNullOrEmpty(user.Mobile))
+            {
+                claimList.Add(new Claim(ClaimTypes.Name, user.Mobile));
+            }
+            
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_tokenManagement.Secret));
+            var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
+            var expireDate = DateTime.Now.AddDays(_tokenManagement.AccessExpiration);
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(claimList),
+                Expires = expireDate,
+                SigningCredentials = credentials
+            };
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var tokenObj = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(tokenObj);
         }
     }
 
