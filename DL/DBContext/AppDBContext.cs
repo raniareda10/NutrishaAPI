@@ -22,6 +22,7 @@ using DL.EntitiesV1.Roles;
 using DL.EntitiesV1.ShoppingCartEntity;
 using DL.EntitiesV1.Users;
 using DL.EntityTypeBuilders;
+using DL.StorageServices;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 
@@ -114,18 +115,19 @@ namespace DL.DBContext
         #endregion
 
         #region MyRegion
+
         public DbSet<ShoppingCartEntity> ShoppingCarts { get; set; }
         public DbSet<ShoppingCartItemEntity> ShoppingCartItems { get; set; }
 
         #endregion
-        
+
 
         #region Dairies
 
         public DbSet<DairyEntity> Dairies { get; set; }
-        
 
         #endregion
+
         public DbSet<PermissionEntity> Permissions { get; set; }
         public DbSet<RolePermissionEntity> RolePermissions { get; set; }
 
@@ -148,7 +150,7 @@ namespace DL.DBContext
             modelBuilder.Entity<MUser>()
                 .HasMany(m => m.Plans)
                 .WithOne(plan => plan.User);
-            
+
             // modelBuilder.Entity<PlanDayMenuEntity>()
             //     .HasOne<PlanDayEntity>()
             //     .WithMany(p => p.PlanMeals)
@@ -168,7 +170,7 @@ namespace DL.DBContext
             //     .WithMany()
             //     .OnDelete(DeleteBehavior.NoAction);
         }
-        
+
 
         private void ConfigurePermissions(ModelBuilder modelBuilder)
         {
@@ -178,7 +180,7 @@ namespace DL.DBContext
                 .HasMaxLength(500);
 
             modelBuilder.Entity<PermissionEntity>().HasIndex(p => p.Name)
-            .IsUnique();
+                .IsUnique();
         }
 
         private void ConfigureUsers(ModelBuilder modelBuilder)
@@ -201,6 +203,11 @@ namespace DL.DBContext
             modelBuilder.Entity<MobileUserPreventionEntity>()
                 .HasIndex(m => m.PreventionType)
                 .IsUnique(false);
+
+            modelBuilder.Entity<MUser>()
+                .Property(m => m.Files)
+                .HasConversion(file => JsonConvert.SerializeObject(file),
+                    json => JsonConvert.DeserializeObject<List<UploadResult>>(json));
         }
 
         private void ConfigureUserMeasurements(ModelBuilder modelBuilder)
@@ -225,7 +232,7 @@ namespace DL.DBContext
             modelBuilder.Entity<Comment>()
                 .ApplyTotalToJson();
 
-            
+
             // modelBuilder.Entity<PollAnswer>()
             //     .HasOne(q => q.PollQuestion)
             //     .WithOne()

@@ -64,8 +64,8 @@ namespace NutrishaAPI.Controllers.LegacyControllers
             IConfiguration iConfig,
             AllergyService allergyService,
             DislikesMealService dislikesMealService,
-            IHttpContextAccessor httpContextAccessor,
             ReminderService reminderService,
+            IHttpContextAccessor httpContextAccessor,
             ShoppingCartRepository shoppingCartRepository,
             IOptions<TokenManagement> tokenManagement)
         {

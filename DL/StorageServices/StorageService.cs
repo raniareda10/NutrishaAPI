@@ -35,7 +35,7 @@ namespace DL.StorageServices
                     .Where(m => !removedMedia.Contains(m.Id))
                     .ToList() ?? new List<MediaFile>();
             }
-            
+
             var filesCount = model.Files?.Count ?? 0;
             var externalMediaCount = model.ExternalMedia?.Count ?? 0;
             var count = filesCount + externalMediaCount;
@@ -118,6 +118,25 @@ namespace DL.StorageServices
             var currentDirectory = Directory.GetCurrentDirectory() + "/wwwroot";
             Directory.CreateDirectory($"{currentDirectory}/{path}");
             return await UploadFileHelperAsync(file, path, currentDirectory);
+        }
+
+        public async Task<List<UploadResult>> UploadFilesAsync(IFormFileCollection files, string path)
+        {
+            var currentDirectory = Directory.GetCurrentDirectory() + "/wwwroot";
+            Directory.CreateDirectory($"{currentDirectory}/{path}");
+
+            var result = new List<UploadResult>(files.Count);
+            foreach (var formFile in files)
+            {
+                result.Add(new UploadResult()
+                {
+                    Url = await UploadFileHelperAsync(formFile, path, currentDirectory),
+                    Created = DateTime.UtcNow,
+                    FileExtension = Path.GetExtension(formFile.FileName).Replace(".", "")
+                });
+            }
+
+            return result;
         }
 
         private async Task<string> UploadFileHelperAsync(IFormFile file, string pathToCopyTo, string directory)

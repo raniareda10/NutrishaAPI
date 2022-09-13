@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using DL.EntitiesV1.Meals;
 using DL.Enums;
 using DL.HelperInterfaces;
+using DL.StorageServices;
 
 namespace DL.Entities
 {
@@ -63,5 +64,6 @@ namespace DL.Entities
 
         public ICollection<MealPlanEntity> Plans { get; set; }
         public ICollection<MUserRoles> Roles { get; set; }
+        public List<UploadResult> Files { get; set; }
     }
 }

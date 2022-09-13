@@ -12,6 +12,9 @@ using DL.DTO;
 using DL.DTOs.UserDTOs;
 using DL.Entities;
 using DL.Enums;
+using DL.Repositories.Allergy;
+using DL.Repositories.Dislikes;
+using DL.Repositories.Reminders;
 using DL.ResultModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -28,12 +31,23 @@ namespace NutrishaAPI.Controllers.V1.Mobile
         private readonly IAuthenticateService _authenticateService;
         private readonly AppDBContext _appDbContext;
         private readonly IMapper _mapper;
+        private readonly AllergyService _allergyService;
+        private readonly DislikesMealService _dislikesMealService;
+        private readonly ReminderService _reminderService;
 
-        public SocialAuthController(IMapper mapper, IAuthenticateService authenticateService, AppDBContext appDbContext)
+        public SocialAuthController(IMapper mapper, IAuthenticateService authenticateService,
+            AppDBContext appDbContext,
+            AllergyService allergyService,
+            DislikesMealService dislikesMealService,
+            ReminderService reminderService
+        )
         {
             _mapper = mapper;
             _authenticateService = authenticateService;
             _appDbContext = appDbContext;
+            _allergyService = allergyService;
+            _dislikesMealService = dislikesMealService;
+            _reminderService = reminderService;
         }
 
         [HttpPost("Login")]
@@ -57,23 +71,33 @@ namespace NutrishaAPI.Controllers.V1.Mobile
 
             if (user == null)
             {
-                user = new MUser();
+                user = new MUser
+                {
+                    Email = socialUser.Email,
+                    Mobile = socialUser.PhoneNumber,
+                    Name = socialUser.FirstName,
+                    LastName = socialUser.LastName,
+                    PersonalImage = socialUser.ProfileImage,
+                    IsAccountVerified = true,
+                    RegistrationType = socialUser.RegistrationType
+                };
                 await _appDbContext.AddAsync(user);
+                await _appDbContext.SaveChangesAsync();
+                await AddDefaultDataWhenAccountVerifiedForFirstTime(user.Id);
             }
             else
             {
                 _appDbContext.Update(user);
+                user.Email = socialUser.Email;
+                user.Mobile = socialUser.PhoneNumber;
+                user.Name = socialUser.FirstName;
+                user.LastName = socialUser.LastName;
+                user.PersonalImage = socialUser.ProfileImage;
+                user.IsAccountVerified = true;
+                user.RegistrationType = socialUser.RegistrationType;
+                await _appDbContext.SaveChangesAsync();
             }
-
-            user.Email = socialUser.Email;
-            user.Mobile = socialUser.PhoneNumber;
-            user.Name = socialUser.FirstName;
-            user.LastName = socialUser.LastName;
-            user.PersonalImage = socialUser.ProfileImage;
-            user.IsAccountVerified = true;
-            user.RegistrationType = socialUser.RegistrationType;
-
-            await _appDbContext.SaveChangesAsync();
+            
             var token = _authenticateService.GetUserToken(user);
             return ItemResult(new
             {
@@ -82,6 +106,12 @@ namespace NutrishaAPI.Controllers.V1.Mobile
             });
         }
 
+        private async Task AddDefaultDataWhenAccountVerifiedForFirstTime(int userId)
+        {
+            await _reminderService.CreateDefaultRemindersAsync(userId);
+            await _dislikesMealService.AddDefaultDislikesAsync(userId);
+            await _allergyService.AddDefaultAllergiesToUser(userId);
+        }
 
         // For now keep them as functions
 

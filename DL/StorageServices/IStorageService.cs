@@ -21,5 +21,6 @@ namespace DL.StorageServices
         Task<MediaFile> PrepareMediaAsync(MediaFileDto mediaFile, EntityType entityType);
 
         Task<string> UploadFileAsync(IFormFile file, string path);
+        Task<List<UploadResult>> UploadFilesAsync(IFormFileCollection files, string path);
     }
 }
