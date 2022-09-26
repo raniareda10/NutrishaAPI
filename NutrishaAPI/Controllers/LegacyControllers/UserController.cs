@@ -6,10 +6,12 @@ using System.Threading.Tasks;
 using AutoMapper;
 using BL.Infrastructure;
 using BL.Security;
+using DL.DBContext;
 using DL.DTO;
 using DL.DTOs.UserDTOs;
 using DL.DtosV1.Allergies;
 using DL.Entities;
+using DL.EntitiesV1.Measurements;
 using DL.Enums;
 using DL.ErrorMessages;
 using DL.MailModels;
@@ -48,6 +50,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
         private readonly DislikesMealService _dislikesMealService;
         private readonly ReminderService _reminderService;
         private readonly ShoppingCartRepository _shoppingCartRepository;
+        private readonly AppDBContext _appDbContext;
         private readonly ICheckUniqes _checkUniq;
         public IConfiguration configuration { get; set; }
 
@@ -67,6 +70,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
             ReminderService reminderService,
             IHttpContextAccessor httpContextAccessor,
             ShoppingCartRepository shoppingCartRepository,
+            AppDBContext appDbContext,
             IOptions<TokenManagement> tokenManagement)
         {
             _smsGetaway = smsGetaway;
@@ -78,6 +82,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
             _dislikesMealService = dislikesMealService;
             _reminderService = reminderService;
             _shoppingCartRepository = shoppingCartRepository;
+            _appDbContext = appDbContext;
             _hostingEnvironment = hostingEnvironment;
             _mapper = mapper;
             _mailService = mailService;
@@ -108,7 +113,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
             if (user == null)
             {
                 baseResponse.done = false;
-                baseResponse.statusCode = (int) HttpStatusCode.BadRequest;
+                baseResponse.statusCode = (int)HttpStatusCode.BadRequest;
                 if (!string.IsNullOrEmpty(request.Email))
                 {
                     baseResponse.message = " email and password combination isn’t correct";
@@ -170,7 +175,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
             return Ok(baseResponse);
 
             baseResponse.done = false;
-            baseResponse.statusCode = (int) HttpStatusCode.BadRequest;
+            baseResponse.statusCode = (int)HttpStatusCode.BadRequest;
             if (!string.IsNullOrEmpty(request.Email))
             {
                 baseResponse.message = " email and password combination isn’t correct";
@@ -218,7 +223,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
             //var AllUser = _mapper.Map<List<AllUserDTO>>(lstUser);
             baseResponse.data = AllUser;
             baseResponse.total_rows = AllUser.Count();
-            baseResponse.statusCode = (int) HttpStatusCode.OK; // Errors.Success;
+            baseResponse.statusCode = (int)HttpStatusCode.OK; // Errors.Success;
             baseResponse.done = true;
             return Ok(baseResponse);
         }
@@ -274,7 +279,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
 
             //var AllUser = _mapper.Map<List<AllUserDTO>>(lstUser);
             baseResponse.data = userDTO;
-            baseResponse.statusCode = (int) HttpStatusCode.OK; // Errors.Success;
+            baseResponse.statusCode = (int)HttpStatusCode.OK; // Errors.Success;
             baseResponse.done = true;
             return Ok(baseResponse);
         }
@@ -290,7 +295,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
             if (isEmptyEmail && isEmptyMobile)
             {
                 baseResponse.data = "";
-                baseResponse.statusCode = (int) HttpStatusCode.NotFound;
+                baseResponse.statusCode = (int)HttpStatusCode.NotFound;
                 baseResponse.done = false;
                 baseResponse.message = "Must Insert Email or Mobile";
                 return NotFound(baseResponse);
@@ -299,7 +304,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
             if (!isEmptyEmail && !isEmptyMobile)
             {
                 baseResponse.data = "";
-                baseResponse.statusCode = (int) HttpStatusCode.NotFound;
+                baseResponse.statusCode = (int)HttpStatusCode.NotFound;
                 baseResponse.done = false;
                 baseResponse.message = "Only Email or Mobile.";
                 return NotFound(baseResponse);
@@ -321,7 +326,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                 if (tempUser != null)
                 {
                     baseResponse.data = "";
-                    baseResponse.statusCode = (int) HttpStatusCode.BadRequest;
+                    baseResponse.statusCode = (int)HttpStatusCode.BadRequest;
                     baseResponse.done = false;
                     baseResponse.message = isEmailRegistration
                         ? "Email already registered"
@@ -355,11 +360,11 @@ namespace NutrishaAPI.Controllers.LegacyControllers
 
             catch (Exception ex)
             {
-                baseResponse.statusCode = (int) HttpStatusCode.BadRequest;
+                baseResponse.statusCode = (int)HttpStatusCode.BadRequest;
                 baseResponse.done = false;
                 baseResponse.message = $"Exception :{ex.Message}";
 
-                return StatusCode((int) HttpStatusCode.BadRequest, baseResponse);
+                return StatusCode((int)HttpStatusCode.BadRequest, baseResponse);
             }
 
             return BadRequest("Invalid Username or Password");
@@ -385,13 +390,13 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                                 var Is1BiggerThan10MB = CheckFileSizeHelper.IsBeggerThan10MB(request.PersonalImage);
                                 if (!IsPersonalImage)
                                 {
-                                    return BadRequest(new {Erorr = "Personal Image Only Images Allowed"});
+                                    return BadRequest(new { Erorr = "Personal Image Only Images Allowed" });
                                 }
 
                                 if (Is1BiggerThan10MB)
                                 {
                                     return BadRequest(
-                                        new {Erorr = " Personal Image Only Images Less Than 10MB Allowed"});
+                                        new { Erorr = " Personal Image Only Images Less Than 10MB Allowed" });
                                 }
                             }
 
@@ -401,12 +406,12 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                                 var Is1BiggerThan10MB = CheckFileSizeHelper.IsBeggerThan10MB(request.NationalID);
                                 if (!IsNationalID)
                                 {
-                                    return BadRequest(new {Erorr = "NationalID Only Images Allowed"});
+                                    return BadRequest(new { Erorr = "NationalID Only Images Allowed" });
                                 }
 
                                 if (Is1BiggerThan10MB)
                                 {
-                                    return BadRequest(new {Erorr = " NationalID Only Images Less Than 10MB Allowed"});
+                                    return BadRequest(new { Erorr = " NationalID Only Images Less Than 10MB Allowed" });
                                 }
                             }
 
@@ -414,6 +419,17 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                             User.JourneyPlanId = request.JourneyPlanId;
                             User.Age = request.Age;
                             User.Weight = request.Weight;
+
+                            if (request.Weight.HasValue)
+                            {
+                                _appDbContext.UserMeasurements.Add(new UserMeasurementEntity()
+                                {
+                                    Created = DateTime.UtcNow,
+                                    UserId = User.Id,
+                                    MeasurementType = MeasurementType.Weight,
+                                    MeasurementValue = (float)request.Weight.Value,
+                                });
+                            }
 
                             User.Height = request.Height;
                             User.BMI = request.BMI;
@@ -503,7 +519,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                         else
                         {
                             baseResponse.done = false;
-                            baseResponse.statusCode = (int) HttpStatusCode.BadRequest;
+                            baseResponse.statusCode = (int)HttpStatusCode.BadRequest;
                             baseResponse.message = "Account Not Verfied";
                             return BadRequest(baseResponse);
                         }
@@ -511,11 +527,11 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                 }
                 catch (Exception ex)
                 {
-                    baseResponse.statusCode = (int) HttpStatusCode.BadRequest;
+                    baseResponse.statusCode = (int)HttpStatusCode.BadRequest;
                     baseResponse.done = false;
                     baseResponse.message = $"Exception :{ex.Message}";
 
-                    return StatusCode((int) HttpStatusCode.BadRequest, baseResponse);
+                    return StatusCode((int)HttpStatusCode.BadRequest, baseResponse);
                 }
             }
 
@@ -532,7 +548,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
             {
                 baseResponse.data = null;
                 baseResponse.message = "Wrong credentials";
-                baseResponse.statusCode = (int) HttpStatusCode.BadRequest; // Errors.Success;
+                baseResponse.statusCode = (int)HttpStatusCode.BadRequest; // Errors.Success;
                 baseResponse.done = false;
                 return BadRequest(baseResponse);
             }
@@ -554,7 +570,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                 {
                     int num = new Random().Next(1000, 9999);
                     verfiyCode = new MVerfiyCode
-                        {Date = DateTime.Now.AddMinutes(5), Mobile = userMobileEmaiDTO.Mobile, VirfeyCode = num};
+                        { Date = DateTime.Now.AddMinutes(5), Mobile = userMobileEmaiDTO.Mobile, VirfeyCode = num };
                     _uow.VerfiyCodeRepository.Add(verfiyCode);
                     _uow.Save();
                 }
@@ -563,7 +579,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                     userMobileEmaiDTO.Mobile);
                 baseResponse.data = verfiyCode;
                 baseResponse.total_rows = 1;
-                baseResponse.statusCode = (int) HttpStatusCode.OK; // Errors.Success;
+                baseResponse.statusCode = (int)HttpStatusCode.OK; // Errors.Success;
                 baseResponse.done = true;
                 return Ok(baseResponse);
             }
@@ -591,10 +607,10 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                 {
                     int num = new Random().Next(1000, 9999);
                     verfiyCode = new MVerfiyCode
-                        {Date = DateTime.Now.AddMinutes(5), Email = userMobileEmaiDTO.Email, VirfeyCode = num};
+                        { Date = DateTime.Now.AddMinutes(5), Email = userMobileEmaiDTO.Email, VirfeyCode = num };
                     _uow.VerfiyCodeRepository.Add(verfiyCode);
                     _uow.Save();
-                   await  _mailService.SendWelcomeEmailAsync(new WelcomeRequest
+                    await _mailService.SendWelcomeEmailAsync(new WelcomeRequest
                     {
                         ToEmail = userMobileEmaiDTO.Email, UserName = userMobileEmaiDTO.Email, Id = 0,
                         VerifyCode = num.ToString()
@@ -603,7 +619,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
 
                 baseResponse.data = verfiyCode;
                 baseResponse.total_rows = 1;
-                baseResponse.statusCode = (int) HttpStatusCode.OK; // Errors.Success;
+                baseResponse.statusCode = (int)HttpStatusCode.OK; // Errors.Success;
                 baseResponse.done = true;
                 return Ok(baseResponse);
             }
@@ -611,7 +627,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
             {
                 baseResponse.data = "must insert mail or mobile";
                 baseResponse.total_rows = 0;
-                baseResponse.statusCode = (int) HttpStatusCode.BadRequest; // Errors.Success;
+                baseResponse.statusCode = (int)HttpStatusCode.BadRequest; // Errors.Success;
                 baseResponse.done = false;
                 return BadRequest(baseResponse);
             }
@@ -654,7 +670,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
 
                             baseResponse.message = "Account Verified";
                             baseResponse.total_rows = 1;
-                            baseResponse.statusCode = (int) HttpStatusCode.OK; // Errors.Success;
+                            baseResponse.statusCode = (int)HttpStatusCode.OK; // Errors.Success;
                             baseResponse.done = true;
 
                             return Ok(baseResponse);
@@ -663,7 +679,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                         {
                             baseResponse.message = "InValied Verify Code";
                             baseResponse.total_rows = 0;
-                            baseResponse.statusCode = (int) HttpStatusCode.BadRequest; // Errors.Success;
+                            baseResponse.statusCode = (int)HttpStatusCode.BadRequest; // Errors.Success;
                             baseResponse.done = false;
                             return BadRequest(baseResponse);
                         }
@@ -672,7 +688,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                     {
                         baseResponse.message = "InValied Verify Code";
                         baseResponse.total_rows = 0;
-                        baseResponse.statusCode = (int) HttpStatusCode.BadRequest; // Errors.Success;
+                        baseResponse.statusCode = (int)HttpStatusCode.BadRequest; // Errors.Success;
                         baseResponse.done = false;
                         return BadRequest(baseResponse);
                     }
@@ -703,7 +719,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
 
                             baseResponse.message = "Account Verified";
                             baseResponse.total_rows = 1;
-                            baseResponse.statusCode = (int) HttpStatusCode.OK; // Errors.Success;
+                            baseResponse.statusCode = (int)HttpStatusCode.OK; // Errors.Success;
                             baseResponse.done = true;
                             return Ok(baseResponse);
                         }
@@ -711,7 +727,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                         {
                             baseResponse.message = "InValied Verify Code";
                             baseResponse.total_rows = 0;
-                            baseResponse.statusCode = (int) HttpStatusCode.BadRequest; // Errors.Success;
+                            baseResponse.statusCode = (int)HttpStatusCode.BadRequest; // Errors.Success;
                             baseResponse.done = false;
                             return BadRequest(baseResponse);
                         }
@@ -720,7 +736,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                     {
                         baseResponse.message = "InValied Verify Code";
                         baseResponse.total_rows = 0;
-                        baseResponse.statusCode = (int) HttpStatusCode.BadRequest; // Errors.Success;
+                        baseResponse.statusCode = (int)HttpStatusCode.BadRequest; // Errors.Success;
                         baseResponse.done = false;
                         return BadRequest(baseResponse);
                     }
@@ -729,7 +745,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                 {
                     baseResponse.message = "must insert Email or mobile";
                     baseResponse.total_rows = 0;
-                    baseResponse.statusCode = (int) HttpStatusCode.BadRequest; // Errors.Success;
+                    baseResponse.statusCode = (int)HttpStatusCode.BadRequest; // Errors.Success;
                     baseResponse.done = false;
                     return BadRequest(baseResponse);
                 }
@@ -737,7 +753,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
             else
             {
                 baseResponse.message = "must insert Valied Email or mobile";
-                baseResponse.statusCode = (int) HttpStatusCode.BadRequest; // Errors.Success;
+                baseResponse.statusCode = (int)HttpStatusCode.BadRequest; // Errors.Success;
                 baseResponse.done = false;
                 return BadRequest(baseResponse);
             }
@@ -755,14 +771,14 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                 availability.UserId = user.Id;
                 availability.IsAccountVerified = user.IsAccountVerified;
                 baseResponse.data = availability;
-                baseResponse.statusCode = (int) HttpStatusCode.OK; // Errors.Success;
+                baseResponse.statusCode = (int)HttpStatusCode.OK; // Errors.Success;
                 baseResponse.done = true;
                 return Ok(baseResponse);
             }
             else
             {
                 baseResponse.data = "";
-                baseResponse.statusCode = (int) HttpStatusCode.NotFound; // Errors.Success;
+                baseResponse.statusCode = (int)HttpStatusCode.NotFound; // Errors.Success;
                 baseResponse.done = false;
                 return BadRequest(baseResponse);
             }
@@ -784,14 +800,14 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                 availability.UserId = user.Id;
                 availability.IsAccountVerified = user.IsAccountVerified;
                 baseResponse.data = availability;
-                baseResponse.statusCode = (int) HttpStatusCode.OK; // Errors.Success;
+                baseResponse.statusCode = (int)HttpStatusCode.OK; // Errors.Success;
                 baseResponse.done = true;
                 return Ok(baseResponse);
             }
             else
             {
                 baseResponse.data = "";
-                baseResponse.statusCode = (int) HttpStatusCode.NotFound; // Errors.Success;
+                baseResponse.statusCode = (int)HttpStatusCode.NotFound; // Errors.Success;
                 baseResponse.done = false;
                 baseResponse.message = "Invalid User";
                 return Ok(baseResponse);
@@ -810,14 +826,14 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                 availability.UserId = user.Id;
                 availability.IsAvailable = user.IsAvailable;
                 baseResponse.data = availability;
-                baseResponse.statusCode = (int) HttpStatusCode.OK; // Errors.Success;
+                baseResponse.statusCode = (int)HttpStatusCode.OK; // Errors.Success;
                 baseResponse.done = true;
                 return Ok(baseResponse);
             }
             else
             {
                 baseResponse.data = "";
-                baseResponse.statusCode = (int) HttpStatusCode.BadRequest; // Errors.Success;
+                baseResponse.statusCode = (int)HttpStatusCode.BadRequest; // Errors.Success;
                 baseResponse.done = false;
                 return BadRequest(baseResponse);
             }
@@ -839,14 +855,14 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                 availability.UserId = user.Id;
                 availability.IsAvailable = user.IsAvailable;
                 baseResponse.data = availability;
-                baseResponse.statusCode = (int) HttpStatusCode.OK; // Errors.Success;
+                baseResponse.statusCode = (int)HttpStatusCode.OK; // Errors.Success;
                 baseResponse.done = true;
                 return Ok(baseResponse);
             }
             else
             {
                 baseResponse.data = "";
-                baseResponse.statusCode = (int) HttpStatusCode.BadRequest; // Errors.Success;
+                baseResponse.statusCode = (int)HttpStatusCode.BadRequest; // Errors.Success;
                 baseResponse.done = false;
                 return BadRequest(baseResponse);
             }
@@ -871,14 +887,14 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                 userDeviceToken.DeviceTypeId = changeUserDeviceTokenDto.DeviceTypeId;
                 userDeviceToken.DeviceToken = changeUserDeviceTokenDto.DeviceToken;
                 baseResponse.data = userDeviceToken;
-                baseResponse.statusCode = (int) HttpStatusCode.OK; // Errors.Success;
+                baseResponse.statusCode = (int)HttpStatusCode.OK; // Errors.Success;
                 baseResponse.done = true;
                 return Ok(baseResponse);
             }
             else
             {
                 baseResponse.data = "";
-                baseResponse.statusCode = (int) HttpStatusCode.BadRequest; // Errors.Success;
+                baseResponse.statusCode = (int)HttpStatusCode.BadRequest; // Errors.Success;
                 baseResponse.done = false;
                 return BadRequest(baseResponse);
             }
@@ -912,7 +928,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                             _uow.UserRepository.Update(User);
                             _uow.Save();
                             baseResponse.data = "";
-                            baseResponse.statusCode = (int) HttpStatusCode.OK; // Errors.Success;
+                            baseResponse.statusCode = (int)HttpStatusCode.OK; // Errors.Success;
                             baseResponse.done = true;
                             baseResponse.message = "Password Changed";
                             return Ok(baseResponse);
@@ -920,7 +936,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                         else
                         {
                             baseResponse.data = "";
-                            baseResponse.statusCode = (int) HttpStatusCode.BadRequest;
+                            baseResponse.statusCode = (int)HttpStatusCode.BadRequest;
                             baseResponse.done = false;
                             baseResponse.message = "Not Valied Password";
                             return BadRequest(baseResponse);
@@ -928,20 +944,20 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                     }
 
                     baseResponse.data = "";
-                    baseResponse.statusCode = (int) HttpStatusCode.BadRequest;
+                    baseResponse.statusCode = (int)HttpStatusCode.BadRequest;
                     baseResponse.done = false;
                     baseResponse.message = "Worng User Id";
 
-                    return StatusCode((int) HttpStatusCode.BadRequest, baseResponse);
+                    return StatusCode((int)HttpStatusCode.BadRequest, baseResponse);
                 }
                 catch (Exception ex)
                 {
                     baseResponse.data = "";
-                    baseResponse.statusCode = (int) HttpStatusCode.BadRequest;
+                    baseResponse.statusCode = (int)HttpStatusCode.BadRequest;
                     baseResponse.done = false;
                     baseResponse.message = $"Exception :{ex.Message}";
 
-                    return StatusCode((int) HttpStatusCode.BadRequest, baseResponse);
+                    return StatusCode((int)HttpStatusCode.BadRequest, baseResponse);
                 }
             }
 
@@ -972,7 +988,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                             if (oldPassword == newPassword)
                             {
                                 baseResponse.data = "";
-                                baseResponse.statusCode = (int) HttpStatusCode.BadRequest;
+                                baseResponse.statusCode = (int)HttpStatusCode.BadRequest;
                                 baseResponse.done = false;
                                 baseResponse.message = "new password shouldn't be one of your old passwords.";
                                 return BadRequest(baseResponse);
@@ -989,7 +1005,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                             var AllUser = _mapper.Map<AllUserDTO>(user);
 
                             baseResponse.data = AllUser;
-                            baseResponse.statusCode = (int) HttpStatusCode.OK; // Errors.Success;
+                            baseResponse.statusCode = (int)HttpStatusCode.OK; // Errors.Success;
                             baseResponse.done = true;
                             baseResponse.message = "Password has changed successfully";
                             return Ok(baseResponse);
@@ -997,7 +1013,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                         else
                         {
                             baseResponse.data = "";
-                            baseResponse.statusCode = (int) HttpStatusCode.BadRequest;
+                            baseResponse.statusCode = (int)HttpStatusCode.BadRequest;
                             baseResponse.done = false;
                             baseResponse.message = "asking the user to reset the pass again";
                         }
@@ -1006,11 +1022,11 @@ namespace NutrishaAPI.Controllers.LegacyControllers
             }
 
             baseResponse.data = "";
-            baseResponse.statusCode = (int) HttpStatusCode.BadRequest;
+            baseResponse.statusCode = (int)HttpStatusCode.BadRequest;
             baseResponse.done = false;
             baseResponse.message = "Wrong credentials";
 
-            return StatusCode((int) HttpStatusCode.BadRequest, baseResponse);
+            return StatusCode((int)HttpStatusCode.BadRequest, baseResponse);
         }
 
         [AllowAnonymous]
@@ -1036,7 +1052,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                             user.Password = null;
                             var AllUser = _mapper.Map<AllUserDTO>(user);
                             baseResponse.data = AllUser;
-                            baseResponse.statusCode = (int) HttpStatusCode.OK; // Errors.Success;
+                            baseResponse.statusCode = (int)HttpStatusCode.OK; // Errors.Success;
                             baseResponse.done = true;
                             baseResponse.message = "Password has changed successfully";
                             return Ok(baseResponse);
@@ -1044,7 +1060,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                         else
                         {
                             baseResponse.data = "";
-                            baseResponse.statusCode = (int) HttpStatusCode.BadRequest;
+                            baseResponse.statusCode = (int)HttpStatusCode.BadRequest;
                             baseResponse.done = false;
                             baseResponse.message = "asking the user to reset the pass again";
                         }
@@ -1053,11 +1069,11 @@ namespace NutrishaAPI.Controllers.LegacyControllers
             }
 
             baseResponse.data = "";
-            baseResponse.statusCode = (int) HttpStatusCode.BadRequest;
+            baseResponse.statusCode = (int)HttpStatusCode.BadRequest;
             baseResponse.done = false;
             baseResponse.message = "Wrong credentials";
 
-            return StatusCode((int) HttpStatusCode.BadRequest, baseResponse);
+            return StatusCode((int)HttpStatusCode.BadRequest, baseResponse);
         }
 
         [AllowAnonymous]

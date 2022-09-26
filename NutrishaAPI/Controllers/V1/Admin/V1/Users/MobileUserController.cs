@@ -30,6 +30,13 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Users
             return result == null ? InvalidResult(NonLocalizedErrorMessages.InvalidId) : ItemResult(result);
         }
 
+        [HttpGet("GetUserPersonalDetails")]
+        public async Task<IActionResult> GetUserPersonalDetailsAsync(int userId)
+        {
+            var result = await _mobileUserRepository.GetUserPersonalDetailsAsync(userId);
+            return ItemResult(result);
+        }
+
         [HttpPost("Prevent")]
         public async Task<IActionResult> PreventUserAsync([FromBody] PreventUserDto preventUserDto)
         {

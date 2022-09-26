@@ -58,16 +58,64 @@ namespace DL.Repositories.Users.Admins
                     m => m.Email.Contains(model.SearchWord) || m.Name.Contains(model.SearchWord));
             }
 
-            userQuery = userQuery.Where(m => m.Roles.Any(r => r.RoleId == 1));
-            
+            if (model.RoleId.HasValue)
+            {
+                userQuery = userQuery.Where(m => m.Roles.Any(r => r.RoleId == model.RoleId));
+            }
+
             return await userQuery
-                .Select(u => (dynamic)u)
+                .Select(u => (dynamic)new
+                {
+                    u.Name,
+                    u.Email,
+                    Roles = u.Roles.Select(r => r.Role.Name)
+                })
                 .ToPagedListAsync(model);
         }
 
         public async Task CreateAdminUserAsync(CreateAdminDto createAdminDto)
         {
-            throw new NotImplementedException();
+            var user = new MUser()
+            {
+                Email = createAdminDto.Email
+            };
+
+
+            if (createAdminDto.RoleId.HasValue)
+            {
+                var role = new MUserRoles()
+                {
+                    Created = DateTime.UtcNow,
+                    RoleId = createAdminDto.RoleId.Value,
+                    UserId = user.Id
+                };
+
+                _dbContext.Add(role);
+            }
+
+            _dbContext.Add(user);
+            await _dbContext.SaveChangesAsync();
+        }
+
+
+        public async Task UpdateAdminUserAsync(CreateAdminDto createAdminDto)
+        {
+            var user = _dbContext.MUser.FirstOrDefaultAsync(m => m.Id == createAdminDto.Id);
+
+            if (createAdminDto.RoleId.HasValue)
+            {
+                var role = new MUserRoles()
+                {
+                    Created = DateTime.UtcNow,
+                    RoleId = createAdminDto.RoleId.Value,
+                    UserId = user.Id
+                };
+
+                _dbContext.Add(role);
+            }
+
+            _dbContext.Add(user);
+            await _dbContext.SaveChangesAsync();
         }
     }
 }

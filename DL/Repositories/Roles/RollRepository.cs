@@ -3,8 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using DL.CommonModels;
+using DL.CommonModels.Paging;
 using DL.DBContext;
+using DL.DtosV1.Common;
 using DL.Entities;
+using DL.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace DL.Repositories.Roles
@@ -25,21 +29,21 @@ namespace DL.Repositories.Roles
         public async Task<IEnumerable<dynamic>> GetAllRolesAsync()
         {
             return await _dbContext.MRoles.OrderByDescending(m => m.Name)
-            .Select(r => new
-            {
-                r.Id,
-                r.Name
-            })
-            .ToListAsync();
+                .Select(r => new
+                {
+                    r.Id,
+                    r.Name
+                })
+                .ToListAsync();
         }
 
         public async Task<IEnumerable<string>> GetUserRolesAsync(int? userId = null)
         {
             return await _dbContext.MUserRoles
-            .Where(r => r.UserId == userId)
-            .OrderByDescending(m => m.Role.Name)
-            .Select(r => r.Role.Name)
-            .ToListAsync();
+                .Where(r => r.UserId == userId)
+                .OrderByDescending(m => m.Role.Name)
+                .Select(r => r.Role.Name)
+                .ToListAsync();
         }
 
         public async Task<long> PostAsync(string roleName)
@@ -58,5 +62,12 @@ namespace DL.Repositories.Roles
             return role.Id;
         }
 
+        public async Task<PagedResult<LookupItem>> GetPagedListAsync(GetPagedListQueryModel postRoleDto)
+        {
+            return await _dbContext
+                .MRoles
+                .Select(m => new LookupItem(m.Id, m.Name))
+                .ToPagedListAsync(postRoleDto);
+        }
     }
 }

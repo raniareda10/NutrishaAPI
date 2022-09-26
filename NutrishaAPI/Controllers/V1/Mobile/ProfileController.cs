@@ -28,6 +28,13 @@ namespace NutrishaAPI.Controllers.V1.Mobile
         {
             return ItemResult(await _mobileProfileService.GetCurrentUserProfileAsync());
         }
+        
+        [HttpPost("AddSubscribedUserPersonalDetails")]
+        public async Task<IActionResult> AddSubscribedUserPersonalDetails([FromBody] AddAfterSubscriptionDetails afterSubscriptionDetails )
+        {
+            await _mobileProfileService.AddSubscribedUserPersonalDetailsAsync(afterSubscriptionDetails);
+            return EmptyResult();
+        }
     }
 
     

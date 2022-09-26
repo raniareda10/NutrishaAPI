@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Diagnostics.SymbolStore;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -65,5 +66,15 @@ namespace DL.Entities
         public ICollection<MealPlanEntity> Plans { get; set; }
         public ICollection<MUserRoles> Roles { get; set; }
         public List<UploadResult> Files { get; set; }
+        
+        // Subscribed Info
+        public bool IsMealPlanPreferencesDataCompleted { get; set; }
+        public ActivityLevel ActivityLevel { get; set; }
+        public string NumberOfMealsPerDay { get; set; }
+        public EatReasonFeel EatReason { get; set; }
+        public float TargetWeight { get; set; }
+        public string MedicineNames { get; set; }
+        public bool IsRegularMeasurer { get; set; }
+        public bool HasBaby { get; set; }
     }
 }

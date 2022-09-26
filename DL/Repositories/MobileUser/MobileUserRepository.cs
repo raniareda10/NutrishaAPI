@@ -111,7 +111,7 @@ namespace DL.Repositories.MobileUser
                 .LastOrDefaultAsync();
 
             user.WeightLoss = firstWeight - lastWeight;
-
+            user.CurrentWeight = lastWeight;
             user.LastUsedTemplates = _dbContext
                 .MealPlans
                 .Where(plan => plan.UserId == userId)
@@ -211,6 +211,30 @@ namespace DL.Repositories.MobileUser
                 @$"UPDATE MUSER 
                 SET  SubscriptionType = null
                 WHERE Id = {appUserId}");
+        }
+
+        public async Task<object> GetUserPersonalDetailsAsync(int userId)
+        {
+            var user = await _dbContext
+                .MUser
+                .Where(user => user.Id == userId)
+                .Select(m => new
+                {
+                    Files = m.Files,
+                    m.ActivityLevel,
+                    m.NumberOfMealsPerDay,
+                    EatReason = m.EatReason,
+                    m.TargetWeight,
+                    m.MedicineNames,
+                    m.IsRegularMeasurer,
+                    m.HasBaby,
+                    Goal = _dbContext.MJourneyPlan
+                        .Where(j => j.Id == m.JourneyPlanId)
+                        .Select(j => j.Name)
+                        .FirstOrDefault()
+                }).FirstOrDefaultAsync();
+
+            return user;
         }
     }
 }

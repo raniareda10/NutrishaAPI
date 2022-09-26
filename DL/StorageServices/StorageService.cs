@@ -130,6 +130,7 @@ namespace DL.StorageServices
             {
                 result.Add(new UploadResult()
                 {
+                    FileName = formFile.FileName,
                     Url = await UploadFileHelperAsync(formFile, path, currentDirectory),
                     Created = DateTime.UtcNow,
                     FileExtension = Path.GetExtension(formFile.FileName).Replace(".", "")
@@ -141,7 +142,8 @@ namespace DL.StorageServices
 
         private async Task<string> UploadFileHelperAsync(IFormFile file, string pathToCopyTo, string directory)
         {
-            var filePath = $"{pathToCopyTo}/{Guid.NewGuid()}-{Uri.EscapeUriString(file.FileName)}";
+            var fileName = file.FileName.Replace(" ", "_");
+            var filePath = $"{pathToCopyTo}/{Guid.NewGuid()}-{fileName}";
             using var stream = new MemoryStream();
             await using var fileStream = new FileStream($"{directory}/{filePath}", FileMode.Create);
             await file.CopyToAsync(fileStream);

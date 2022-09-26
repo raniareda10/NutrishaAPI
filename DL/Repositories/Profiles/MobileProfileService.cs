@@ -60,5 +60,24 @@ namespace DL.Repositories.Profiles
 
             return _mapper.Map<AllUserDTO>(currentUser);
         }
+
+        public async Task AddSubscribedUserPersonalDetailsAsync(AddAfterSubscriptionDetails afterSubscriptionDetails)
+        {
+            var currentUser = await _appDbContext.MUser
+                .FirstOrDefaultAsync(u => u.Id == _currentUserService.UserId);
+
+            if (currentUser == null) return;
+            
+            currentUser.ActivityLevel = afterSubscriptionDetails.ActivityLevel;
+            currentUser.NumberOfMealsPerDay = afterSubscriptionDetails.NumberOfMealsPerDay;
+            currentUser.EatReason = afterSubscriptionDetails.EatReason;
+            currentUser.TargetWeight = afterSubscriptionDetails.TargetWeight;
+            currentUser.MedicineNames = afterSubscriptionDetails.MedicineNames;
+            currentUser.IsRegularMeasurer = afterSubscriptionDetails.IsRegularMeasurer;
+            currentUser.HasBaby = afterSubscriptionDetails.HasBaby;
+            currentUser.IsMealPlanPreferencesDataCompleted = true;
+            _appDbContext.Update(currentUser);
+            await _appDbContext.SaveChangesAsync();
+        }
     }
 }

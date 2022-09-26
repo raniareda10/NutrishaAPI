@@ -10,7 +10,6 @@ using DL.Mapping;
 // using Hangfire;
 // using Hangfire.MemoryStorage;
 using HELPER;
-using KSEEngineeringJobs;
 using MailReader;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -142,7 +141,6 @@ namespace NutrishaAPI.ServicesRegistrations
 
             services.Configure<MailSettings>(configuration.GetSection("MailSettings"));
             
-
             services.AddSwaggerGen(config => {
                 config.SwaggerDoc("v1", new OpenApiInfo() { Title = "WebAPI", Version = "v1" });
                 config.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -152,8 +150,7 @@ namespace NutrishaAPI.ServicesRegistrations
                     Type = SecuritySchemeType.Http,
                     Scheme = "Bearer"
                 });
-                config.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
-                config.OperationFilter<Startup.AuthResponsesOperationFilter>();
+                
                 //config.AddSecurityRequirement(new OpenApiSecurityRequirement
                 //{
                 //    {

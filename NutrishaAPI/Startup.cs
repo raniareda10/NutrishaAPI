@@ -1,25 +1,19 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using DL;
-// using Hangfire;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.OpenApi.Models;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using NLog;
 using NLog.Extensions.Logging;
 using NutrishaAPI.Middlewares;
 using NutrishaAPI.ServicesRegistrations;
-using Swashbuckle.AspNetCore.SwaggerGen;
-using Microsoft.Extensions.Logging;
+// using Hangfire;
 
-namespace KSEEngineeringJobs
+namespace NutrishaAPI
 {
     public class Startup
     {
@@ -64,14 +58,20 @@ namespace KSEEngineeringJobs
             app.UseMiddleware<ExceptionMiddleware>();
             app.UseSwagger();
             app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Api v1"));
-            app.UseHttpsRedirection();
             
+            app.UseHttpsRedirection();
             app.UseAuthentication();
-
             app.UseRouting();
             app.UseCors("MyPolicy");
             app.UseDefaultFiles();
-            app.UseStaticFiles();
+            app.UseStaticFiles(new StaticFileOptions()
+            {
+                OnPrepareResponse = context =>
+                {
+                    context.Context.Response.Headers.Add("Access-Control-Allow-Origin", "*");
+                    context.Context.Response.Headers.Add("Content-Disposition", "attachment");
+                } 
+            });
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
@@ -83,41 +83,6 @@ namespace KSEEngineeringJobs
             //    () => serviceProvider.GetService<IClearFireBaseJob>().ClearOfferAsync(),
             //    "* * * * *"
             //    );
-        }
-
-        // AuthResponsesOperationFilter.cs
-        public class AuthResponsesOperationFilter : IOperationFilter
-        {
-            public void Apply(OpenApiOperation operation, OperationFilterContext context)
-            {
-                var authAttributes = context.MethodInfo.DeclaringType.GetCustomAttributes(true)
-                    .Union(context.MethodInfo.GetCustomAttributes(true))
-                    .OfType<AuthorizeAttribute>();
-
-                if (authAttributes.Any())
-                {
-                    var securityRequirement = new OpenApiSecurityRequirement()
-                    {
-                        {
-                            // Put here you own security scheme, this one is an example
-                            new OpenApiSecurityScheme
-                            {
-                                Reference = new OpenApiReference
-                                {
-                                    Type = ReferenceType.SecurityScheme,
-                                    Id = "Bearer"
-                                },
-                                Scheme = "oauth2",
-                                Name = "Bearer",
-                                In = ParameterLocation.Header,
-                            },
-                            new List<string>()
-                        }
-                    };
-                    operation.Security = new List<OpenApiSecurityRequirement> {securityRequirement};
-                    operation.Responses.Add("401", new OpenApiResponse {Description = "Unauthorized"});
-                }
-            }
         }
     }
 }

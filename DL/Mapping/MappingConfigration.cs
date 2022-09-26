@@ -33,15 +33,14 @@ using DL.DTOs.MediaTypeDTO;
 
 namespace DL.Mapping
 {
-
     public class MappingConfigration : Profile
     {
         public MappingConfigration()
         {
             // Add as many of these lines as you need to map your objects
-            CreateMap<MUser,UserDTO>().ReverseMap();
+            CreateMap<MUser, UserDTO>().ReverseMap();
             CreateMap<MUser, AllUserDTO>().ReverseMap();
-            CreateMap<AllUserDTO, MUser > ().ReverseMap();
+            CreateMap<AllUserDTO, MUser>().ReverseMap();
             CreateMap<MNotification, IncludeNotificationDto>().ReverseMap();
             CreateMap<MUser, IncludeUserDto>().ReverseMap();
             CreateMap<MGoal, IncludeGoalDto>().ReverseMap();
@@ -77,9 +76,4 @@ namespace DL.Mapping
             CreateMap<MSplash, SplashCreatDto>().ReverseMap();
         }
     }
-
-
- 
-
-
 }
