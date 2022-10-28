@@ -62,12 +62,17 @@ namespace DL.Repositories.Roles
             return role.Id;
         }
 
-        public async Task<PagedResult<LookupItem>> GetPagedListAsync(GetPagedListQueryModel postRoleDto)
+        public async Task<PagedResult<LookupItem>> GetPagedListAsync(GetPagedListQueryModel queryModel)
         {
-            return await _dbContext
-                .MRoles
-                .Select(m => new LookupItem(m.Id, m.Name))
-                .ToPagedListAsync(postRoleDto);
+            var query = _dbContext
+                .MRoles.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(queryModel.SearchWord))
+            {
+                query = query.Where(r => r.Name.Contains(queryModel.SearchWord));
+            }
+
+            return await query.Select(m => new LookupItem(m.Id, m.Name)).ToPagedListAsync(queryModel);
         }
     }
 }

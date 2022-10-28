@@ -89,7 +89,9 @@ namespace DL.Repositories.MobileUser
                     Totals = m.Totals,
                     Age = m.Age,
                     Height = m.Height,
-                    Gender = m.Gender.Name
+                    Gender = m.Gender.Name,
+                    LastMessage = m.LastMessage,
+                    HasNewMessage = m.HasNewMessage
                 })
                 .FirstOrDefaultAsync(m => m.Id == userId);
 
@@ -110,7 +112,7 @@ namespace DL.Repositories.MobileUser
                 .Select(w => w.MeasurementValue)
                 .LastOrDefaultAsync();
 
-            user.WeightLoss = firstWeight - lastWeight;
+            user.WeightLoss = await _dbContext.GetWeightLossAsync(_currentUserService.UserId);
             user.CurrentWeight = lastWeight;
             user.LastUsedTemplates = _dbContext
                 .MealPlans
@@ -235,6 +237,18 @@ namespace DL.Repositories.MobileUser
                 }).FirstOrDefaultAsync();
 
             return user;
+        }
+
+        public async Task UserMessageSeenAsync(int userId)
+        {
+            await _dbContext.Database.ExecuteSqlRawAsync(
+                $"UPDATE MUser SET HasNewMessage = false AND LastMessage = null WHERE Id = {userId}");
+        }
+        
+        public async Task UserSentMessageAsync(int userId,  string message)
+        {
+            await _dbContext.Database.ExecuteSqlRawAsync(
+                $"UPDATE MUser SET HasNewMessage = true AND LastMessage = {message} WHERE Id = {userId}");
         }
     }
 }

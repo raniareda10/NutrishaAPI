@@ -14,6 +14,8 @@ namespace DL.DtosV1.Users.Mobiles
         public float WeightLoss { get; set; }
         public string Gender { get; set; }
         public decimal? Age { get; set; }
+        public bool HasNewMessage { get; set; }
+        public string LastMessage { get; set; }
         public UserMealPlans UserMealPlans { get; set; }
         public IList<UserPlanTemplateDto> LastUsedTemplates { get; set; }
     }

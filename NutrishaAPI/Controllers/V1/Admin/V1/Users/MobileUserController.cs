@@ -29,6 +29,13 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Users
             var result = await _mobileUserRepository.GetUserDetailsAsync(userId);
             return result == null ? InvalidResult(NonLocalizedErrorMessages.InvalidId) : ItemResult(result);
         }
+        
+        [HttpGet("UserMessageSeen")]
+        public async Task<IActionResult> UserMessageSeenAsync(int userId)
+        {
+            await _mobileUserRepository.UserMessageSeenAsync(userId);
+            return EmptyResult();
+        }
 
         [HttpGet("GetUserPersonalDetails")]
         public async Task<IActionResult> GetUserPersonalDetailsAsync(int userId)

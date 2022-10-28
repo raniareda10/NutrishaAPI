@@ -1,10 +1,11 @@
 ﻿using System.Threading.Tasks;
 using DL.DtosV1.Users.Admins;
 using DL.Repositories.Users.Admins;
+using DL.ResultModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NutrishaAPI.Attributes;
-using NutrishaAPI.Validations.Users;
+using NutrishaAPI.Validations.Shared;
 
 namespace NutrishaAPI.Controllers.V1.Admin.V1
 {
@@ -40,14 +41,32 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1
             return PagedResult(await _adminAuthRepository.GetPagedListAsync(query));
         }
 
-
-        [HttpPost("CreateAdminUser")]
-        public async Task<IActionResult> CreateAdminUserAsync([FromBody] CreateAdminDto createAdminDto)
+        [HttpGet("GetById")]
+        public async Task<IActionResult> GetByIdAsync([FromQuery] int id)
         {
-            await _adminAuthRepository.CreateAdminUserAsync(createAdminDto);
+            return id < 1
+                ? InvalidResult(NonLocalizedErrorMessages.InvalidId)
+                : ItemResult(await _adminAuthRepository.GetByIdAsync(id));
+        }
+
+
+        [HttpPost("Post")]
+        public async Task<IActionResult> PostAsync([FromBody] CreateAdminDto createAdminDto)
+        {
+            if (!createAdminDto.Email.IsValidEmail() || createAdminDto.RoleId is null or < 1)
+            {
+                return InvalidResult(NonLocalizedErrorMessages.InvalidParameters);
+            }
+
+            var result = await _adminAuthRepository.CreateAdminUserAsync(createAdminDto);
+            return result.Success ? ItemResult(result.Data) : InvalidResult(result.Errors);
+        }
+
+        [HttpPost("Put")]
+        public async Task<IActionResult> PutAsync([FromBody] CreateAdminDto createAdminDto)
+        {
+            await _adminAuthRepository.UpdateAdminUserAsync(createAdminDto);
             return EmptyResult();
         }
     }
-
-  
 }

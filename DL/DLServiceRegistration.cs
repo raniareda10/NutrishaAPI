@@ -8,6 +8,7 @@ using DL.Repositories.Blogs.Polls;
 using DL.Repositories.BlogVideo;
 using DL.Repositories.Comments;
 using DL.Repositories.ContactSupport;
+using DL.Repositories.Dashboard;
 using DL.Repositories.Dislikes;
 using DL.Repositories.MealPlan;
 using DL.Repositories.Meals;
@@ -39,6 +40,7 @@ namespace DL
             service.AddTransient<BlogDetailsFactory>();
             service.AddTransient<ArticleService>();
             service.AddTransient<PollService>();
+            service.AddTransient<CalenderService>();
 
             service.AddScoped<PollAnswerService>();
 

@@ -49,6 +49,6 @@ namespace DL.DTOs.UserDTOs
         public RegistrationType RegistrationType { get; set; }
         public string LastName { get; set; }
         public DateTime BirthDate { get; set; }
-        public string NumberOfMealsPerDay { get; set; }
+        public bool IsMealPlanPreferencesDataCompleted { get; set; }
     }
 }

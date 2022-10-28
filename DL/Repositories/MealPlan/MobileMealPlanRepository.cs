@@ -165,6 +165,8 @@ namespace DL.Repositories.MealPlan
                 .Where(d => d.Id == dayId && d.MealPlan.UserId == _currentUserService.UserId)
                 .FirstOrDefaultAsync();
 
+            if (day is null) return;
+
             day.TakenWaterCupsCount += cupsCount;
             _dbContext.Update(day);
             await _dbContext.SaveChangesAsync();
@@ -305,7 +307,7 @@ namespace DL.Repositories.MealPlan
                         }).FirstOrDefault()
                 })
                 .FirstOrDefaultAsync();
-            
+
             if (extraBitesMenu == null)
             {
                 result.Errors.Add(NonLocalizedErrorMessages.InvalidParameters);
@@ -317,7 +319,7 @@ namespace DL.Repositories.MealPlan
                 result.Errors.Add("You can add 3 bites only");
                 return result;
             }
-            
+
             var currentDate = DateTime.UtcNow;
             var meal = dto.MealId.HasValue
                 ? new PlanDayMenuMealEntity()

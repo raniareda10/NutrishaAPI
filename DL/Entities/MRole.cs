@@ -15,7 +15,7 @@ namespace DL.Entities
         [Required]
         [MinLength(3), MaxLength(40)]
         public string Name { get; set; }
-
+        
         // public int CreatedByUserId { get; set; }
         // public MUser CreatedByUser { get; set; }
     }

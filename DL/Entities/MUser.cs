@@ -76,5 +76,8 @@ namespace DL.Entities
         public string MedicineNames { get; set; }
         public bool IsRegularMeasurer { get; set; }
         public bool HasBaby { get; set; }
+
+        public bool HasNewMessage { get; set; }
+        public string LastMessage { get; set; }
     }
 }

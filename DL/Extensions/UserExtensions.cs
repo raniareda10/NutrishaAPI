@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using DL.DBContext;
 using DL.DtosV1.Users.Roles;
 using DL.Entities;
+using DL.EntitiesV1.Measurements;
 using DL.Repositories.Users.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -58,6 +59,25 @@ namespace DL.Extensions
                     .ToListAsync();
 
             return user;
+        }
+
+        public static async Task<float> GetWeightLossAsync(this AppDBContext dbContext, int userId)
+        {
+            var lastWeight = await dbContext.UserMeasurements
+                .OrderByDescending(m => m.Created)
+                .Where(m => m.UserId == userId)
+                .Where(m => m.MeasurementType == MeasurementType.Weight)
+                .Select(w => w.MeasurementValue)
+                .FirstOrDefaultAsync();
+
+            var firstWeight = await dbContext.UserMeasurements
+                .OrderByDescending(m => m.Created)
+                .Where(m => m.UserId == userId)
+                .Where(m => m.MeasurementType == MeasurementType.Weight)
+                .Select(w => w.MeasurementValue)
+                .LastOrDefaultAsync();
+
+            return firstWeight - lastWeight;
         }
     }
 }
