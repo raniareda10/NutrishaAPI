@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using DL.Entities;
 using DL.EntitiesV1;
 using DL.EntitiesV1.Allergies;
@@ -12,7 +8,6 @@ using DL.EntitiesV1.Blogs.Polls;
 using DL.EntitiesV1.Comments;
 using DL.EntitiesV1.ContactSupport;
 using DL.EntitiesV1.Dairies;
-using DL.EntitiesV1.Enum;
 using DL.EntitiesV1.Meals;
 using DL.EntitiesV1.Measurements;
 using DL.EntitiesV1.Media;
@@ -151,6 +146,8 @@ namespace DL.DBContext
                 .HasMany(m => m.Plans)
                 .WithOne(plan => plan.User);
 
+            // modelBuilder.Entity<MUserRisk>()
+            //     .inde;
             // modelBuilder.Entity<PlanDayMenuEntity>()
             //     .HasOne<PlanDayEntity>()
             //     .WithMany(p => p.PlanMeals)

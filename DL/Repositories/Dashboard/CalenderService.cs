@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using DL.DBContext;
+using DL.DtosV1.MealPlans;
 using DL.EntitiesV1.Dairies;
 using DL.EntitiesV1.Meals;
 using DL.Extensions;
@@ -114,7 +115,9 @@ namespace DL.Repositories.Dashboard
             return new
             {
                 WaterTaken = planInTheMonth.TakenWaterCupsCount,
-                Meals = planInTheMonth.PlanMeals.Select(m => new
+                Meals = planInTheMonth.PlanMeals
+                    .Where(m => !m.IsSkipped)
+                    .Select(m => new
                 {
                     MealType = m.MealType,
                     Meals = m.Meals.Select(meal => new
@@ -180,7 +183,7 @@ namespace DL.Repositories.Dashboard
             var weightLoss = await _appDbContext.GetWeightLossAsync(_currentUserService.UserId);
             return new
             {
-                waterTaken,
+                WaterTaken = CalculateWaterLitersFromNumberOfCups(waterTaken),
                 Points = weightLoss > 0 ? weightLoss : 0
             };
         }
@@ -190,7 +193,7 @@ namespace DL.Repositories.Dashboard
             var dayOfWeek = day.AddHours(_currentUserService.UserTimeZoneDifference).DayOfWeek;
             var start = day.AddDays(-NumberOfDaysInWeek);
             var endDay = day.AddDays(1);
-            return await _appDbContext.PlanDays
+            var waterTakenInDay = await _appDbContext.PlanDays
                 .AsNoTracking()
                 .Include(m => m.PlanMeals)
                 .ThenInclude(m => m.Meals)
@@ -200,6 +203,8 @@ namespace DL.Repositories.Dashboard
                 .Where(p => p.Day == dayOfWeek)
                 .Select(m => m.TakenWaterCupsCount)
                 .FirstOrDefaultAsync();
+
+            return waterTakenInDay;
         }
 
         private async Task<int> GetUnSubscribedDashboardDetailsAsync(DateTime day)
@@ -226,6 +231,11 @@ namespace DL.Repositories.Dashboard
         private Expression<Func<DairyEntity, bool>> GetDairyFilter(DateTime start, DateTime end)
         {
             return d => d.Created >= start && d.Created < end;
+        }
+
+        private float CalculateWaterLitersFromNumberOfCups(int numberOfCups)
+        {
+            return (float)numberOfCups / 4;
         }
     }
 }

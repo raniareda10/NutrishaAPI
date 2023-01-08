@@ -34,9 +34,35 @@ namespace NutrishaAPI.Controllers.V1.Mobile
         [HttpDelete("Delete")]
         public async Task<IActionResult> DeleteAccount()
         {
-            var user = await _appDbContext.MUser.FirstOrDefaultAsync(m => m.Id == _currentUserService.UserId);
-            _appDbContext.Remove(user);
-            await _appDbContext.SaveChangesAsync();
+            // For some reason deleting Muser in server throw conflict error
+            // so i have to remove dependent entites first
+            var user = await _appDbContext
+                .MUser
+                .AsNoTracking()
+                .FirstOrDefaultAsync(m => m.Id == _currentUserService.UserId);
+            
+            await _appDbContext.Database.ExecuteSqlRawAsync(@$"
+                DELETE FROM Comments WHERE UserId = {_currentUserService.UserId};
+                DELETE FROM ContactSupports WHERE UserId = {_currentUserService.UserId};
+                DELETE FROM MDislikeMeal WHERE UserId = {_currentUserService.UserId};
+                DELETE FROM MealPlans WHERE UserId = {_currentUserService.UserId};
+                DELETE FROM MNotificationUser WHERE UserId = {_currentUserService.UserId};
+                DELETE FROM MUserAllergy WHERE UserId = {_currentUserService.UserId};
+                DELETE FROM MUserGoal WHERE UserId = {_currentUserService.UserId};
+                DELETE FROM MUserGroups WHERE UserId = {_currentUserService.UserId};
+                DELETE FROM MUserMeal WHERE UserId = {_currentUserService.UserId};
+                DELETE FROM MUserRoles WHERE UserId = {_currentUserService.UserId};
+                DELETE FROM Reactions WHERE UserId = {_currentUserService.UserId};
+                DELETE FROM Reminders WHERE UserId = {_currentUserService.UserId};
+                DELETE FROM ShoppingCarts WHERE UserId = {_currentUserService.UserId};
+                DELETE FROM UserAllergy WHERE UserId = {_currentUserService.UserId};
+                DELETE FROM UserDislikes WHERE UserId = {_currentUserService.UserId};
+                DELETE FROM UserFavoriteMeals WHERE UserId = {_currentUserService.UserId};
+                DELETE FROM UserMeasurements WHERE UserId = {_currentUserService.UserId};
+                DELETE FROM UserPreventions WHERE UserId = {_currentUserService.UserId};
+
+                DELETE FROM MUser WHERE Id = {_currentUserService.UserId};
+            ");
 
             try
             {
@@ -102,7 +128,7 @@ namespace NutrishaAPI.Controllers.V1.Mobile
             {
                 DeleteDirectory(directory);
             }
-            
+
             Directory.Delete(path);
         }
     }

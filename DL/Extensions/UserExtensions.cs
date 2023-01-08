@@ -61,9 +61,9 @@ namespace DL.Extensions
             return user;
         }
 
-        public static async Task<float> GetWeightLossAsync(this AppDBContext dbContext, int userId)
+        public static async Task<float> GetWeightLossAsync(this AppDBContext dbContext, int userId, float? lastWeight = null)
         {
-            var lastWeight = await dbContext.UserMeasurements
+            lastWeight ??= await dbContext.UserMeasurements
                 .OrderByDescending(m => m.Created)
                 .Where(m => m.UserId == userId)
                 .Where(m => m.MeasurementType == MeasurementType.Weight)
@@ -77,7 +77,7 @@ namespace DL.Extensions
                 .Select(w => w.MeasurementValue)
                 .LastOrDefaultAsync();
 
-            return firstWeight - lastWeight;
+            return (float)(firstWeight - lastWeight) * -1;
         }
     }
 }

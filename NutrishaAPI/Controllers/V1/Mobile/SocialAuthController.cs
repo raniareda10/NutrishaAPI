@@ -97,7 +97,7 @@ namespace NutrishaAPI.Controllers.V1.Mobile
                 user.RegistrationType = socialUser.RegistrationType;
                 await _appDbContext.SaveChangesAsync();
             }
-            
+
             var token = _authenticateService.GetUserToken(user);
             return ItemResult(new
             {
@@ -148,6 +148,12 @@ namespace NutrishaAPI.Controllers.V1.Mobile
                         RegistrationType = RegistrationType.Apple
                     };
                     await _appDbContext.AddAsync(user);
+                    await _appDbContext.SaveChangesAsync();
+                    break;
+                default:
+                    user.IsAccountVerified = true;
+                    user.RegistrationType = RegistrationType.Apple;
+                    _appDbContext.Update(user);
                     await _appDbContext.SaveChangesAsync();
                     break;
             }

@@ -1,5 +1,7 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
+using DL.CommonModels;
+using DL.CommonModels.Paging;
 using DL.DtosV1.Common;
 using DL.DtosV1.Meals;
 using DL.ErrorMessages;
@@ -19,12 +21,12 @@ namespace NutrishaAPI.Controllers.V1.Mobile.Meals
         {
             _mealRepository = mealRepository;
         }
-        
+
         [HttpGet("GetRecommendedMeals")]
-        public async Task<IActionResult> GetPagedListAsync()
+        public async Task<IActionResult> GetPagedListAsync([FromQuery] GetPagedListQueryModel model)
         {
-            var result = await _mealRepository.GetRecommendedMealsAsync();
-            return ListResult(result);
+            var result = await _mealRepository.GetRecommendedMealsAsync(model);
+            return PagedResult(result);
         }
 
         [HttpGet("GetById")]
@@ -33,7 +35,7 @@ namespace NutrishaAPI.Controllers.V1.Mobile.Meals
             var result = await _mealRepository.GetByIdAsync(id);
             return ItemResult(result);
         }
-        
+
         [HttpPut("MarkAsFavorite")]
         public async Task<IActionResult> MarkAsFavoriteAsync([FromQuery] long mealId)
         {

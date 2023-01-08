@@ -72,7 +72,7 @@ namespace DL.Repositories.MobileUser
                 .ToPagedListAsync(model);
         }
 
-        public async Task<MobileUserDetailsDto> GetUserDetailsAsync(int userId)
+        public async Task<MobileUserDetailsDto> GetUserDetailsAsync(int mobileUserId)
         {
             var user = await _dbContext.MUser
                 .Select(m => new MobileUserDetailsDto
@@ -91,32 +91,29 @@ namespace DL.Repositories.MobileUser
                     Height = m.Height,
                     Gender = m.Gender.Name,
                     LastMessage = m.LastMessage,
-                    HasNewMessage = m.HasNewMessage
+                    HasNewMessage = m.HasNewMessage,
+                    
                 })
-                .FirstOrDefaultAsync(m => m.Id == userId);
+                .FirstOrDefaultAsync(m => m.Id == mobileUserId);
 
             if (user == null)
             {
                 return null;
             }
 
-            var firstWeight = await _dbContext.UserMeasurements
+            var lastWeight = await _dbContext.UserMeasurements
                 .OrderByDescending(m => m.Created)
+                .Where(m => m.UserId == mobileUserId)
                 .Where(m => m.MeasurementType == MeasurementType.Weight)
                 .Select(w => w.MeasurementValue)
                 .FirstOrDefaultAsync();
 
-            var lastWeight = await _dbContext.UserMeasurements
-                .OrderByDescending(m => m.Created)
-                .Where(m => m.MeasurementType == MeasurementType.Weight)
-                .Select(w => w.MeasurementValue)
-                .LastOrDefaultAsync();
-
-            user.WeightLoss = await _dbContext.GetWeightLossAsync(_currentUserService.UserId);
+            user.UserRisks = await _dbContext.MUserRisk.Where(m => m.UserId == mobileUserId).Select(m => m.Risk.Name).ToListAsync();
+            user.WeightLoss = await _dbContext.GetWeightLossAsync(mobileUserId, lastWeight);
             user.CurrentWeight = lastWeight;
             user.LastUsedTemplates = _dbContext
                 .MealPlans
-                .Where(plan => plan.UserId == userId)
+                .Where(plan => plan.UserId == mobileUserId)
                 .OrderByDescending(plan => plan.StartDate)
                 .Take(8)
                 .Select(plan => new UserPlanTemplateDto
@@ -126,14 +123,14 @@ namespace DL.Repositories.MobileUser
                 }).ToList().OrderBy(template => template.StartDate).ToList();
 
             user.Allergies = await _dbContext.UserAllergy
-                .Where(allergy => allergy.UserId == userId && allergy.IsSelected)
+                .Where(allergy => allergy.UserId == mobileUserId && allergy.IsSelected)
                 .Select(allergy => allergy.Title).ToListAsync();
 
             user.Dislikes = await _dbContext.UserDislikes
-                .Where(dislike => dislike.UserId == userId && dislike.IsSelected)
+                .Where(dislike => dislike.UserId == mobileUserId && dislike.IsSelected)
                 .Select(dislike => dislike.Title).ToListAsync();
 
-            var plans = await _dbContext.MealPlans.Where(m => m.UserId == userId)
+            var plans = await _dbContext.MealPlans.Where(m => m.UserId == mobileUserId)
                 .Include(m => m.PlanDays)
                 .ThenInclude(m => m.PlanMeals)
                 .ThenInclude(m => m.Meals)
@@ -244,8 +241,8 @@ namespace DL.Repositories.MobileUser
             await _dbContext.Database.ExecuteSqlRawAsync(
                 $"UPDATE MUser SET HasNewMessage = false AND LastMessage = null WHERE Id = {userId}");
         }
-        
-        public async Task UserSentMessageAsync(int userId,  string message)
+
+        public async Task UserSentMessageAsync(int userId, string message)
         {
             await _dbContext.Database.ExecuteSqlRawAsync(
                 $"UPDATE MUser SET HasNewMessage = true AND LastMessage = {message} WHERE Id = {userId}");

@@ -18,5 +18,6 @@ namespace DL.DtosV1.Users.Mobiles
         public string LastMessage { get; set; }
         public UserMealPlans UserMealPlans { get; set; }
         public IList<UserPlanTemplateDto> LastUsedTemplates { get; set; }
+        public IEnumerable<string> UserRisks { get; set; }
     }
 }

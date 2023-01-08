@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using DL.CommonModels;
 using DL.CommonModels.Paging;
 using DL.DBContext;
 using DL.DtosV1.Meals;
 using DL.EntitiesV1.Meals;
+using DL.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace DL.Repositories
@@ -70,21 +72,26 @@ namespace DL.Repositories
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task<IEnumerable<MealLookupDto>> GetRecommendedMealsAsync()
+        public async Task<PagedResult<MealLookupDto>> GetRecommendedMealsAsync(
+            GetPagedListQueryModel getPagedListQueryModel)
         {
-            return await _dbContext.Meals
+            var query = _dbContext.Meals
                 // .Include(meal => meal.Ingredients)
                 .Where(m => m.MealType == MealType.Recommended)
                 .OrderBy(m => Guid.NewGuid())
-                .Skip(0)
-                .Take(5)
                 .Select(m => new MealLookupDto
                 {
                     Id = m.Id,
                     Name = m.Name,
                     CoverImage = m.CoverImage
-                })
-                .ToListAsync();
+                });
+
+            if (!string.IsNullOrWhiteSpace(getPagedListQueryModel.SearchWord))
+            {
+                query = query.Where(m => m.Name.Contains(getPagedListQueryModel.SearchWord));
+            }
+            
+            return await query.ToPagedListAsync(getPagedListQueryModel);
         }
     }
 }

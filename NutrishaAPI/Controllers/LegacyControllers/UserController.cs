@@ -375,167 +375,167 @@ namespace NutrishaAPI.Controllers.LegacyControllers
         [ProducesResponseType(typeof(UserWithTokenDTO), StatusCodes.Status200OK)]
         public async Task<IActionResult> CompleteUserData([FromForm] CompleteUserDTO request)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid) return BadRequest(ModelState.ValidationState);
+
+            try
             {
-                try
+                var user = _uow.UserRepository.GetMany(c => c.Id == request.UserId).FirstOrDefault();
+
+
+                if (user == null) return BadRequest("Invalid Username or Password");
+
+                if (user.IsAccountVerified)
                 {
-                    var User = _uow.UserRepository.GetMany(c => c.Id == request.UserId).FirstOrDefault();
-                    if (User != null)
+                    if (request.PersonalImage != null)
                     {
-                        if (User.IsAccountVerified)
+                        var IsPersonalImage = FileCheckHelper.IsImage(request.PersonalImage.OpenReadStream());
+                        var Is1BiggerThan10MB = CheckFileSizeHelper.IsBeggerThan10MB(request.PersonalImage);
+                        if (!IsPersonalImage)
                         {
-                            if (request.PersonalImage != null)
-                            {
-                                var IsPersonalImage = FileCheckHelper.IsImage(request.PersonalImage.OpenReadStream());
-                                var Is1BiggerThan10MB = CheckFileSizeHelper.IsBeggerThan10MB(request.PersonalImage);
-                                if (!IsPersonalImage)
-                                {
-                                    return BadRequest(new { Erorr = "Personal Image Only Images Allowed" });
-                                }
-
-                                if (Is1BiggerThan10MB)
-                                {
-                                    return BadRequest(
-                                        new { Erorr = " Personal Image Only Images Less Than 10MB Allowed" });
-                                }
-                            }
-
-                            if (request.NationalID != null)
-                            {
-                                var IsNationalID = FileCheckHelper.IsImage(request.NationalID.OpenReadStream());
-                                var Is1BiggerThan10MB = CheckFileSizeHelper.IsBeggerThan10MB(request.NationalID);
-                                if (!IsNationalID)
-                                {
-                                    return BadRequest(new { Erorr = "NationalID Only Images Allowed" });
-                                }
-
-                                if (Is1BiggerThan10MB)
-                                {
-                                    return BadRequest(new { Erorr = " NationalID Only Images Less Than 10MB Allowed" });
-                                }
-                            }
-
-                            User.GenderId = request.GenderId;
-                            User.JourneyPlanId = request.JourneyPlanId;
-                            User.Age = request.Age;
-                            User.Weight = request.Weight;
-
-                            if (request.Weight.HasValue)
-                            {
-                                _appDbContext.UserMeasurements.Add(new UserMeasurementEntity()
-                                {
-                                    Created = DateTime.UtcNow,
-                                    UserId = User.Id,
-                                    MeasurementType = MeasurementType.Weight,
-                                    MeasurementValue = (float)request.Weight.Value,
-                                });
-                            }
-
-                            User.Height = request.Height;
-                            User.BMI = request.BMI;
-                            User.IsDataComplete = request.IsDataComplete ?? false;
-                            User.Name = request.Name;
-                            User.IsAvailable = request.IsAvailable ?? false;
-
-                            var FC = FileHelper.CreateFolder(_hostingEnvironment,
-                                UploadPathes.DocsPath + "/" + User.Mobile);
-
-                            if (request.PersonalImage != null)
-                            {
-                                var PersonalImage = FileHelper.FileUpload(request.PersonalImage, _hostingEnvironment,
-                                    UploadPathes.DocsPath + "/" + User.Mobile);
-                                User.PersonalImage = PersonalImage;
-                            }
-
-                            if (request.NationalID != null)
-                            {
-                                var NationalID = FileHelper.FileUpload(request.NationalID, _hostingEnvironment,
-                                    UploadPathes.DocsPath + "/" + User.Mobile);
-                                User.NationalID = NationalID;
-                                // User.IsUploadedNationalID = true;
-                            }
-
-                            _uow.UserRepository.Update(User);
-                            _uow.Save();
-                            if (request.UserRisk != null)
-                            {
-                                var lstRisk = _uow.RiskRepository.GetMany(c => request.UserRisk.Contains(c.Id))
-                                    .ToList();
-                                foreach (var risk in lstRisk)
-                                {
-                                    var userRisk = new MUserRisk();
-                                    userRisk.RiskId = risk.Id;
-                                    userRisk.UserId = User.Id;
-                                    _uow.UserRiskRepository.Add(userRisk);
-                                }
-
-                                _uow.Save();
-                            }
-
-                            if (request.UserAllergy != null && request.UserAllergy.Count != 0)
-                            {
-                                await _allergyService.PutAsync(new PutAllergyDto()
-                                {
-                                    AllergyIds = request.UserAllergy
-                                });
-
-                                var lstAllergy = _uow.AllergyRepository.GetMany(c => request.UserAllergy.Contains(c.Id))
-                                    .ToList();
-                                foreach (var allergy in lstAllergy)
-                                {
-                                    var userAllergy = new MUserAllergy();
-                                    userAllergy.AllergyId = allergy.Id;
-                                    userAllergy.UserId = User.Id;
-                                    _uow.UserAllergyRepository.Add(userAllergy);
-                                }
-
-                                _uow.Save();
-                            }
-
-                            VerifyCodeHelper verifyCodeHelper = new VerifyCodeHelper(_uow, _SMS);
-                            verifyCodeHelper.SendOTP(User.Mobile, User.Id);
-                            var userLogin = new ApiLoginModelDTO();
-                            userLogin.Mobile = User.Mobile;
-                            userLogin.Password = User.Password;
-
-
-                            var verfiyCodeLast = _uow.VerfiyCodeRepository
-                                .GetMany(c => c.Email == User.Email || c.Mobile == User.Mobile).FirstOrDefault();
-                            if (verfiyCodeLast != null)
-                            {
-                                User.VerfiyCode = verfiyCodeLast.VirfeyCode;
-                            }
-
-                            var AllUser = _mapper.Map<AllUserDTO>(User);
-                            baseResponse.data = new
-                            {
-                                AllUser,
-                            };
-                            baseResponse.statusCode = StatusCodes.Status200OK;
-                            baseResponse.total_rows = 1;
-                            baseResponse.done = true;
-                            return Ok(baseResponse);
+                            return BadRequest(new { Erorr = "Personal Image Only Images Allowed" });
                         }
-                        else
+
+                        if (Is1BiggerThan10MB)
                         {
-                            baseResponse.done = false;
-                            baseResponse.statusCode = (int)HttpStatusCode.BadRequest;
-                            baseResponse.message = "Account Not Verfied";
-                            return BadRequest(baseResponse);
+                            return BadRequest(
+                                new { Erorr = " Personal Image Only Images Less Than 10MB Allowed" });
                         }
                     }
-                }
-                catch (Exception ex)
-                {
-                    baseResponse.statusCode = (int)HttpStatusCode.BadRequest;
-                    baseResponse.done = false;
-                    baseResponse.message = $"Exception :{ex.Message}";
 
-                    return StatusCode((int)HttpStatusCode.BadRequest, baseResponse);
+                    if (request.NationalID != null)
+                    {
+                        var IsNationalID = FileCheckHelper.IsImage(request.NationalID.OpenReadStream());
+                        var Is1BiggerThan10MB = CheckFileSizeHelper.IsBeggerThan10MB(request.NationalID);
+                        if (!IsNationalID)
+                        {
+                            return BadRequest(new { Erorr = "NationalID Only Images Allowed" });
+                        }
+
+                        if (Is1BiggerThan10MB)
+                        {
+                            return BadRequest(new { Erorr = " NationalID Only Images Less Than 10MB Allowed" });
+                        }
+                    }
+
+                    user.GenderId = request.GenderId;
+                    user.JourneyPlanId = request.JourneyPlanId;
+                    user.Age = request.Age;
+                    user.Weight = request.Weight;
+
+                    if (request.Weight.HasValue)
+                    {
+                        _appDbContext.UserMeasurements.Add(new UserMeasurementEntity()
+                        {
+                            Created = DateTime.UtcNow,
+                            UserId = user.Id,
+                            MeasurementType = MeasurementType.Weight,
+                            MeasurementValue = (float)request.Weight.Value,
+                        });
+                    }
+
+                    user.Height = request.Height;
+                    user.BMI = request.BMI;
+                    user.IsDataComplete = request.IsDataComplete ?? false;
+                    user.Name = request.Name;
+                    user.IsAvailable = request.IsAvailable ?? false;
+
+                    var FC = FileHelper.CreateFolder(_hostingEnvironment,
+                        UploadPathes.DocsPath + "/" + user.Mobile);
+
+                    if (request.PersonalImage != null)
+                    {
+                        var PersonalImage = FileHelper.FileUpload(request.PersonalImage, _hostingEnvironment,
+                            UploadPathes.DocsPath + "/" + user.Mobile);
+                        user.PersonalImage = PersonalImage;
+                    }
+
+                    if (request.NationalID != null)
+                    {
+                        var NationalID = FileHelper.FileUpload(request.NationalID, _hostingEnvironment,
+                            UploadPathes.DocsPath + "/" + user.Mobile);
+                        user.NationalID = NationalID;
+                        // User.IsUploadedNationalID = true;
+                    }
+
+                    _uow.UserRepository.Update(user);
+                    _uow.Save();
+                    if (request.UserRisk != null)
+                    {
+                        var lstRisk = _uow.RiskRepository.GetMany(c => request.UserRisk.Contains(c.Id))
+                            .ToList();
+                        foreach (var risk in lstRisk)
+                        {
+                            var userRisk = new MUserRisk();
+                            userRisk.RiskId = risk.Id;
+                            userRisk.UserId = user.Id;
+                            _uow.UserRiskRepository.Add(userRisk);
+                        }
+
+                        _uow.Save();
+                    }
+
+                    if (request.UserAllergy != null && request.UserAllergy.Count != 0)
+                    {
+                        await _allergyService.PutAsync(new PutAllergyDto()
+                        {
+                            AllergyIds = request.UserAllergy
+                        });
+
+                        var lstAllergy = _uow.AllergyRepository.GetMany(c => request.UserAllergy.Contains(c.Id))
+                            .ToList();
+                        foreach (var allergy in lstAllergy)
+                        {
+                            var userAllergy = new MUserAllergy();
+                            userAllergy.AllergyId = allergy.Id;
+                            userAllergy.UserId = user.Id;
+                            _uow.UserAllergyRepository.Add(userAllergy);
+                        }
+
+                        _uow.Save();
+                    }
+
+                    VerifyCodeHelper verifyCodeHelper = new VerifyCodeHelper(_uow, _SMS);
+                    verifyCodeHelper.SendOTP(user.Mobile, user.Id);
+                    var userLogin = new ApiLoginModelDTO();
+                    userLogin.Mobile = user.Mobile;
+                    userLogin.Password = user.Password;
+
+
+                    var verfiyCodeLast = _uow.VerfiyCodeRepository
+                        .GetMany(c => c.Email == user.Email || c.Mobile == user.Mobile).FirstOrDefault();
+                    if (verfiyCodeLast != null)
+                    {
+                        user.VerfiyCode = verfiyCodeLast.VirfeyCode;
+                    }
+
+                    var AllUser = _mapper.Map<AllUserDTO>(user);
+                    baseResponse.data = new
+                    {
+                        AllUser,
+                    };
+                    baseResponse.statusCode = StatusCodes.Status200OK;
+                    baseResponse.total_rows = 1;
+                    baseResponse.done = true;
+                    return Ok(baseResponse);
+                }
+                else
+                {
+                    baseResponse.done = false;
+                    baseResponse.statusCode = (int)HttpStatusCode.BadRequest;
+                    baseResponse.message = "Account Not Verfied";
+                    return BadRequest(baseResponse);
                 }
             }
+            catch (Exception ex)
+            {
+                baseResponse.statusCode = (int)HttpStatusCode.BadRequest;
+                baseResponse.done = false;
+                baseResponse.message = $"Exception :{ex.Message}";
 
-            return BadRequest("Invalid Username or Password");
+                return StatusCode((int)HttpStatusCode.BadRequest, baseResponse);
+            }
+
+            
         }
 
         [HttpPost, Route("GetVerifyCode")]

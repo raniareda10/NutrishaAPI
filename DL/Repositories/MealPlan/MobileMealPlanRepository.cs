@@ -257,6 +257,7 @@ namespace DL.Repositories.MealPlan
             }
 
             menu.IsEaten = !menu.IsEaten;
+            menu.IsSkipped = false;
             await _dbContext.SaveChangesAsync();
             return result;
         }
@@ -330,8 +331,10 @@ namespace DL.Repositories.MealPlan
                 : new PlanDayMenuMealEntity()
                 {
                     MealName = dto.MealName,
-                    Created = currentDate
+                    Created = currentDate,
                 };
+
+            meal.IsEaten = true;
 
             if (extraBitesMenu.Menu?.Id == null)
             {
@@ -340,7 +343,8 @@ namespace DL.Repositories.MealPlan
                     PlanDayId = dto.DayId,
                     Created = currentDate,
                     MealType = MealType.ExtraBites,
-                    Meals = new List<PlanDayMenuMealEntity>()
+                    Meals = new List<PlanDayMenuMealEntity>(),
+                    IsEaten = true
                 };
                 menu.Meals.Add(meal);
                 await _dbContext.AddAsync(menu);
@@ -351,6 +355,9 @@ namespace DL.Repositories.MealPlan
                 await _dbContext.AddAsync(meal);
             }
 
+            var plan = await _dbContext.MealPlans.FirstOrDefaultAsync(m => m.PlanDays.Any(d => d.Id == dto.DayId));
+            plan.NumberOfIAmHungryClicked += 1;
+            _dbContext.Update(plan);
             await _dbContext.SaveChangesAsync();
             return result;
         }
