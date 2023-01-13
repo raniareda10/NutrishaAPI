@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using DL.DBContext;
 using DL.Repositories.Allergy;
 using DL.Repositories.Dislikes;
+using DL.Repositories.Permissions;
 using DL.Repositories.Reminders;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
@@ -21,6 +22,7 @@ namespace NutrishaAPI.Controllers.V1.Mobile
     [Route("api/v1/[controller]")]
     public class TempEndpointController : BaseMobileController
     {
+        private readonly PermissionService _permissionService;
         private readonly IConfiguration _configuration;
         private readonly AllergyService _allergyService;
         private readonly ReminderService _reminderService;
@@ -29,6 +31,7 @@ namespace NutrishaAPI.Controllers.V1.Mobile
         private readonly IWebHostEnvironment _webHostEnvironment;
 
         public TempEndpointController(
+            PermissionService permissionService,
             IConfiguration configuration,
             AllergyService allergyService,
             ReminderService reminderService,
@@ -36,6 +39,7 @@ namespace NutrishaAPI.Controllers.V1.Mobile
             DislikesMealService dislikesMealService,
             IWebHostEnvironment webHostEnvironment)
         {
+            _permissionService = permissionService;
             _configuration = configuration;
             _allergyService = allergyService;
             _reminderService = reminderService;
@@ -44,6 +48,16 @@ namespace NutrishaAPI.Controllers.V1.Mobile
             _webHostEnvironment = webHostEnvironment;
         }
 
+        
+        [SecureByCode]
+        [AllowAnonymous]
+        [HttpPost("AddDefaultPermissions")]
+        public async Task<IActionResult> AddDefaultPermissions()
+        {
+            await _permissionService.InitializePermissionsAsync();
+            return Ok();
+        }
+        
         [SecureByCode]
         [AllowAnonymous]
         [HttpPost("SyncReminder")]
@@ -59,6 +73,15 @@ namespace NutrishaAPI.Controllers.V1.Mobile
             return Ok();
         }
 
+        [SecureByCode]
+        [AllowAnonymous]
+        [HttpPost("AddPermissionToUser")]
+        public async Task<IActionResult> AddPermissionToUserAsync(int userId, string roleName)
+        {
+            await _permissionService.AddRoleToUserAsync(userId, roleName);
+            return Ok();
+        }
+        
         [SecureByCode]
         [AllowAnonymous]
         [HttpPost("SyncAllergies")]

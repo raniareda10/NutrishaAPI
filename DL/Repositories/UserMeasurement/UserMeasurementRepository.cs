@@ -52,8 +52,10 @@ namespace DL.Repositories.UserMeasurement
         public async Task<IEnumerable<UserMeasurements>> GetMeasurementsListAsync(
             IList<MeasurementType> measurementTypes)
         {
+            var fromOneMonthAgo = DateTime.UtcNow.AddMonths(-1);
             var measurements = await _dbContext.UserMeasurements
                 .Where(m => m.UserId == _currentUserService.UserId)
+                .Where(m => m.Created >= fromOneMonthAgo)
                 .Where(m => measurementTypes.Contains(m.MeasurementType))
                 .OrderByDescending(m => m.Created)
                 .Select(m => new

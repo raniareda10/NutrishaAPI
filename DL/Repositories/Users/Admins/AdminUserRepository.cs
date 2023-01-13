@@ -12,28 +12,29 @@ using DL.Repositories.Roles;
 using DL.Repositories.Users.Models;
 using DL.ResultModels;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace DL.Repositories.Users.Admins
 {
     public class AdminUserRepository
     {
-        private string DefaultPassword = "Nutrisha@?16";
         private readonly AppDBContext _dbContext;
         private readonly ICurrentUserService _currentUserService;
         private readonly IMailService _mailService;
-
-
-        private readonly string adminUrl = "";
+        
+        private readonly string _adminUrl;
 
         public AdminUserRepository(
             AppDBContext dbContext,
             ICurrentUserService currentUserService,
-            IMailService mailService
+            IMailService mailService,
+            IConfiguration configuration
         )
         {
             _dbContext = dbContext;
             _currentUserService = currentUserService;
             _mailService = mailService;
+            _adminUrl = configuration["AdminPanelUrl"];
         }
 
         public async Task<AdminUserModel> GetCurrentUserAsync()
@@ -161,7 +162,7 @@ namespace DL.Repositories.Users.Admins
             };
 
             var body = "<h1>Welcome to nutrisha</h1>" +
-                       $"<p>Please use these credential to login <a href={adminUrl}>Nutrisha</a></p>" +
+                       $"<p>Please use these credential to login <a href={_adminUrl}>Nutrisha</a></p>" +
                        "<p>Your credential</p>" +
                        $"<p>Email: {email}</p>" +
                        $"<p>Password: {password}</p>" +

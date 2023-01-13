@@ -13,6 +13,8 @@ using DL.Repositories.Dislikes;
 using DL.Repositories.MealPlan;
 using DL.Repositories.Meals;
 using DL.Repositories.MobileUser;
+using DL.Repositories.Payments;
+using DL.Repositories.Permissions;
 using DL.Repositories.Polls;
 using DL.Repositories.Profiles;
 using DL.Repositories.Reactions;
@@ -41,6 +43,8 @@ namespace DL
             service.AddTransient<ArticleService>();
             service.AddTransient<PollService>();
             service.AddTransient<CalenderService>();
+            service.AddTransient<PermissionService>();
+            service.AddTransient<PaymentHistoryService>();
 
             service.AddScoped<PollAnswerService>();
 

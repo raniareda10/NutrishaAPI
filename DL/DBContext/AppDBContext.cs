@@ -11,6 +11,7 @@ using DL.EntitiesV1.Dairies;
 using DL.EntitiesV1.Meals;
 using DL.EntitiesV1.Measurements;
 using DL.EntitiesV1.Media;
+using DL.EntitiesV1.Payments;
 using DL.EntitiesV1.Reactions;
 using DL.EntitiesV1.Reminders;
 using DL.EntitiesV1.Roles;
@@ -128,6 +129,7 @@ namespace DL.DBContext
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDBContext).Assembly);
             ConfigureBlogs(modelBuilder);
             ConfigureUsers(modelBuilder);
             ConfigureUserMeasurements(modelBuilder);
@@ -283,6 +285,7 @@ namespace DL.DBContext
 
         public DbSet<SecUser> SecUser { get; set; }
         public DbSet<MSplash> MSplash { get; set; }
+        public DbSet<PaymentHistoryEntity> PaymentHistory { get; set; }
 
         #endregion
     }

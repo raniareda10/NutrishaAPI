@@ -35,22 +35,23 @@ namespace NutrishaAPI.ServicesRegistrations
         {
             #region Configure Logging
 
-           // services.AddElmah<SqlErrorLog>(options =>
-           //{
-           //    options.ConnectionString = Configuration.GetConnectionString("ConnectionString");
+            // services.AddElmah<SqlErrorLog>(options =>
+            //{
+            //    options.ConnectionString = Configuration.GetConnectionString("ConnectionString");
 
-           //    options.ApplicationName = Configuration["Ksejos"];
+            //    options.ApplicationName = Configuration["Ksejos"];
 
-           //});
+            //});
 
             #endregion
+
             services.ConfigureLoggerService();
 
             services.AddCors(o => o.AddPolicy("MyPolicy", builder =>
             {
                 builder.AllowAnyOrigin()
-                       .AllowAnyMethod()
-                       .AllowAnyHeader();
+                    .AllowAnyMethod()
+                    .AllowAnyHeader();
             }));
 
             // services.AddHangfire(config =>
@@ -61,30 +62,34 @@ namespace NutrishaAPI.ServicesRegistrations
             //
             // services.AddHangfireServer();
 
-         //   services.AddTransient<IClearFireBaseJob, ClearFireBaseJob>();
+            //   services.AddTransient<IClearFireBaseJob, ClearFireBaseJob>();
             services.AddTransient<IMailService, MailService>();
             services.AddTransient<ISMS, SMS>();
             services.AddTransient<IMailRepository, MailRepository>();
 
 
-            var mapperConfig = new MapperConfiguration(mc =>
-            {
-                mc.AddProfile(new MappingConfigration());
-            });
+            var mapperConfig = new MapperConfiguration(mc => { mc.AddProfile(new MappingConfigration()); });
 
             IMapper mapper = mapperConfig.CreateMapper();
             services.AddSingleton(mapper);
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-            services.AddDbContext<AppDBContext>(options => options.UseSqlServer(configuration["SqlServer:ConnectionString"]));
+            services.AddDbContext<AppDBContext>(options =>
+            {
+                var connectionString = configuration["SqlServer:ConnectionString"];
+                options.UseSqlServer(connectionString);
+            });
+            
             services.AddTransient<IUnitOfWork, UnitOfWork>();
-          
+
             services.Configure<CookiePolicyOptions>(options =>
             {
                 // This lambda determines whether user consent for non-essential cookies is needed for a given request.
                 options.CheckConsentNeeded = context => true;
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
+
             #region Configure Session
+
             services.AddDistributedMemoryCache();
             services.AddMvc().AddSessionStateTempDataProvider();
             services.Configure<CookiePolicyOptions>(options =>
@@ -101,7 +106,9 @@ namespace NutrishaAPI.ServicesRegistrations
                     options.IdleTimeout = TimeSpan.FromHours(10);
                 }
             );
+
             #endregion
+
             #region API Token Config
 
             services.Configure<TokenManagement>(configuration.GetSection("tokenManagement"));
@@ -136,12 +143,11 @@ namespace NutrishaAPI.ServicesRegistrations
             services.AddScoped<ICheckUniqes, ChekUniqeSer>();
             services.AddScoped<IUserManagementService, UserManagementService>();
 
-             
-
 
             services.Configure<MailSettings>(configuration.GetSection("MailSettings"));
-            
-            services.AddSwaggerGen(config => {
+
+            services.AddSwaggerGen(config =>
+            {
                 config.SwaggerDoc("v1", new OpenApiInfo() { Title = "WebAPI", Version = "v1" });
                 config.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
@@ -150,7 +156,7 @@ namespace NutrishaAPI.ServicesRegistrations
                     Type = SecuritySchemeType.Http,
                     Scheme = "Bearer"
                 });
-                
+
                 //config.AddSecurityRequirement(new OpenApiSecurityRequirement
                 //{
                 //    {
@@ -165,7 +171,6 @@ namespace NutrishaAPI.ServicesRegistrations
                 //        Array.Empty<string>()
                 //    }
                 //});
-
             });
         }
     }

@@ -30,7 +30,8 @@ namespace DL.Extensions
                 .FirstOrDefaultAsync();
         }
 
-        public static async Task<AdminUserModel> GetUserAsync(this AppDBContext users, Expression<Func<MUser, bool>> predicate)
+        public static async Task<AdminUserModel> GetUserAsync(this AppDBContext users,
+            Expression<Func<MUser, bool>> predicate)
         {
             var user = await users.MUser.Where(predicate)
                 .Select(u => new AdminUserModel()
@@ -46,22 +47,17 @@ namespace DL.Extensions
 
             if (user == null) return null;
 
-            var userRole = await users.MUserRoles
+            user.Permissions = await users.MUserRoles
                 .Where(r => r.UserId == user.Id)
-                .Select(r => r.RoleId)
+                .Select(r => r.Role.RolePermissions
+                    .Select(m => m.Permission.Name))
                 .FirstOrDefaultAsync();
-
-            // user.Roles = new[] { userRole};
-            user.Permissions =
-                await users.RolePermissions
-                    .Where(r => r.RoleId == userRole)
-                    .Select(r => r.Permission.Name)
-                    .ToListAsync();
 
             return user;
         }
 
-        public static async Task<float> GetWeightLossAsync(this AppDBContext dbContext, int userId, float? lastWeight = null)
+        public static async Task<float> GetWeightLossAsync(this AppDBContext dbContext, int userId,
+            float? lastWeight = null)
         {
             lastWeight ??= await dbContext.UserMeasurements
                 .OrderByDescending(m => m.Created)

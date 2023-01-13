@@ -82,5 +82,10 @@ namespace DL.Repositories
             await _dbContext.Database.ExecuteSqlRawAsync(
                 $@"UPDATE Dairies SET Name = '{putDairyDto.Name}', Details = '{putDairyDto.Details}' WHERE Id = {putDairyDto.Id}");
         }
+
+        public async Task DeleteDairyAsync(long id)
+        {
+            await _dbContext.Database.ExecuteSqlRawAsync($"DELETE FROM Dairies WHERE id = {id}");
+        }
     }
 }

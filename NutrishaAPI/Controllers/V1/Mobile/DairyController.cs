@@ -2,6 +2,7 @@
 using DL.DtosV1.Dairies;
 using DL.EntitiesV1.Meals;
 using DL.Repositories;
+using DL.ResultModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.JSInterop.Infrastructure;
 using NutrishaAPI.Controllers.V1.Mobile.Bases;
@@ -24,10 +25,10 @@ namespace NutrishaAPI.Controllers.V1.Mobile
             {
                 return InvalidResult("Please Add Name");
             }
-            
+
             return ItemResult(await _dairyRepository.PostAsync(dto));
         }
-        
+
         [HttpPut("Put")]
         public async Task<IActionResult> PutAsync([FromBody] PutDairyDto dto)
         {
@@ -39,11 +40,21 @@ namespace NutrishaAPI.Controllers.V1.Mobile
             await _dairyRepository.PutAsync(dto);
             return EmptyResult();
         }
-        
+
         [HttpGet("GetTodayDairies")]
         public async Task<IActionResult> GetTodayDairiesAsync()
         {
             return ItemResult(await _dairyRepository.GetTodayDairiesAsync());
+        }
+
+
+        [HttpDelete("Delete")]
+        public async Task<IActionResult> DeleteAsync([FromQuery] long id)
+        {
+            if (id < 1) return InvalidResult(NonLocalizedErrorMessages.InvalidId);
+
+            await _dairyRepository.DeleteDairyAsync(id);
+            return EmptyResult();
         }
     }
 }

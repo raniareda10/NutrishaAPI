@@ -152,13 +152,11 @@ namespace DL.Repositories.Meals
             var isUsedInMealPlan = _dbContext.PlanDayMenuMeals.Any(m => m.MealId == id);
             if (isUsedInMealPlan)
             {
-                result.Errors.Add(NonLocalizedErrorMessages.InvalidParameters);
+                result.Errors.Add("Cant delete This meal because it already used in meal template.");
                 return result;
             }
 
-            var effectedRows = await
-                _dbContext.Database
-                    .ExecuteSqlRawAsync($"Delete FROM Meals where Id = {id}");
+            await _dbContext.Database.ExecuteSqlRawAsync($"Delete FROM Meals where Id = {id}");
             return result;
         }
 

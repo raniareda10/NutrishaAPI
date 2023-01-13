@@ -62,7 +62,6 @@ namespace DL.MailModels
             }
             catch (Exception ex)
             {
-
             }
         }
 
@@ -76,14 +75,16 @@ namespace DL.MailModels
                     To = { request.ToEmail },
                     Subject = $"Welcome {request.UserName}",
                     IsBodyHtml = true,
-                    Body = "Otp:" + request.VerifyCode
+                    Body =
+                        "<div style=\"display: flex; flex-direction: column; justify-content: center; align-items: center\">" +
+                        $"<h1>Welcome to nutrisha</h1><p>Your OTP: {request.VerifyCode}</p></div>"
                 };
 
                 var serializedMailMessage = JsonConvert.SerializeObject(objMessage);
                 _logger.LogInformation($"Sending  mail to {request.ToEmail}: {serializedMailMessage}");
 
                 var smtp = new System.Net.Mail.SmtpClient(_mailSettings.Host, _mailSettings.Port); // OR 25
-                                                                                                   // smtp.UseDefaultCredentials = false;
+                // smtp.UseDefaultCredentials = false;
                 smtp.DeliveryMethod = SmtpDeliveryMethod.Network;
                 //smtp.EnableSsl = true;
                 smtp.Credentials = new System.Net.NetworkCredential(
@@ -91,11 +92,11 @@ namespace DL.MailModels
                 smtp.Send(objMessage);
                 _logger.LogInformation($"mail to {request.ToEmail} sent: {JsonConvert.SerializeObject(objMessage)}");
                 return "OK";
-
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error While Sending Email To {request.ToEmail}, ex: {JsonConvert.SerializeObject(ex)}");
+                _logger.LogError(
+                    $"Error While Sending Email To {request.ToEmail}, ex: {JsonConvert.SerializeObject(ex)}");
                 return ex.Message;
             }
         }

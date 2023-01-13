@@ -188,7 +188,7 @@ namespace DL.Repositories.MobileUser
 
         public async Task UserSubscribedAsync(int userId, double amountPayed)
         {
-            var user = await _dbContext.Database.ExecuteSqlRawAsync(
+            await _dbContext.Database.ExecuteSqlRawAsync(
                 @$"UPDATE MUSER 
                 SET TotalAmountPaid = TotalAmountPaid + {amountPayed}, 
                     SubscriptionType = 'Pro',
@@ -208,7 +208,7 @@ namespace DL.Repositories.MobileUser
         {
             await _dbContext.Database.ExecuteSqlRawAsync(
                 @$"UPDATE MUSER 
-                SET  SubscriptionType = null
+                SET SubscriptionType = null
                 WHERE Id = {appUserId}");
         }
 
