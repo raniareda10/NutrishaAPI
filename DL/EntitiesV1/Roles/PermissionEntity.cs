@@ -8,8 +8,10 @@ namespace DL.EntitiesV1.Roles
 
         public ICollection<RolePermissionEntity> RolePermissions { get; set; }
 
-        // public PermissionEntity Parent { get; set; }
-        // public long? ParentId { get; set; }
+        public PermissionEntity Parent { get; set; }
+        public long? ParentId { get; set; }
+        public string DescriptionEn { get; set; }
+        public string DescriptionAr { get; set; }
         // public string DisplayName { get; set; }
         //
         // public string DisplayNameEn { get; set; }

@@ -1,4 +1,5 @@
 using System.Linq;
+using DL.EntitiesV1.Meals;
 
 namespace DL.DtosV1.Meals
 {
@@ -8,6 +9,12 @@ namespace DL.DtosV1.Meals
 
         public override bool IsValid()
         {
+            if (MealType == MealType.Supplement)
+            {
+                return !string.IsNullOrWhiteSpace(Name) &&
+                       !string.IsNullOrWhiteSpace(Allergies);
+            }
+            
             return
                 Id > 0 &&
                 !string.IsNullOrWhiteSpace(Name) &&

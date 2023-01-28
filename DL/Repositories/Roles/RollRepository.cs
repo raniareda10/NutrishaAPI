@@ -74,5 +74,22 @@ namespace DL.Repositories.Roles
 
             return await query.Select(m => new LookupItem(m.Id, m.Name)).ToPagedListAsync(queryModel);
         }
+
+        public async Task<RoleDetails> GetDetailsAsync(long id)
+        {
+            return await _dbContext.MRoles.Where(r => r.Id == id)
+                .Select(r => new RoleDetails()
+                {
+                    RoleName = r.Name,
+                    Permissions = r.RolePermissions.Select(rP => rP.Permission.Name)
+                })
+                .FirstOrDefaultAsync();
+        }
+    }
+
+    public class RoleDetails
+    {
+        public string RoleName { get; set; }
+        public IEnumerable<string> Permissions { get; set; }
     }
 }

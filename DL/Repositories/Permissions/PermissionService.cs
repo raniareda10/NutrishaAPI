@@ -158,6 +158,11 @@ namespace DL.Repositories.Permissions
             await _appDbContext.SaveChangesAsync();
         }
 
+        public async Task AddPersmissionsNames()
+        {
+            
+        }
+
         public async Task AddRoleToUserAsync(int userId, string roleName)
         {
             var roleId = await _appDbContext.MRoles.Where(m => m.Name == roleName).Select(m => m.Id).FirstAsync();

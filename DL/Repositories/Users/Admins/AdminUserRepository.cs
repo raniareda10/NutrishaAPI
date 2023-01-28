@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using DL.CommonModels;
@@ -21,7 +22,7 @@ namespace DL.Repositories.Users.Admins
         private readonly AppDBContext _dbContext;
         private readonly ICurrentUserService _currentUserService;
         private readonly IMailService _mailService;
-        
+
         private readonly string _adminUrl;
 
         public AdminUserRepository(
@@ -58,7 +59,9 @@ namespace DL.Repositories.Users.Admins
 
         public async Task<PagedResult<dynamic>> GetPagedListAsync(GetAdminUserPagedListQueryDto model)
         {
-            var userQuery = _dbContext.MUser.Where(m => m.IsAdmin);
+            var userQuery = _dbContext.MUser
+                .Where(m => m.IsAdmin)
+                .Where(m => m.Id != _currentUserService.UserId);
 
             if (!string.IsNullOrWhiteSpace(model.SearchWord))
             {
@@ -107,23 +110,25 @@ namespace DL.Repositories.Users.Admins
                 return result;
             }
 
-            var password = Guid.NewGuid().ToString().Replace("-", "").Substring(15, 15);
+            // var password = Guid.NewGuid().ToString().Replace("-", "").Substring(15, 15);
+            var password = createAdminDto.Password;
             var user = new MUser()
             {
+                Name = createAdminDto.UserName,
                 Email = createAdminDto.Email,
                 Password = PasswordHasher.HashPassword(password),
                 IsAdmin = true,
-                IsAccountVerified = true
+                IsAccountVerified = true,
+                Roles = new List<MUserRoles>()
+                {
+                    new MUserRoles()
+                    {
+                        Created = DateTime.UtcNow,
+                        RoleId = createAdminDto.RoleId.Value,
+                    }
+                }
             };
 
-            var role = new MUserRoles()
-            {
-                Created = DateTime.UtcNow,
-                RoleId = createAdminDto.RoleId.Value,
-                UserId = user.Id
-            };
-
-            _dbContext.Add(role);
             _dbContext.Add(user);
             await _dbContext.SaveChangesAsync();
             await _mailService.SendEmailAsync(GenerateAdminCreatedMail(user.Email, password));
@@ -132,27 +137,29 @@ namespace DL.Repositories.Users.Admins
         }
 
 
-        public async Task UpdateAdminUserAsync(CreateAdminDto createAdminDto)
+        public async Task UpdateAdminUserAsync(UpdateAdminDto updateAdminDto)
         {
-            var user = _dbContext.MUser.FirstOrDefaultAsync(m => m.Id == createAdminDto.Id);
+            var isRoleExists = await _dbContext.MRoles.Where(r => r.Id == updateAdminDto.RoleId).AnyAsync();
 
-            if (createAdminDto.RoleId.HasValue)
+            if (!isRoleExists) return;
+
+            var userRoles = await _dbContext.MUserRoles.Where(r => r.UserId == updateAdminDto.UserId).ToListAsync();
+
+            _dbContext.RemoveRange(userRoles);
+            _dbContext.MUserRoles.Add(new MUserRoles()
             {
-                var role = new MUserRoles()
-                {
-                    Created = DateTime.UtcNow,
-                    RoleId = createAdminDto.RoleId.Value,
-                    UserId = user.Id
-                };
+                UserId = updateAdminDto.UserId,
+                RoleId = updateAdminDto.RoleId.Value
+            });
 
-                _dbContext.Add(role);
-            }
-
-            _dbContext.Add(user);
             await _dbContext.SaveChangesAsync();
         }
 
-
+        public async Task DeleteUserAsync(long id)
+        {
+            await _dbContext.Database.ExecuteSqlRawAsync($"DELETE FROM MUser WHERE id = {id}");
+        }
+        
         private MailRequest GenerateAdminCreatedMail(string email, string password)
         {
             var mailRequest = new MailRequest
@@ -171,5 +178,7 @@ namespace DL.Repositories.Users.Admins
             mailRequest.Body = body;
             return mailRequest;
         }
+
+        
     }
 }

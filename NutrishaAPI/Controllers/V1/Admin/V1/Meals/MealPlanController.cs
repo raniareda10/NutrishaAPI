@@ -39,7 +39,7 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Meals
             var result = await _mealRepository.PostMealPlanAsync(postMealDto);
             return ItemResult(result);
         }
-        
+
         [HttpPut("UpdateMealPlan")]
         public async Task<IActionResult> UpdateMealPlanAsync([FromBody] UpdateMealPlan updateMealDto)
         {
@@ -66,7 +66,7 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Meals
             await _mealRepository.UpdateTemplateAsync(updateMealDto);
             return EmptyResult();
         }
-        
+
         // [HttpPut("UpdateMealPlan")]
         // public async Task<IActionResult> UpdateMealPlanAsync([FromBody] UpdateMealPlan postMealDto)
         // {
@@ -108,6 +108,18 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Meals
 
             return ItemResult(result);
         }
+
+        [HttpDelete("Delete")]
+        public async Task<IActionResult> DeleteTemplateAsync([FromQuery] long id)
+        {
+            var result = await _mealRepository.DeleteTemplateAsync(id);
+
+            if (result.Success)
+            {
+                return EmptyResult();
+            }
+
+            return InvalidResult(result.Errors);
+        }
     }
 }
-

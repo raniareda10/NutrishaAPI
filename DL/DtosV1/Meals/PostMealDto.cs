@@ -20,6 +20,14 @@ namespace DL.DtosV1.Meals
 
         public virtual bool IsValid()
         {
+            if (MealType == MealType.Supplement)
+            {
+                return !string.IsNullOrWhiteSpace(Name) &&
+                       !string.IsNullOrWhiteSpace(Allergies) &&
+                       CoverImage != null;
+            }
+            
+            
             return !string.IsNullOrWhiteSpace(Name) &&
                    !string.IsNullOrWhiteSpace(CockingTime) &&
                    !string.IsNullOrWhiteSpace(PreparingTime) &&

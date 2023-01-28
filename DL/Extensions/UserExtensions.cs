@@ -41,7 +41,8 @@ namespace DL.Extensions
                     Password = u.Password,
                     Name = u.Name,
                     Language = u.Language,
-                    PersonalImage = u.PersonalImage
+                    PersonalImage = u.PersonalImage,
+                    RoleName = u.Roles.First().Role.Name
                 })
                 .FirstOrDefaultAsync();
 

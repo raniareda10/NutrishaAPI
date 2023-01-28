@@ -980,7 +980,6 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                 {
                     if (verfiyCode != null)
                     {
-                        // BAD CODE?? I know i just a fixer :) no time to refactor # TAWFIQ #
                         if (verfiyCode.Date > DateTime.Now)
                         {
                             var oldPassword = user.Password;

@@ -16,6 +16,7 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1
         {
             _adminAuthService = adminAuthService;
         }
+
         [HttpPost("Login")]
         public async Task<IActionResult> LoginAsync(AdminLoginDto adminLoginDto)
         {
@@ -30,8 +31,46 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1
             {
                 return InvalidResult(serviceResult.Errors);
             }
-            
+
             return ItemResult(serviceResult.Data);
+        }
+
+        [HttpPost("RequestResetPassword")]
+        public async Task<IActionResult> RequestResetPasswordAsync(RequestResetPasswordRequest requestResetPassword)
+        {
+            var serviceResult = await _adminAuthService.RequestResetPasswordAsync(requestResetPassword);
+            if (!serviceResult.Success)
+            {
+                return InvalidResult(serviceResult.Errors);
+            }
+
+            return EmptyResult();
+        }
+
+        [HttpPost("ResetPassword")]
+        public async Task<IActionResult> ResetPasswordAsync([FromBody] ResetPasswordRequest requestResetPassword)
+        {
+            var serviceResult = await _adminAuthService.ResetPasswordAsync(requestResetPassword);
+            if (!serviceResult.Success)
+            {
+                return InvalidResult(serviceResult.Errors);
+            }
+
+            return EmptyResult();
+        }
+        
+        
+        [Authorize]
+        [HttpPost("ChangePassword")]
+        public async Task<IActionResult> ChangePasswordAsync([FromBody] ChangePasswordRequest changePasswordRequest)
+        {
+            var serviceResult = await _adminAuthService.ChangePasswordAsync(changePasswordRequest);
+            if (!serviceResult.Success)
+            {
+                return InvalidResult(serviceResult.Errors);
+            }
+
+            return EmptyResult();
         }
     }
 }

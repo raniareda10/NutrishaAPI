@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using DL.Entities;
 using DL.EntitiesV1;
+using DL.EntitiesV1.AdminUser;
 using DL.EntitiesV1.Allergies;
 using DL.EntitiesV1.Blogs;
 using DL.EntitiesV1.Blogs.Articles;
@@ -32,6 +33,7 @@ namespace DL.DBContext
             ChangeTracker.LazyLoadingEnabled = false;
         }
 
+        public DbSet<ResetUserPasswordEntity> ResetUserPassword { get; set; }
 
         #region Blogs
 
@@ -130,6 +132,7 @@ namespace DL.DBContext
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDBContext).Assembly);
+            
             ConfigureBlogs(modelBuilder);
             ConfigureUsers(modelBuilder);
             ConfigureUserMeasurements(modelBuilder);

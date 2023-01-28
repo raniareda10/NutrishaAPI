@@ -52,7 +52,7 @@ namespace DL.Repositories.Meals
             {
                 Name = model.Name,
                 Allergies = model.Allergies,
-                Ingredients = model.Ingredients.Select(i => new MealIngredientEntity()
+                Ingredients = model.Ingredients?.Select(i => new MealIngredientEntity()
                 {
                     Created = DateTime.UtcNow,
                     UnitType = i.UnitType,
@@ -97,7 +97,7 @@ namespace DL.Repositories.Meals
 
             meal.Name = model.Name;
             meal.Allergies = model.Allergies;
-            meal.Ingredients = model.Ingredients.Select(i => new MealIngredientEntity()
+            meal.Ingredients = model.Ingredients?.Select(i => new MealIngredientEntity()
             {
                 Created = DateTime.UtcNow,
                 UnitType = i.UnitType,

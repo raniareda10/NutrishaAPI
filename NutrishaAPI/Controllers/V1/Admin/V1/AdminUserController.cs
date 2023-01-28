@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using DL.DtosV1.Users.Admins;
+using DL.ErrorMessages;
 using DL.Repositories.Users.Admins;
 using DL.ResultModels;
 using Microsoft.AspNetCore.Authorization;
@@ -62,10 +63,21 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1
             return result.Success ? ItemResult(result.Data) : InvalidResult(result.Errors);
         }
 
-        [HttpPost("Put")]
-        public async Task<IActionResult> PutAsync([FromBody] CreateAdminDto createAdminDto)
+        [HttpPut("Put")]
+        public async Task<IActionResult> PutAsync([FromBody] UpdateAdminDto updateAdminDto)
         {
-            await _adminAuthRepository.UpdateAdminUserAsync(createAdminDto);
+            if (updateAdminDto.UserId < 1 || updateAdminDto.RoleId is null or < 1)
+                return InvalidResult(NonLocalizedErrorMessages.InvalidParameters);
+
+            await _adminAuthRepository.UpdateAdminUserAsync(updateAdminDto);
+            return EmptyResult();
+        }
+
+        [HttpDelete("Delete")]
+        public async Task<IActionResult> DeleteAsync([FromQuery] long id)
+        {
+            if (id < 1) return InvalidResult(NonLocalizedErrorMessages.InvalidId);
+            await _adminAuthRepository.DeleteUserAsync(id);
             return EmptyResult();
         }
     }

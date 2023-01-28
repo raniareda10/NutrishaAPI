@@ -31,5 +31,12 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Users
             var pagedResult = await _roleRepository.GetPagedListAsync(query);
             return PagedResult(pagedResult);
         }
+        
+        [HttpGet("GetById")]
+        public async Task<IActionResult> GetDetailsAsync([FromQuery] long id)
+        {
+            var res = await _roleRepository.GetDetailsAsync(id);
+            return ItemResult(res);
+        }
     }
 }

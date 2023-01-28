@@ -18,5 +18,6 @@ namespace DL.Repositories.Users.Models
         public string PersonalImage { get; set; }
         public IEnumerable<string> Permissions { get; set; }
         public IEnumerable<RoleDto> Roles { get; set; }
+        public string RoleName { get; set; }
     }
 }

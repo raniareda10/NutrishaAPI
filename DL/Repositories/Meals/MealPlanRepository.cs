@@ -10,6 +10,7 @@ using DL.DtosV1.Common;
 using DL.DtosV1.Meals;
 using DL.EntitiesV1.Meals;
 using DL.Extensions;
+using DL.ResultModels;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query.Internal;
 
@@ -74,7 +75,7 @@ namespace DL.Repositories.Meals
             return plan.Id;
         }
 
-        public async Task<PagedResult<LookupItem>> GetTemplatePagedListAsync(GetPagedListQueryModel model)
+        public async Task<PagedResult<TemplateListModel>> GetTemplatePagedListAsync(GetPagedListQueryModel model)
         {
             var query = _dbContext.MealPlans.Where(p => p.IsTemplate)
                 .OrderByDescending(p => p.Created)
@@ -82,12 +83,33 @@ namespace DL.Repositories.Meals
 
             if (!string.IsNullOrWhiteSpace(model.SearchWord))
             {
-                query = query.Where(p => p.TemplateName.Contains(model.SearchWord));
+                query = query.Where(p =>
+                    p.TemplateName.Contains(model.SearchWord) || p.CreatedBy.Name.Contains(model.SearchWord));
             }
 
             return await query
-                .Select(m => new LookupItem(m.Id, m.TemplateName))
+                .Select(m => new TemplateListModel()
+                    { Id = m.Id, TemplateName = m.TemplateName, OwnerName = m.CreatedBy.Name })
                 .ToPagedListAsync(model);
+        }
+
+        public async Task<BaseServiceResult> DeleteTemplateAsync(long id)
+        {
+            var isTemplateUsed = await _dbContext.MealPlans.AnyAsync(m => m.ParentTemplateId == id);
+
+            if (isTemplateUsed)
+            {
+                return new BaseServiceResult()
+                {
+                    Errors = new List<string>()
+                    {
+                        "This Template Already used in other template, please delete other first to be able to delete it"
+                    }
+                };
+            }
+
+            await _dbContext.Database.ExecuteSqlRawAsync($"DELETE FROM MealPlans WHERE Id = {id}");
+            return new BaseServiceResult();
         }
 
         public async Task<object> GetTemplateByIdAsync(long id)
@@ -101,7 +123,7 @@ namespace DL.Repositories.Meals
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             var templates = await GetTemplatesAsync(mealPlans.ParentTemplateId);
-            
+
             return new
             {
                 mealPlans.Id,
@@ -134,6 +156,7 @@ namespace DL.Repositories.Meals
 
             return templates;
         }
+
         public async Task UpdateTemplateAsync(UpdateMealPlan updateMealPlan)
         {
             var plan = await _dbContext.MealPlans
