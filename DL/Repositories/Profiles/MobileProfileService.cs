@@ -2,7 +2,10 @@
 using AutoMapper;
 using DL.DBContext;
 using DL.DTOs.UserDTOs;
+using DL.DtosV1.UserMeasurements;
 using DL.DtosV1.Users.Mobiles;
+using DL.EntitiesV1.Measurements;
+using DL.Repositories.UserMeasurement;
 using DL.ResultModels;
 using DL.StorageServices;
 using Microsoft.EntityFrameworkCore;
@@ -12,15 +15,18 @@ namespace DL.Repositories.Profiles
     public class MobileProfileService
     {
         private readonly IStorageService _storageService;
+        private readonly UserMeasurementRepository _userMeasurementRepository;
         private readonly AppDBContext _appDbContext;
         private readonly ICurrentUserService _currentUserService;
         private readonly IMapper _mapper;
 
         public MobileProfileService(
             IStorageService storageService,
+            UserMeasurementRepository userMeasurementRepository,
             AppDBContext appDbContext, ICurrentUserService currentUserService, IMapper mapper)
         {
             _storageService = storageService;
+            _userMeasurementRepository = userMeasurementRepository;
             _appDbContext = appDbContext;
             _currentUserService = currentUserService;
             _mapper = mapper;
@@ -33,6 +39,16 @@ namespace DL.Repositories.Profiles
 
             currentUser.Name = updateProfileDto.FirstName;
             currentUser.LastName = updateProfileDto.LastName;
+            
+            if (currentUser.Weight != updateProfileDto.Weight)
+            {
+                await _userMeasurementRepository.PostAsync(new PostUserMeasurement()
+                {
+                    MeasurementType = MeasurementType.Weight,
+                    MeasurementValue = (float)updateProfileDto.Weight
+                });
+            }
+
             currentUser.Height = updateProfileDto.Height;
             currentUser.Weight = updateProfileDto.Weight;
             currentUser.GenderId = updateProfileDto.GenderId;
@@ -67,7 +83,7 @@ namespace DL.Repositories.Profiles
                 .FirstOrDefaultAsync(u => u.Id == _currentUserService.UserId);
 
             if (currentUser == null) return;
-            
+
             currentUser.ActivityLevel = afterSubscriptionDetails.ActivityLevel;
             currentUser.NumberOfMealsPerDay = afterSubscriptionDetails.NumberOfMealsPerDay;
             currentUser.EatReason = afterSubscriptionDetails.EatReason;
