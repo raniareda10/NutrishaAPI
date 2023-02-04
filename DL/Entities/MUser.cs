@@ -29,6 +29,7 @@ namespace DL.Entities
         public string Email { get; set; } = string.Empty;
 
         public string Password { get; set; }
+        
         [MinLength(3), MaxLength(300)] public string Address { get; set; } = string.Empty;
         public string Longitude { get; set; } = string.Empty;
         public string Latitude { get; set; } = string.Empty;
@@ -60,11 +61,10 @@ namespace DL.Entities
 
         public DateTime? SubscriptionDate { get; set; }
         public string SubscriptionType { get; set; }
-        
+        public bool IsSubscribed { get; set; }
         public double TotalAmountPaid { get; set; }
 
         public ICollection<MealPlanEntity> Plans { get; set; }
-        public ICollection<MUserRoles> Roles { get; set; }
         public List<UploadResult> Files { get; set; }
         
         // Subscribed Info

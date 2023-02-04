@@ -40,7 +40,7 @@ namespace DL.Repositories.Roles
         public async Task<IEnumerable<string>> GetUserRolesAsync(int? userId = null)
         {
             return await _dbContext.MUserRoles
-                .Where(r => r.UserId == userId)
+                .Where(r => r.AdminUserId == userId)
                 .OrderByDescending(m => m.Role.Name)
                 .Select(r => r.Role.Name)
                 .ToListAsync();

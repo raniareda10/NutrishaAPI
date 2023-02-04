@@ -66,6 +66,7 @@ namespace NutrishaAPI.Controllers.V1.Mobile.RevenueCat
                 Type = eventType,
                 Event = JsonConvert.SerializeObject(body.Event)
             };
+            
             switch (eventType)
             {
                 case RevenueCatEventTypes.InitialPurchase:
@@ -76,16 +77,18 @@ namespace NutrishaAPI.Controllers.V1.Mobile.RevenueCat
                         initialPurchaseEvent.PriceInPurchasedCurrency);
                     paymentHistory.Currency = initialPurchaseEvent.Currency;
                     paymentHistory.Price = initialPurchaseEvent.Price;
+                    paymentHistory.IsHandled = true;
                     break;
                 }
 
                 case RevenueCatEventTypes.Renewal:
                 {
                     var initialPurchaseEvent = body.Event.ToObject<InitialPurchaseEvent>();
-                    await _mobileUserRepository.UserPayedAsync(initialPurchaseEvent.AppUserId,
+                    await _mobileUserRepository.UserRenewedAsync(initialPurchaseEvent.AppUserId,
                         initialPurchaseEvent.PriceInPurchasedCurrency);
                     paymentHistory.Currency = initialPurchaseEvent.Currency;
                     paymentHistory.Price = initialPurchaseEvent.Price;
+                    paymentHistory.IsHandled = true;
                     break;
                 }
 
@@ -94,6 +97,7 @@ namespace NutrishaAPI.Controllers.V1.Mobile.RevenueCat
                 {
                     var initialPurchaseEvent = body.Event.ToObject<BaseRevenueCatEvent>();
                     await _mobileUserRepository.UserUnSubscribedAsync(initialPurchaseEvent.AppUserId);
+                    paymentHistory.IsHandled = true;
                     break;
                 }
 
@@ -101,6 +105,7 @@ namespace NutrishaAPI.Controllers.V1.Mobile.RevenueCat
                 {
                     var initialPurchaseEvent = body.Event.ToObject<BaseRevenueCatEvent>();
                     await _mobileUserRepository.UserUnSubscribedAsync(initialPurchaseEvent.AppUserId);
+                    paymentHistory.IsHandled = true;
                     break;
                 }
 

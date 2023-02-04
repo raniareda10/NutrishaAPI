@@ -9,7 +9,6 @@ using DL.DtosV1.Users.Admins;
 using DL.EntitiesV1.AdminUser;
 using DL.Extensions;
 using DL.MailModels;
-using DL.Repositories.Users.Models;
 using DL.ResultModels;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -44,8 +43,7 @@ namespace DL.Repositories.Users.Admins
         public async Task<PayloadServiceResult<dynamic>> LoginAsync(AdminLoginDto adminLoginDto)
         {
             var result = new PayloadServiceResult<dynamic>();
-            var currentUser = await _dbContext.GetUserAsync(u =>
-                u.IsAdmin &&
+            var currentUser = await _dbContext.GetAdminUserAsync(u =>
                 u.Email == adminLoginDto.Email);
 
             if (currentUser == null ||
@@ -67,16 +65,17 @@ namespace DL.Repositories.Users.Admins
 
         public async Task<BaseServiceResult> RequestResetPasswordAsync(RequestResetPasswordRequest requestResetPassword)
         {
-            var user = await _dbContext.MUser.AsNoTracking().Where(m => m.Email == requestResetPassword.Email).Select(
-                u => new
-                {
-                    u.Id,
-                    u.Name
-                }).FirstOrDefaultAsync();
+            var user = await _dbContext.AdminUsers.AsNoTracking().Where(m => m.Email == requestResetPassword.Email)
+                .Select(
+                    u => new
+                    {
+                        u.Id,
+                        Name = u.Name
+                    }).FirstOrDefaultAsync();
 
             if (user is null) return new BaseServiceResult();
 
-            var oldTokenEntity = await _dbContext.ResetUserPassword.FirstOrDefaultAsync(u => u.UserId == u.Id);
+            var oldTokenEntity = await _dbContext.ResetUserPassword.FirstOrDefaultAsync(u => u.AdminUserId == u.Id);
 
             if (oldTokenEntity is not null)
             {
@@ -91,7 +90,7 @@ namespace DL.Repositories.Users.Admins
             {
                 Token = token,
                 Created = DateTime.UtcNow,
-                UserId = user.Id
+                AdminUserId = user.Id
             };
 
             await _dbContext.AddAsync(newTokenEntity);
@@ -99,6 +98,7 @@ namespace DL.Repositories.Users.Admins
 
             await _mailService.SendEmailAsync(new MailRequest()
             {
+                Subject = "Nutrisha",
                 ToEmail = requestResetPassword.Email,
                 Body =
                     $@"<h3>Hello {user.Name}</h3>
@@ -113,7 +113,6 @@ namespace DL.Repositories.Users.Admins
             var tokenModel = await _dbContext
                 .ResetUserPassword
                 .FirstOrDefaultAsync(u => u.Token == resetPasswordRequest.Token);
-
 
             if (tokenModel is null)
             {
@@ -140,7 +139,7 @@ namespace DL.Repositories.Users.Admins
             }
 
             var hashedPassword = PasswordHasher.HashPassword(resetPasswordRequest.Password);
-            var user = await _dbContext.MUser.FirstOrDefaultAsync(u => u.Id == tokenModel.UserId);
+            var user = await _dbContext.AdminUsers.FirstOrDefaultAsync(u => u.Id == tokenModel.AdminUserId);
             user.Password = hashedPassword;
             _dbContext.Update(user);
             _dbContext.Remove(tokenModel);
@@ -151,7 +150,7 @@ namespace DL.Repositories.Users.Admins
 
         public async Task<BaseServiceResult> ChangePasswordAsync(ChangePasswordRequest changePasswordRequest)
         {
-            var user = await _dbContext.MUser.FirstOrDefaultAsync(m => m.Id == _currentUserService.UserId);
+            var user = await _dbContext.AdminUsers.FirstOrDefaultAsync(m => m.Id == _currentUserService.UserId);
             var oldHashedPassword = PasswordHasher.HashPassword(changePasswordRequest.OldPassword);
 
             if (oldHashedPassword != user.Password)
@@ -160,7 +159,7 @@ namespace DL.Repositories.Users.Admins
                 {
                     Errors = new List<string>()
                     {
-                        "Invalid Password, Please enter correct password."
+                        "Invalid Old Password, Please enter correct password."
                     }
                 };
             }

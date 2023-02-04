@@ -42,18 +42,20 @@ namespace DL.Repositories.MobileUser
 
             if (model.OnlyUserWithoutPlan)
             {
-                query = query.Where(m => !m.Plans.Any() && m.SubscriptionType != null);
+                query = query.Where(m => !m.Plans.Any() && m.IsSubscribed);
             }
 
             if (model.UserWithAboutToFinishPlan)
             {
                 var currentDate = DateTime.UtcNow.AddHours(_currentUserService.UserTimeZoneDifference).Date;
 
-                query = query.Where(m => m.Plans.Any(plan =>
-                    plan.EndDate.HasValue &&
-                    plan.EndDate.Value
-                        .AddHours(_currentUserService.UserTimeZoneDifference)
-                        .AddDays(-1) == currentDate));
+                query = query.Where(m =>
+                    m.Plans.Any() &&
+                    m.Plans.Any(plan =>
+                        plan.EndDate.HasValue &&
+                        plan.EndDate.Value
+                            .AddHours(_currentUserService.UserTimeZoneDifference)
+                            .AddDays(-1) == currentDate));
             }
 
             return await query
@@ -67,7 +69,8 @@ namespace DL.Repositories.MobileUser
                     Created = m.CreatedOn,
                     SubscriptionDate = m.SubscriptionDate,
                     SubscriptionType = m.SubscriptionType,
-                    TotalPaidAmount = m.TotalAmountPaid
+                    TotalPaidAmount = m.TotalAmountPaid,
+                    IsSubscribed = m.IsSubscribed
                 })
                 .ToPagedListAsync(model);
         }
@@ -92,7 +95,7 @@ namespace DL.Repositories.MobileUser
                     Gender = m.Gender.Name,
                     LastMessage = m.LastMessage,
                     HasNewMessage = m.HasNewMessage,
-                    
+                    IsSubscribed = m.IsSubscribed
                 })
                 .FirstOrDefaultAsync(m => m.Id == mobileUserId);
 
@@ -108,7 +111,8 @@ namespace DL.Repositories.MobileUser
                 .Select(w => w.MeasurementValue)
                 .FirstOrDefaultAsync();
 
-            user.UserRisks = await _dbContext.MUserRisk.Where(m => m.UserId == mobileUserId).Select(m => m.Risk.Name).ToListAsync();
+            user.UserRisks = await _dbContext.MUserRisk.Where(m => m.UserId == mobileUserId).Select(m => m.Risk.Name)
+                .ToListAsync();
             user.WeightLoss = await _dbContext.GetWeightLossAsync(mobileUserId, lastWeight);
             user.CurrentWeight = lastWeight;
             user.LastUsedTemplates = _dbContext
@@ -190,17 +194,21 @@ namespace DL.Repositories.MobileUser
         {
             await _dbContext.Database.ExecuteSqlRawAsync(
                 @$"UPDATE MUSER 
-                SET TotalAmountPaid = TotalAmountPaid + {amountPayed}, 
-                    SubscriptionType = 'Pro',
-                    SubscriptionDate = '{DateTime.UtcNow}'
+                SET 
+                    SubscriptionDate = COALESCE(SubscriptionDate, '{DateTime.UtcNow}'),
+                    IsSubscribed = 1,
+                    TotalAmountPaid = TotalAmountPaid + {amountPayed}
                 WHERE Id = {userId}");
         }
 
-        public async Task UserPayedAsync(int userId, double amountPayed)
+        public async Task UserRenewedAsync(int userId, double amountPayed)
         {
-            var user = await _dbContext.Database.ExecuteSqlRawAsync(
+            await _dbContext.Database.ExecuteSqlRawAsync(
                 @$"UPDATE MUSER 
-                SET TotalAmountPaid = TotalAmountPaid + {amountPayed}
+                SET 
+                    SubscriptionDate = COALESCE(SubscriptionDate, '{DateTime.UtcNow}'),
+                    IsSubscribed = 1,
+                    TotalAmountPaid = TotalAmountPaid + {amountPayed}
                 WHERE Id = {userId}");
         }
 
@@ -208,7 +216,8 @@ namespace DL.Repositories.MobileUser
         {
             await _dbContext.Database.ExecuteSqlRawAsync(
                 @$"UPDATE MUSER 
-                SET SubscriptionType = null
+                SET SubscriptionType = null,
+                IsSubscribed = 0
                 WHERE Id = {appUserId}");
         }
 

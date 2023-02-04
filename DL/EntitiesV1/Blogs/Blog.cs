@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using DL.Entities;
+using DL.EntitiesV1.AdminUser;
 using DL.EntitiesV1.Blogs.Articles;
 using DL.EntitiesV1.Blogs.Polls;
 using DL.EntitiesV1.Media;
@@ -22,7 +23,7 @@ namespace DL.EntitiesV1.Blogs
 
         public Dictionary<string, int> Totals { get; set; }
         public int OwnerId { get; set; }
-        public MUser Owner { get; set; }
+        public AdminUserEntity Owner { get; set; }
         public IList<MediaFile> Media { get; set; }
 
         public long? TagId { get; set; }

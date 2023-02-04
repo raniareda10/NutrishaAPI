@@ -3,8 +3,8 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using DL.DBContext;
-using DL.DtosV1.Users.Roles;
 using DL.Entities;
+using DL.EntitiesV1.AdminUser;
 using DL.EntitiesV1.Measurements;
 using DL.Repositories.Users.Models;
 using Microsoft.EntityFrameworkCore;
@@ -25,22 +25,21 @@ namespace DL.Extensions
                     Password = u.Password,
                     Name = u.Name,
                     Language = u.Language,
-                    PersonalImage = u.PersonalImage
+                    PersonalImage = u.PersonalImage,
                 })
                 .FirstOrDefaultAsync();
         }
 
-        public static async Task<AdminUserModel> GetUserAsync(this AppDBContext users,
-            Expression<Func<MUser, bool>> predicate)
+        public static async Task<AdminUserModel> GetAdminUserAsync(this AppDBContext users,
+            Expression<Func<AdminUserEntity, bool>> predicate)
         {
-            var user = await users.MUser.Where(predicate)
+            var user = await users.AdminUsers.Where(predicate)
                 .Select(u => new AdminUserModel()
                 {
                     Id = u.Id,
                     Email = u.Email,
                     Password = u.Password,
                     Name = u.Name,
-                    Language = u.Language,
                     PersonalImage = u.PersonalImage,
                     RoleName = u.Roles.First().Role.Name
                 })
@@ -49,7 +48,7 @@ namespace DL.Extensions
             if (user == null) return null;
 
             user.Permissions = await users.MUserRoles
-                .Where(r => r.UserId == user.Id)
+                .Where(r => r.AdminUserId == user.Id)
                 .Select(r => r.Role.RolePermissions
                     .Select(m => m.Permission.Name))
                 .FirstOrDefaultAsync();

@@ -35,6 +35,11 @@ namespace DL.DBContext
 
         public DbSet<ResetUserPasswordEntity> ResetUserPassword { get; set; }
 
+        #region Admin Users
+
+        public DbSet<AdminUserEntity> AdminUsers { get; set; }
+
+        #endregion
         #region Blogs
 
         public DbSet<Blog> Blogs { get; set; }

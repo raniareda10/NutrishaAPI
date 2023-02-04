@@ -16,7 +16,7 @@ namespace DL.Repositories.Permissions
 
         public async Task<bool> DoesUserHasPermissionsAsync(int userId, string permissionName)
         {
-            return await _appDbContext.MUserRoles.Where(m => m.UserId == userId)
+            return await _appDbContext.MUserRoles.Where(m => m.AdminUserId == userId)
                 .Where(m => m.Role.RolePermissions.Any(p => p.Permission.Name == permissionName))
                 .AnyAsync();
         }

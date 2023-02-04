@@ -14,6 +14,7 @@ namespace DL.DtosV1.Users.Mobiles
         
         public DateTime? SubscriptionDate { get; set; }
         public string SubscriptionType { get; set; }
+        public bool IsSubscribed { get; set; }
         public double? TotalPaidAmount { get; set; }
     }
     

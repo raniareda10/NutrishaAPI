@@ -37,7 +37,7 @@ namespace NutrishaAPI.Attributes
 
             var userRoleIds = await dbContext
                 .MUserRoles
-                .Where(r => r.UserId == userContext.UserId)
+                .Where(r => r.AdminUserId == userContext.UserId)
                 .Select(r => r.Role.Id)
                 .ToListAsync();
 

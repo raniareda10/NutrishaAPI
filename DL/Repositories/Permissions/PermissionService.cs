@@ -168,7 +168,7 @@ namespace DL.Repositories.Permissions
             var roleId = await _appDbContext.MRoles.Where(m => m.Name == roleName).Select(m => m.Id).FirstAsync();
             _appDbContext.MUserRoles.Add(new MUserRoles()
             {
-                UserId = userId,
+                AdminUserId = userId,
                 RoleId = roleId,
                 Created = DateTime.UtcNow
             });

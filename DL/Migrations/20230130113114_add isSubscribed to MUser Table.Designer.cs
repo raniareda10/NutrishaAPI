@@ -4,14 +4,16 @@ using DL.DBContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace DL.Migrations
 {
     [DbContext(typeof(AppDBContext))]
-    partial class AppDBContextModelSnapshot : ModelSnapshot
+    [Migration("20230130113114_add isSubscribed to MUser Table")]
+    partial class addisSubscribedtoMUserTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1045,20 +1047,20 @@ namespace DL.Migrations
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<int>("AdminUserId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("Created")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("RoleId")
                         .HasColumnType("int");
 
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("AdminUserId");
-
                     b.HasIndex("RoleId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("MUserRoles");
                 });
@@ -1202,38 +1204,6 @@ namespace DL.Migrations
                     b.ToTable("SecUser");
                 });
 
-            modelBuilder.Entity("DL.EntitiesV1.AdminUser.AdminUserEntity", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("Name")
-                        .HasMaxLength(320)
-                        .HasColumnType("nvarchar(320)");
-
-                    b.Property<string>("Password")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PersonalImage")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Email")
-                        .IsUnique();
-
-                    b.ToTable("AdminUsers");
-                });
-
             modelBuilder.Entity("DL.EntitiesV1.AdminUser.ResetUserPasswordEntity", b =>
                 {
                     b.Property<long>("Id")
@@ -1241,16 +1211,13 @@ namespace DL.Migrations
                         .HasColumnType("bigint")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<int>("AdminUserId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("Created")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Token")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("UserId")
+                    b.Property<int>("UserId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -1820,9 +1787,6 @@ namespace DL.Migrations
                     b.Property<string>("Event")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("IsHandled")
-                        .HasColumnType("bit");
-
                     b.Property<string>("PaymentId")
                         .HasColumnType("nvarchar(max)");
 
@@ -2262,28 +2226,30 @@ namespace DL.Migrations
 
             modelBuilder.Entity("DL.Entities.MUserRoles", b =>
                 {
-                    b.HasOne("DL.EntitiesV1.AdminUser.AdminUserEntity", "AdminUser")
-                        .WithMany("Roles")
-                        .HasForeignKey("AdminUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("DL.Entities.MRole", "Role")
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("AdminUser");
+                    b.HasOne("DL.Entities.MUser", "User")
+                        .WithMany("Roles")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Role");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("DL.EntitiesV1.AdminUser.ResetUserPasswordEntity", b =>
                 {
-                    b.HasOne("DL.EntitiesV1.AdminUser.AdminUserEntity", "User")
+                    b.HasOne("DL.Entities.MUser", "User")
                         .WithMany()
-                        .HasForeignKey("UserId");
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("User");
                 });
@@ -2312,7 +2278,7 @@ namespace DL.Migrations
 
             modelBuilder.Entity("DL.EntitiesV1.Blogs.Blog", b =>
                 {
-                    b.HasOne("DL.EntitiesV1.AdminUser.AdminUserEntity", "Owner")
+                    b.HasOne("DL.Entities.MUser", "Owner")
                         .WithMany()
                         .HasForeignKey("OwnerId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -2415,7 +2381,7 @@ namespace DL.Migrations
 
             modelBuilder.Entity("DL.EntitiesV1.Meals.MealPlanEntity", b =>
                 {
-                    b.HasOne("DL.EntitiesV1.AdminUser.AdminUserEntity", "CreatedBy")
+                    b.HasOne("DL.Entities.MUser", "CreatedBy")
                         .WithMany()
                         .HasForeignKey("CreatedById")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -2637,10 +2603,7 @@ namespace DL.Migrations
             modelBuilder.Entity("DL.Entities.MUser", b =>
                 {
                     b.Navigation("Plans");
-                });
 
-            modelBuilder.Entity("DL.EntitiesV1.AdminUser.AdminUserEntity", b =>
-                {
                     b.Navigation("Roles");
                 });
 

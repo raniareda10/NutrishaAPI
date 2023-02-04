@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using DL.CommonModels;
 using DL.DtosV1.Users.Admins;
 using DL.DtosV1.Users.Mobiles;
 using DL.Repositories.MobileUser;

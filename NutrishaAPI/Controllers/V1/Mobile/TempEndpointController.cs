@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using DL.DBContext;
+using DL.EntitiesV1.AdminUser;
 using DL.Repositories.Allergy;
 using DL.Repositories.Dislikes;
 using DL.Repositories.Permissions;
@@ -48,7 +49,7 @@ namespace NutrishaAPI.Controllers.V1.Mobile
             _webHostEnvironment = webHostEnvironment;
         }
 
-        
+
         [SecureByCode]
         [AllowAnonymous]
         [HttpPost("AddDefaultPermissions")]
@@ -57,7 +58,7 @@ namespace NutrishaAPI.Controllers.V1.Mobile
             await _permissionService.InitializePermissionsAsync();
             return Ok();
         }
-        
+
         [SecureByCode]
         [AllowAnonymous]
         [HttpPost("SyncReminder")]
@@ -81,7 +82,7 @@ namespace NutrishaAPI.Controllers.V1.Mobile
             await _permissionService.AddRoleToUserAsync(userId, roleName);
             return Ok();
         }
-        
+
         [SecureByCode]
         [AllowAnonymous]
         [HttpPost("SyncAllergies")]
@@ -127,14 +128,14 @@ namespace NutrishaAPI.Controllers.V1.Mobile
                 ? Ok(_configuration.GetSection(section).AsEnumerable())
                 : Ok(_configuration[path]);
         }
-
+        
         [SecureByCode]
         [AllowAnonymous]
         [HttpGet("GetEnv")]
         public IActionResult GetEnv()
         {
             var providers = ((ConfigurationRoot)_configuration).Providers;
-            
+
             return Ok(new
             {
                 LoadedCOnfigurationFiles = providers,

@@ -133,7 +133,8 @@ namespace DL.Repositories.Meals
                 mealPlans.TemplateName,
                 mealPlans.CreatedBy,
                 mealPlans.IsTemplate,
-                parentTemplates = templates
+                parentTemplates = templates,
+                IsUsedInAnotherMealPlan = await _dbContext.MealPlans.AnyAsync(plan => plan.ParentTemplateId == id)
             };
         }
 

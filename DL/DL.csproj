@@ -27,4 +27,8 @@
         <Folder Include="Migrations\" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Compile Remove="EntitiesV1\AdminUserEntity.cs" />
+    </ItemGroup>
+
 </Project>

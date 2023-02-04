@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using DL.Entities;
+using DL.EntitiesV1.AdminUser;
 
 namespace DL.EntitiesV1.Meals
 {
     public class MealPlanEntity : BaseEntityV1
     {
         public int CreatedById { get; set; }
-        public MUser CreatedBy { get; set; }
+        public AdminUserEntity CreatedBy { get; set; }
         public ICollection<PlanDayEntity> PlanDays { get; set; }
         public string Notes { get; set; }
 

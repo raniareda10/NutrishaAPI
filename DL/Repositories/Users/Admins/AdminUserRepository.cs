@@ -7,6 +7,7 @@ using DL.CommonModels.Paging;
 using DL.DBContext;
 using DL.DtosV1.Users.Admins;
 using DL.Entities;
+using DL.EntitiesV1.AdminUser;
 using DL.Extensions;
 using DL.MailModels;
 using DL.Repositories.Roles;
@@ -40,7 +41,7 @@ namespace DL.Repositories.Users.Admins
 
         public async Task<AdminUserModel> GetCurrentUserAsync()
         {
-            var user = await _dbContext.GetUserAsync(u => u.Id == _currentUserService.UserId);
+            var user = await _dbContext.GetAdminUserAsync(u => u.Id == _currentUserService.UserId);
             return user;
         }
 
@@ -51,7 +52,7 @@ namespace DL.Repositories.Users.Admins
             {
                 // CreatedBy = _currentUserService.UserId,
                 RoleId = assignRoleToUserDto.RoleId,
-                UserId = assignRoleToUserDto.UserId,
+                AdminUserId = assignRoleToUserDto.UserId,
                 Created = DateTime.UtcNow,
             });
             await _dbContext.SaveChangesAsync();
@@ -59,8 +60,7 @@ namespace DL.Repositories.Users.Admins
 
         public async Task<PagedResult<dynamic>> GetPagedListAsync(GetAdminUserPagedListQueryDto model)
         {
-            var userQuery = _dbContext.MUser
-                .Where(m => m.IsAdmin)
+            var userQuery = _dbContext.AdminUsers
                 .Where(m => m.Id != _currentUserService.UserId);
 
             if (!string.IsNullOrWhiteSpace(model.SearchWord))
@@ -78,47 +78,46 @@ namespace DL.Repositories.Users.Admins
                 .Select(u => (dynamic)new
                 {
                     u.Id,
-                    u.Name,
+                    Name = u.Name,
                     u.Email,
                     Roles = u.Roles.Select(r => r.Role.Name)
                 })
                 .ToPagedListAsync(model);
         }
 
-        public async Task<object> GetByIdAsync(int id)
+        public async Task<object> GetByIdAsync(long id)
         {
-            return await _dbContext.MUser
+            return await _dbContext.AdminUsers
                 .Where(m => m.Id == id)
                 .Select(u => new
                 {
                     u.Id,
-                    u.Name,
+                    Name = u.Name,
                     u.Email,
                     RoleId = u.Roles.Select(r => r.Role.Id).First()
                 })
                 .FirstOrDefaultAsync();
         }
 
-        public async Task<PayloadServiceResult<int>> CreateAdminUserAsync(CreateAdminDto createAdminDto)
+        public async Task<PayloadServiceResult<long>> CreateAdminUserAsync(CreateAdminDto createAdminDto)
         {
-            var result = new PayloadServiceResult<int>();
-            var isEmailExists = await _dbContext.MUser.AnyAsync(m => m.Email == createAdminDto.Email);
-
-            if (isEmailExists)
+            var result = new PayloadServiceResult<long>();
+            var isAdminUserExists = await _dbContext.AdminUsers.AnyAsync(m => m.Email == createAdminDto.Email);
+            
+            if (isAdminUserExists)
             {
                 result.Errors.Add("This email already exists please choose another one.");
                 return result;
             }
+            
 
             // var password = Guid.NewGuid().ToString().Replace("-", "").Substring(15, 15);
             var password = createAdminDto.Password;
-            var user = new MUser()
+            var user = new AdminUserEntity()
             {
                 Name = createAdminDto.UserName,
                 Email = createAdminDto.Email,
                 Password = PasswordHasher.HashPassword(password),
-                IsAdmin = true,
-                IsAccountVerified = true,
                 Roles = new List<MUserRoles>()
                 {
                     new MUserRoles()
@@ -129,7 +128,7 @@ namespace DL.Repositories.Users.Admins
                 }
             };
 
-            _dbContext.Add(user);
+            _dbContext.AdminUsers.Add(user);
             await _dbContext.SaveChangesAsync();
             await _mailService.SendEmailAsync(GenerateAdminCreatedMail(user.Email, password));
             result.Data = user.Id;
@@ -143,12 +142,12 @@ namespace DL.Repositories.Users.Admins
 
             if (!isRoleExists) return;
 
-            var userRoles = await _dbContext.MUserRoles.Where(r => r.UserId == updateAdminDto.UserId).ToListAsync();
+            var userRoles = await _dbContext.MUserRoles.Where(r => r.AdminUserId == updateAdminDto.UserId).ToListAsync();
 
             _dbContext.RemoveRange(userRoles);
             _dbContext.MUserRoles.Add(new MUserRoles()
             {
-                UserId = updateAdminDto.UserId,
+                AdminUserId = updateAdminDto.UserId,
                 RoleId = updateAdminDto.RoleId.Value
             });
 

@@ -12,5 +12,6 @@ namespace DL.EntitiesV1.Payments
         public double? Price { get; set; }
         public string Currency { get; set; }
         public string Event { get; set; }
+        public bool IsHandled { get; set; }
     }
 }

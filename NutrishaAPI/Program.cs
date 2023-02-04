@@ -1,7 +1,10 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using DL.DBContext;
 using DL.Entities;
+using DL.EntitiesV1.AdminUser;
 using DL.Repositories;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -31,15 +34,27 @@ namespace NutrishaAPI
                 const string ownerEmail = "team@nutrisha.app";
                 const string ownerPassword = "P?@ssword16191214";
                 var context = host.Services.GetRequiredService<AppDBContext>();
-                var ownerUserRegistered = await context.MUser.AnyAsync(u => u.Email == ownerEmail);
+                var ownerUserRegistered = await context.AdminUsers.AnyAsync(u => u.Email == ownerEmail);
                 if (!ownerUserRegistered)
                 {
-                    var owner = new MUser()
+                    var roleId = await context.MRoles.Where(m => m.Name == "Owner").Select(m => m.Id)
+                        .FirstOrDefaultAsync();
+                    var owner = new AdminUserEntity()
                     {
+                        Name = ownerEmail,
                         Email = ownerEmail,
                         Password = PasswordHasher.HashPassword(ownerPassword),
-                        IsAdmin = true,
+                        Created = DateTime.UtcNow,
                     };
+
+                    if (roleId != 0)
+                    {
+                        owner.Roles = new List<MUserRoles>()
+                        {
+                            new MUserRoles() { RoleId = roleId, Created = DateTime.UtcNow }
+                        };
+                    }
+
                     await context.AddAsync(owner);
                     await context.SaveChangesAsync();
                 }

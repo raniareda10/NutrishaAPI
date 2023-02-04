@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using DL;
 using DL.DBContext;
+using DL.ResultModels;
 using DL.StorageServices;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -34,12 +35,14 @@ namespace NutrishaAPI.Controllers.V1.Mobile
         [HttpDelete("Delete")]
         public async Task<IActionResult> DeleteAccount()
         {
-            // For some reason deleting Muser in server throw conflict error
-            // so i have to remove dependent entites first
+            // For some reason deleting MUser in server throw conflict error
+            // so i have to remove dependent entities first
             var user = await _appDbContext
                 .MUser
                 .AsNoTracking()
                 .FirstOrDefaultAsync(m => m.Id == _currentUserService.UserId);
+
+            if (user == null) return InvalidResult(NonLocalizedErrorMessages.InvalidId);
             
             await _appDbContext.Database.ExecuteSqlRawAsync(@$"
                 DELETE FROM Comments WHERE UserId = {_currentUserService.UserId};
@@ -51,7 +54,6 @@ namespace NutrishaAPI.Controllers.V1.Mobile
                 DELETE FROM MUserGoal WHERE UserId = {_currentUserService.UserId};
                 DELETE FROM MUserGroups WHERE UserId = {_currentUserService.UserId};
                 DELETE FROM MUserMeal WHERE UserId = {_currentUserService.UserId};
-                DELETE FROM MUserRoles WHERE UserId = {_currentUserService.UserId};
                 DELETE FROM Reactions WHERE UserId = {_currentUserService.UserId};
                 DELETE FROM Reminders WHERE UserId = {_currentUserService.UserId};
                 DELETE FROM ShoppingCarts WHERE UserId = {_currentUserService.UserId};
@@ -60,7 +62,6 @@ namespace NutrishaAPI.Controllers.V1.Mobile
                 DELETE FROM UserFavoriteMeals WHERE UserId = {_currentUserService.UserId};
                 DELETE FROM UserMeasurements WHERE UserId = {_currentUserService.UserId};
                 DELETE FROM UserPreventions WHERE UserId = {_currentUserService.UserId};
-
                 DELETE FROM MUser WHERE Id = {_currentUserService.UserId};
             ");
 
