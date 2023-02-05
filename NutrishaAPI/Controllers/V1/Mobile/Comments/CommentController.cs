@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using DL.DtosV1.Comments;
 using DL.EntitiesV1.Users;
 using DL.Repositories.Comments;
@@ -22,8 +23,9 @@ namespace NutrishaAPI.Controllers.V1.Mobile.Comments
             _commentService = commentService;
         }
 
+        [AlloyNotBannedOnly]
         [HttpPost("Post")]
-        [OnlyUsersWithoutPreventionOf(MobilePreventionType.NoComment)]
+        // [OnlyUsersWithoutPreventionOf(MobilePreventionType.NoComment)]
         public async Task<IActionResult> PostCommentAsync(PostCommentDto postCommentDto)
         {
             var validationResult = postCommentDto.IsValid();
@@ -46,7 +48,7 @@ namespace NutrishaAPI.Controllers.V1.Mobile.Comments
             return PagedResult(await _commentService.GetPagedListAsync(model));
         }
         
-        // Server Limitation HttpDelete Not Allowed
+        
         [HttpPost("Delete")]
         public async Task<IActionResult> DeleteCommentAsync([FromQuery] long id)
         {
@@ -56,4 +58,5 @@ namespace NutrishaAPI.Controllers.V1.Mobile.Comments
             return result.Success ? EmptyResult() : InvalidResult(result.Errors);
         }
     }
+    
 }

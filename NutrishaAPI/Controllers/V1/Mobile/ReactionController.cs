@@ -4,6 +4,7 @@ using DL.Repositories.Reactions;
 using DL.ResultModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using NutrishaAPI.Attributes;
 using NutrishaAPI.Controllers.V1.Mobile.Bases;
 using NutrishaAPI.Validations.Shared;
 
@@ -19,15 +20,16 @@ namespace NutrishaAPI.Controllers.V1.Mobile
             _reactionService = reactionService;
         }
 
+        [AlloyNotBannedOnly]
         [HttpPost("Post")]
-        public async Task<IActionResult> PostReactionAsync(UpdateReactionDto UpdateReactionDto)
+        public async Task<IActionResult> PostReactionAsync(UpdateReactionDto updateReactionDto)
         {
-            if (!UpdateReactionDto.IsValidEntityId())
+            if (!updateReactionDto.IsValidEntityId())
             {
                 return InvalidResult(NonLocalizedErrorMessages.InvalidParameters);
             }
             
-            var result = await _reactionService.PostReactionAsync(UpdateReactionDto);
+            var result = await _reactionService.PostReactionAsync(updateReactionDto);
 
             if (result.Success)
             {

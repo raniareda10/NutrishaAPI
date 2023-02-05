@@ -2,8 +2,10 @@
 using DL.DtosV1.Users.Admins;
 using DL.DtosV1.Users.Mobiles;
 using DL.Repositories.MobileUser;
+using DL.Repositories.Permissions;
 using DL.ResultModels;
 using Microsoft.AspNetCore.Mvc;
+using NutrishaAPI.Attributes;
 
 namespace NutrishaAPI.Controllers.V1.Admin.V1.Users
 {
@@ -43,6 +45,14 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Users
             return ItemResult(result);
         }
 
+        [HttpPut("Ban")]
+        [HasPermissionOnly(PermissionNames.CanBanAppUsers)]
+        public async Task<IActionResult> BanUserAsync([FromQuery] int userId)
+        {
+            await _mobileUserRepository.BanUserAsync(userId);
+            return EmptyResult();
+        }
+        
         [HttpPost("Prevent")]
         public async Task<IActionResult> PreventUserAsync([FromBody] PreventUserDto preventUserDto)
         {

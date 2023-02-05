@@ -79,5 +79,6 @@ namespace DL.Entities
 
         public bool HasNewMessage { get; set; }
         public string LastMessage { get; set; }
+        public bool IsBanned { get; set; }
     }
 }

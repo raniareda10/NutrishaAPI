@@ -190,6 +190,35 @@ namespace DL.Repositories.MobileUser
             await _dbContext.SaveChangesAsync();
         }
 
+        public async Task BanUserAsync(int userId)
+        {
+            await _dbContext.Database.ExecuteSqlRawAsync(@$"UPDATE MUser SET IsBanned = 1 WHERE Id = {userId}");
+        }
+        
+        public async Task<object> GetUserPersonalDetailsAsync(int userId)
+        {
+            var user = await _dbContext
+                .MUser
+                .Where(user => user.Id == userId)
+                .Select(m => new
+                {
+                    Files = m.Files,
+                    m.ActivityLevel,
+                    m.NumberOfMealsPerDay,
+                    EatReason = m.EatReason,
+                    m.TargetWeight,
+                    m.MedicineNames,
+                    m.IsRegularMeasurer,
+                    m.HasBaby,
+                    Goal = _dbContext.MJourneyPlan
+                        .Where(j => j.Id == m.JourneyPlanId)
+                        .Select(j => j.Name)
+                        .FirstOrDefault()
+                }).FirstOrDefaultAsync();
+
+            return user;
+        }
+
         public async Task UserSubscribedAsync(int userId, double amountPayed)
         {
             await _dbContext.Database.ExecuteSqlRawAsync(
@@ -216,33 +245,9 @@ namespace DL.Repositories.MobileUser
         {
             await _dbContext.Database.ExecuteSqlRawAsync(
                 @$"UPDATE MUSER 
-                SET SubscriptionType = null,
+                SET  SubscriptionDate = NULL,
                 IsSubscribed = 0
                 WHERE Id = {appUserId}");
-        }
-
-        public async Task<object> GetUserPersonalDetailsAsync(int userId)
-        {
-            var user = await _dbContext
-                .MUser
-                .Where(user => user.Id == userId)
-                .Select(m => new
-                {
-                    Files = m.Files,
-                    m.ActivityLevel,
-                    m.NumberOfMealsPerDay,
-                    EatReason = m.EatReason,
-                    m.TargetWeight,
-                    m.MedicineNames,
-                    m.IsRegularMeasurer,
-                    m.HasBaby,
-                    Goal = _dbContext.MJourneyPlan
-                        .Where(j => j.Id == m.JourneyPlanId)
-                        .Select(j => j.Name)
-                        .FirstOrDefault()
-                }).FirstOrDefaultAsync();
-
-            return user;
         }
 
         public async Task UserMessageSeenAsync(int userId)
