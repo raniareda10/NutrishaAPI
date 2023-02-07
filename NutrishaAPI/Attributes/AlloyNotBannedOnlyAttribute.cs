@@ -25,6 +25,7 @@ namespace NutrishaAPI.Attributes
                 return;
             }
 
+            context.HttpContext.Response.ContentType = "application/json";
             context.HttpContext.Response.StatusCode = (int)StatusCodes.Status400BadRequest;
             await context.HttpContext.Response.WriteAsync(JsonConvert.SerializeObject(new BaseResponse<object>()
             {

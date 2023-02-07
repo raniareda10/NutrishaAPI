@@ -13,6 +13,7 @@ using DL.MailModels;
 using DL.Repositories.Roles;
 using DL.Repositories.Users.Models;
 using DL.ResultModels;
+using DL.StorageServices;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
@@ -23,6 +24,7 @@ namespace DL.Repositories.Users.Admins
         private readonly AppDBContext _dbContext;
         private readonly ICurrentUserService _currentUserService;
         private readonly IMailService _mailService;
+        private readonly IStorageService _storageService;
 
         private readonly string _adminUrl;
 
@@ -30,12 +32,14 @@ namespace DL.Repositories.Users.Admins
             AppDBContext dbContext,
             ICurrentUserService currentUserService,
             IMailService mailService,
+            IStorageService storageService,
             IConfiguration configuration
         )
         {
             _dbContext = dbContext;
             _currentUserService = currentUserService;
             _mailService = mailService;
+            _storageService = storageService;
             _adminUrl = configuration["AdminPanelUrl"];
         }
 
@@ -103,13 +107,13 @@ namespace DL.Repositories.Users.Admins
         {
             var result = new PayloadServiceResult<long>();
             var isAdminUserExists = await _dbContext.AdminUsers.AnyAsync(m => m.Email == createAdminDto.Email);
-            
+
             if (isAdminUserExists)
             {
                 result.Errors.Add("This email already exists please choose another one.");
                 return result;
             }
-            
+
 
             // var password = Guid.NewGuid().ToString().Replace("-", "").Substring(15, 15);
             var password = createAdminDto.Password;
@@ -142,7 +146,8 @@ namespace DL.Repositories.Users.Admins
 
             if (!isRoleExists) return;
 
-            var userRoles = await _dbContext.MUserRoles.Where(r => r.AdminUserId == updateAdminDto.UserId).ToListAsync();
+            var userRoles = await _dbContext.MUserRoles.Where(r => r.AdminUserId == updateAdminDto.UserId)
+                .ToListAsync();
 
             _dbContext.RemoveRange(userRoles);
             _dbContext.MUserRoles.Add(new MUserRoles()
@@ -158,7 +163,32 @@ namespace DL.Repositories.Users.Admins
         {
             await _dbContext.Database.ExecuteSqlRawAsync($"DELETE FROM MUser WHERE id = {id}");
         }
-        
+
+        public async Task<AdminLoggedInDto> UpdateProfileAsync(UpdateAdminProfileRequest updateAdminProfileDto)
+        {
+            var user = await _dbContext.AdminUsers.FirstOrDefaultAsync(m => m.Id == _currentUserService.UserId);
+
+            user.Name = updateAdminProfileDto.Name;
+            user.Email = updateAdminProfileDto.Email;
+
+            if (updateAdminProfileDto.Image is not null)
+            {
+                var personalImage = await _storageService.UploadFileAsync(updateAdminProfileDto.Image, $"admins/user-{_currentUserService.UserId}");
+                user.PersonalImage = personalImage;
+            }
+
+            _dbContext.Update(user);
+            await _dbContext.SaveChangesAsync();
+
+            return new AdminLoggedInDto()
+            {
+                Name = user.Name,
+                Email = user.Email,
+                PersonalImage = user.PersonalImage,
+            };
+        }
+
+
         private MailRequest GenerateAdminCreatedMail(string email, string password)
         {
             var mailRequest = new MailRequest
@@ -177,7 +207,5 @@ namespace DL.Repositories.Users.Admins
             mailRequest.Body = body;
             return mailRequest;
         }
-
-        
     }
 }

@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AutoMapper;
-using DL.CommonModels;
 using DL.CommonModels.Paging;
 using DL.DBContext;
 using DL.DtosV1.MealPlans;
@@ -50,6 +47,7 @@ namespace DL.Repositories.MobileUser
                 var currentDate = DateTime.UtcNow.AddHours(_currentUserService.UserTimeZoneDifference).Date;
 
                 query = query.Where(m =>
+                    m.IsSubscribed &&
                     m.Plans.Any() &&
                     m.Plans.Any(plan =>
                         plan.EndDate.HasValue &&
@@ -194,7 +192,7 @@ namespace DL.Repositories.MobileUser
         {
             await _dbContext.Database.ExecuteSqlRawAsync(@$"UPDATE MUser SET IsBanned = 1 WHERE Id = {userId}");
         }
-        
+
         public async Task<object> GetUserPersonalDetailsAsync(int userId)
         {
             var user = await _dbContext

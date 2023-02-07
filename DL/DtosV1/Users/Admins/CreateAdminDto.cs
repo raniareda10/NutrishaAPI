@@ -1,4 +1,6 @@
-﻿namespace DL.DtosV1.Users.Admins
+﻿using Microsoft.AspNetCore.Http;
+
+namespace DL.DtosV1.Users.Admins
 {
     public class CreateAdminDto
     {
@@ -13,5 +15,12 @@
     {
         public int UserId { get; set; }
         public int? RoleId { get; set; }
+    }
+
+    public class UpdateAdminProfileRequest
+    {
+        public string Name { get; set; }   
+        public string Email { get; set; }   
+        public IFormFile Image { get; set; }   
     }
 }

@@ -113,7 +113,7 @@ namespace NutrishaAPI.Controllers.V1.Mobile
             return EmptyResult();
         }
 
-        public void DeleteDirectory(string path)
+        private static void DeleteDirectory(string path)
         {
             var files = Directory.GetFiles(path);
 

@@ -73,6 +73,16 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1
             return EmptyResult();
         }
 
+        [HttpPut("UpdateProfile")]
+        public async Task<IActionResult> UpdateProfileAsync([FromForm] UpdateAdminProfileRequest updateAdminProfileDto)
+        {
+            if (string.IsNullOrWhiteSpace(updateAdminProfileDto.Name) || string.IsNullOrWhiteSpace(updateAdminProfileDto.Name))
+                return InvalidResult(NonLocalizedErrorMessages.InvalidParameters);
+
+            var result = await _adminAuthRepository.UpdateProfileAsync(updateAdminProfileDto);
+            return ItemResult(result);
+        }
+        
         [HttpDelete("Delete")]
         public async Task<IActionResult> DeleteAsync([FromQuery] long id)
         {

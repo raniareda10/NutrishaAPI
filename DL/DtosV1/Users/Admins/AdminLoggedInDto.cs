@@ -7,6 +7,7 @@ namespace DL.DtosV1.Users.Admins
     {
         public long Id { get; set; }
         public string Email { get; set; }
+        public string Name { get; set; }
         public string Language { get; set; }
         public string PersonalImage { get; set; }
         public IEnumerable<string> Permissions { get; set; }

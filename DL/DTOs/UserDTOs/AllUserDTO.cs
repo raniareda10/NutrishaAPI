@@ -50,5 +50,6 @@ namespace DL.DTOs.UserDTOs
         public string LastName { get; set; }
         public DateTime BirthDate { get; set; }
         public bool IsMealPlanPreferencesDataCompleted { get; set; }
+        public bool IsBanned { get; set; }
     }
 }
