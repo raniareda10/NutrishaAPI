@@ -8,7 +8,7 @@ namespace DL.MailModels
 {
     public interface IMailService
     {
-        Task SendEmailAsync(MailRequest mailRequest);
+        Task SendEmailAsync(MailRequest request);
         Task<string> SendWelcomeEmailAsync(WelcomeRequest request);
         Task<string> SendActivateEmailAsync(WelcomeRequest request);
     }

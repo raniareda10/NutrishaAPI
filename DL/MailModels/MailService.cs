@@ -25,45 +25,32 @@ namespace DL.MailModels
             _mailSettings = mailSettings.Value;
         }
 
-        public async Task SendEmailAsync(MailRequest mailRequest)
+        public async Task SendEmailAsync(MailRequest request)
         {
             try
             {
-                var email = new MimeMessage();
-                email.Sender = MailboxAddress.Parse(_mailSettings.Mail);
-                email.To.Add(MailboxAddress.Parse(mailRequest.ToEmail));
-                email.Subject = mailRequest.Subject;
-                var builder = new BodyBuilder();
-                if (mailRequest.Attachments != null)
+                var objMessage = new MailMessage()
                 {
-                    byte[] fileBytes;
-                    foreach (var file in mailRequest.Attachments)
-                    {
-                        if (file.Length > 0)
-                        {
-                            using (var ms = new MemoryStream())
-                            {
-                                file.CopyTo(ms);
-                                fileBytes = ms.ToArray();
-                            }
+                    From = new MailAddress(_mailSettings.Mail),
+                    To = { request.ToEmail },
+                    Subject = request.Subject,
+                    IsBodyHtml = true,
+                    Body = request.Body
+                };
 
-                            builder.Attachments.Add(file.FileName, fileBytes, ContentType.Parse(file.ContentType));
-                        }
-                    }
-                }
-
-                builder.HtmlBody = mailRequest.Body;
-                email.Body = builder.ToMessageBody();
-                using var smtp = new SmtpClient();
-                smtp.Connect(_mailSettings.Host, _mailSettings.Port, SecureSocketOptions.StartTls);
-                smtp.Authenticate(_mailSettings.Mail, _mailSettings.Password);
-                await smtp.SendAsync(email);
-                await smtp.DisconnectAsync(true);
+                var smtp = new System.Net.Mail.SmtpClient(_mailSettings.Host, _mailSettings.Port); // OR 25
+                // smtp.UseDefaultCredentials = false;
+                smtp.DeliveryMethod = SmtpDeliveryMethod.Network;
+                //smtp.EnableSsl = true;
+                smtp.Credentials = new System.Net.NetworkCredential(
+                    _mailSettings.Mail, _mailSettings.Password);
+                smtp.Send(objMessage);
+                _logger.LogInformation($"mail to {request.ToEmail} sent: {JsonConvert.SerializeObject(objMessage)}");
             }
             catch (Exception ex)
             {
                 _logger.LogError(
-                    $"Error While Sending Email To {mailRequest.ToEmail}, ex: {JsonConvert.SerializeObject(ex)}");
+                    $"Error While Sending Email To {request.ToEmail}, ex: {JsonConvert.SerializeObject(ex)}");
             }
         }
 

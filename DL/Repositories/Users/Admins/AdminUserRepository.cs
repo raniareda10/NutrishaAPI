@@ -161,7 +161,7 @@ namespace DL.Repositories.Users.Admins
 
         public async Task DeleteUserAsync(long id)
         {
-            await _dbContext.Database.ExecuteSqlRawAsync($"DELETE FROM MUser WHERE id = {id}");
+            await _dbContext.Database.ExecuteSqlRawAsync($"DELETE FROM AdminUsers WHERE id = {id}");
         }
 
         public async Task<AdminLoggedInDto> UpdateProfileAsync(UpdateAdminProfileRequest updateAdminProfileDto)
