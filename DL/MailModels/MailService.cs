@@ -62,6 +62,8 @@ namespace DL.MailModels
             }
             catch (Exception ex)
             {
+                _logger.LogError(
+                    $"Error While Sending Email To {mailRequest.ToEmail}, ex: {JsonConvert.SerializeObject(ex)}");
             }
         }
 
@@ -155,6 +157,8 @@ namespace DL.MailModels
             }
             catch (Exception ex)
             {
+                _logger.LogError(
+                    $"Error While Sending Email To {request.ToEmail}, ex: {JsonConvert.SerializeObject(ex)}");
                 return ex.ToString();
             }
         }
