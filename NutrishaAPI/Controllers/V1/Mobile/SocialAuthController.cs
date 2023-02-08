@@ -19,6 +19,7 @@ using DL.ResultModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using NutrishaAPI.Controllers.V1.Mobile.Bases;
@@ -34,13 +35,14 @@ namespace NutrishaAPI.Controllers.V1.Mobile
         private readonly AllergyService _allergyService;
         private readonly DislikesMealService _dislikesMealService;
         private readonly ReminderService _reminderService;
+        private readonly ILogger<SocialAuthController> _logger;
 
         public SocialAuthController(IMapper mapper, IAuthenticateService authenticateService,
             AppDBContext appDbContext,
             AllergyService allergyService,
             DislikesMealService dislikesMealService,
-            ReminderService reminderService
-        )
+            ReminderService reminderService,
+            ILogger<SocialAuthController> logger)
         {
             _mapper = mapper;
             _authenticateService = authenticateService;
@@ -48,11 +50,13 @@ namespace NutrishaAPI.Controllers.V1.Mobile
             _allergyService = allergyService;
             _dislikesMealService = dislikesMealService;
             _reminderService = reminderService;
+            _logger = logger;
         }
 
         [HttpPost("Login")]
         public async Task<IActionResult> LoginAsync([FromBody] SocialLoginDto loginDto)
         {
+            _logger.LogInformation("Social Login Body {0}", JsonConvert.SerializeObject(loginDto));
             if (string.IsNullOrEmpty(loginDto.AccessToken))
             {
                 return InvalidResult(NonLocalizedErrorMessages.InvalidParameters);
@@ -126,6 +130,7 @@ namespace NutrishaAPI.Controllers.V1.Mobile
         [HttpPost("AppleLogin")]
         public async Task<IActionResult> AppleLoginAsync([FromBody] AppleLoginModel loginDto)
         {
+            _logger.LogInformation("Apple Login Body {0}", JsonConvert.SerializeObject(loginDto));
             if (string.IsNullOrEmpty(loginDto.Email) && string.IsNullOrEmpty(loginDto.IdentityToken))
                 return InvalidResult(NonLocalizedErrorMessages.InvalidParameters);
 
