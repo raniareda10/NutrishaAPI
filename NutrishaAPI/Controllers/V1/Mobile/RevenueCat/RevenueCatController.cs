@@ -56,6 +56,9 @@ namespace NutrishaAPI.Controllers.V1.Mobile.RevenueCat
                 return Ok();
             }
 
+            _logger.LogInformation("RevenueCat Event Handling Started. Api Version: {0} Event Body {1}",
+                body.ApiVersion, body.Event.ToString());
+            
             var eventType = body.Event?.GetValue("type")?.ToString();
             var revenueCatEvent = body.Event.ToObject<BaseRevenueCatEvent>();
             var paymentHistory = new PaymentHistoryEntity()
@@ -67,64 +70,78 @@ namespace NutrishaAPI.Controllers.V1.Mobile.RevenueCat
                 Event = JsonConvert.SerializeObject(body.Event)
             };
             
-            switch (eventType)
+            try
             {
-                case RevenueCatEventTypes.InitialPurchase:
-                case RevenueCatEventTypes.NonRenewingPurchase:
+                switch (eventType)
                 {
-                    var initialPurchaseEvent = body.Event.ToObject<InitialPurchaseEvent>();
-                    await _mobileUserRepository.UserSubscribedAsync(initialPurchaseEvent.AppUserId,
-                        initialPurchaseEvent.PriceInPurchasedCurrency);
-                    paymentHistory.Currency = initialPurchaseEvent.Currency;
-                    paymentHistory.Price = initialPurchaseEvent.Price;
-                    paymentHistory.IsHandled = true;
-                    break;
-                }
+                    case RevenueCatEventTypes.InitialPurchase:
+                    case RevenueCatEventTypes.NonRenewingPurchase:
+                    {
+                        var initialPurchaseEvent = body.Event.ToObject<InitialPurchaseEvent>();
+                        await _mobileUserRepository.UserSubscribedAsync(initialPurchaseEvent.AppUserId,
+                            initialPurchaseEvent.PriceInPurchasedCurrency);
+                        paymentHistory.Currency = initialPurchaseEvent.Currency;
+                        paymentHistory.Price = initialPurchaseEvent.Price;
+                        paymentHistory.IsHandled = true;
+                        break;
+                    }
 
-                case RevenueCatEventTypes.Renewal:
-                {
-                    var initialPurchaseEvent = body.Event.ToObject<InitialPurchaseEvent>();
-                    await _mobileUserRepository.UserRenewedAsync(initialPurchaseEvent.AppUserId,
-                        initialPurchaseEvent.PriceInPurchasedCurrency);
-                    paymentHistory.Currency = initialPurchaseEvent.Currency;
-                    paymentHistory.Price = initialPurchaseEvent.Price;
-                    paymentHistory.IsHandled = true;
-                    break;
-                }
+                    case RevenueCatEventTypes.Renewal:
+                    {
+                        var initialPurchaseEvent = body.Event.ToObject<InitialPurchaseEvent>();
+                        await _mobileUserRepository.UserRenewedAsync(initialPurchaseEvent.AppUserId,
+                            initialPurchaseEvent.PriceInPurchasedCurrency);
+                        paymentHistory.Currency = initialPurchaseEvent.Currency;
+                        paymentHistory.Price = initialPurchaseEvent.Price;
+                        paymentHistory.IsHandled = true;
+                        break;
+                    }
 
-                case RevenueCatEventTypes.Cancellation:
-                case RevenueCatEventTypes.ProductChange:
-                {
-                    var initialPurchaseEvent = body.Event.ToObject<BaseRevenueCatEvent>();
-                    await _mobileUserRepository.UserUnSubscribedAsync(initialPurchaseEvent.AppUserId);
-                    paymentHistory.IsHandled = true;
-                    break;
-                }
+                    case RevenueCatEventTypes.Cancellation:
+                    case RevenueCatEventTypes.ProductChange:
+                    {
+                        var initialPurchaseEvent = body.Event.ToObject<BaseRevenueCatEvent>();
+                        await _mobileUserRepository.UserUnSubscribedAsync(initialPurchaseEvent.AppUserId);
+                        paymentHistory.IsHandled = true;
+                        break;
+                    }
 
-                case RevenueCatEventTypes.SubscriptionPaused:
-                {
-                    var initialPurchaseEvent = body.Event.ToObject<BaseRevenueCatEvent>();
-                    await _mobileUserRepository.UserUnSubscribedAsync(initialPurchaseEvent.AppUserId);
-                    paymentHistory.IsHandled = true;
-                    break;
-                }
+                    case RevenueCatEventTypes.SubscriptionPaused:
+                    {
+                        var initialPurchaseEvent = body.Event.ToObject<BaseRevenueCatEvent>();
+                        await _mobileUserRepository.UserUnSubscribedAsync(initialPurchaseEvent.AppUserId);
+                        paymentHistory.IsHandled = true;
+                        break;
+                    }
 
-                case RevenueCatEventTypes.Expiration:
-                {
-                    var initialPurchaseEvent = body.Event.ToObject<BaseRevenueCatEvent>();
-                    await _mobileUserRepository.UserUnSubscribedAsync(initialPurchaseEvent.AppUserId);
+                    case RevenueCatEventTypes.Expiration:
+                    {
+                        var initialPurchaseEvent = body.Event.ToObject<BaseRevenueCatEvent>();
+                        await _mobileUserRepository.UserUnSubscribedAsync(initialPurchaseEvent.AppUserId);
 
-                    break;
-                }
+                        break;
+                    }
 
-                case null:
-                {
-                    _logger.LogError("Critical: RevenueCat Request Body Changed.");
-                    break;
+                    case RevenueCatEventTypes.Transfer:
+                    {
+                        break;
+                    }
+
+                    case null:
+                    {
+                        _logger.LogError("Critical: RevenueCat Request Body Changed.");
+                        break;
+                    }
                 }
             }
+            catch (Exception e)
+            {
+                await _paymentHistoryService.AddAsync(paymentHistory);
+                _logger.LogError("Critical: Unhandled RevenueCat Event. Api Version: {0} Event Body {1}",
+                    body.ApiVersion, body.Event.ToString());
+                throw;
+            }
 
-            await _paymentHistoryService.AddAsync(paymentHistory);
             return Ok();
         }
     }
