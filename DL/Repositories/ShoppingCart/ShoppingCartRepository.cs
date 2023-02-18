@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -106,6 +107,8 @@ namespace DL.Repositories.ShoppingCart
             // IngredientUnitType unitType
         )
         {
+            cart.Items ??= new List<ShoppingCartItemEntity>();
+            
             var cartItem = cart.Items.FirstOrDefault(item =>
                 !item.IsBought &&
                 string.Equals(item.ItemName, ingredientName,
@@ -177,7 +180,7 @@ namespace DL.Repositories.ShoppingCart
 
             if (cart != null)
             {
-                cart.Items = cart.Items.OrderByDescending(m => !m.IsBought).ToList();
+                cart.Items = cart.Items?.OrderByDescending(m => !m.IsBought).ToList();
                 return cart;
             }
 

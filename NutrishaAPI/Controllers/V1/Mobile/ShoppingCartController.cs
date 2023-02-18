@@ -37,9 +37,9 @@ namespace NutrishaAPI.Controllers.V1.Mobile
         [HttpPost("AddIngredientToCart")]
         public async Task<IActionResult> AddIngredientToCartAsync([FromBody] MealIngredientDto mealIngredientDto)
         {
-            if (mealIngredientDto.MealId == 0 || string.IsNullOrWhiteSpace(mealIngredientDto.IngredientName))
-                return InvalidResult(NonLocalizedErrorMessages.InvalidParameters);
-            
+            // if (mealIngredientDto.MealId == 0 && string.IsNullOrWhiteSpace(mealIngredientDto.IngredientName))
+            //     return InvalidResult(NonLocalizedErrorMessages.InvalidParameters);
+            //
             await _shoppingCartRepository.AddToShoppingCartAsync(mealIngredientDto);
             return EmptyResult();
         }

@@ -49,7 +49,15 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Users
         [HasPermissionOnly(PermissionNames.CanBanAppUsers)]
         public async Task<IActionResult> BanUserAsync([FromQuery] int userId)
         {
-            await _mobileUserRepository.BanUserAsync(userId);
+            await _mobileUserRepository.SetUserBanFlagAsync(userId, true);
+            return EmptyResult();
+        }
+        
+        [HttpPut("UnBan")]
+        [HasPermissionOnly(PermissionNames.CanBanAppUsers)]
+        public async Task<IActionResult> UnBanUserAsync([FromQuery] int userId)
+        {
+            await _mobileUserRepository.SetUserBanFlagAsync(userId, false);
             return EmptyResult();
         }
         

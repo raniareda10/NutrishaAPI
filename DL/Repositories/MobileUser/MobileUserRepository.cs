@@ -44,8 +44,10 @@ namespace DL.Repositories.MobileUser
 
             if (model.UserWithAboutToFinishPlan)
             {
-                var currentDate = DateTime.UtcNow.AddHours(_currentUserService.UserTimeZoneDifference).Date;
+                // 13 2 2023 9:12 
+                var currentDateTime = DateTime.UtcNow.AddHours(_currentUserService.UserTimeZoneDifference);
 
+                // EndDate = 2023-02-13 22:00:00.0000000
                 query = query.Where(m =>
                     m.IsSubscribed &&
                     m.Plans.Any() &&
@@ -53,7 +55,10 @@ namespace DL.Repositories.MobileUser
                         plan.EndDate.HasValue &&
                         plan.EndDate.Value
                             .AddHours(_currentUserService.UserTimeZoneDifference)
-                            .AddDays(-1) == currentDate));
+                            .AddDays(-1) <= currentDateTime &&
+                        plan.EndDate.Value
+                            .AddHours(_currentUserService.UserTimeZoneDifference) < currentDateTime)
+                );
             }
 
             return await query
@@ -187,10 +192,12 @@ namespace DL.Repositories.MobileUser
             await _dbContext.UserPreventions.AddAsync(userPrevention);
             await _dbContext.SaveChangesAsync();
         }
+        
 
-        public async Task BanUserAsync(int userId)
+        public async Task SetUserBanFlagAsync(int userId, bool ban)
         {
-            await _dbContext.Database.ExecuteSqlRawAsync(@$"UPDATE MUser SET IsBanned = 1 WHERE Id = {userId}");
+            await _dbContext.Database.ExecuteSqlRawAsync(
+                @$"UPDATE MUser SET IsBanned = {(ban ? 1 : 0)} WHERE Id = {userId}");
         }
 
         public async Task<object> GetUserPersonalDetailsAsync(int userId)

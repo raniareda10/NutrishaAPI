@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using DL.EntitiesV1.Payments;
@@ -53,13 +55,19 @@ namespace NutrishaAPI.Controllers.V1.Mobile.RevenueCat
             if (body.ApiVersion != "1.0" || body.Event == null)
             {
                 _logger.LogError("RevenueCat Start Using ApiVersion That Not Supported.");
-                return Ok();
+                return BadRequest("RevenueCat Start Using ApiVersion That Not Supported.");
             }
 
             _logger.LogInformation("RevenueCat Event Handling Started. Api Version: {0} Event Body {1}",
                 body.ApiVersion, body.Event.ToString());
             
             var eventType = body.Event?.GetValue("type")?.ToString();
+            if (string.IsNullOrWhiteSpace(eventType))
+            {
+                _logger.LogError("Critical: RevenueCat Request Body Changed.");
+                throw new Exception("Critical: RevenueCat Request Body Changed: cant find RevenueCat type");
+            }
+            
             var revenueCatEvent = body.Event.ToObject<BaseRevenueCatEvent>();
             var paymentHistory = new PaymentHistoryEntity()
             {
@@ -78,7 +86,7 @@ namespace NutrishaAPI.Controllers.V1.Mobile.RevenueCat
                     case RevenueCatEventTypes.NonRenewingPurchase:
                     {
                         var initialPurchaseEvent = body.Event.ToObject<InitialPurchaseEvent>();
-                        await _mobileUserRepository.UserSubscribedAsync(initialPurchaseEvent.AppUserId,
+                        await _mobileUserRepository.UserSubscribedAsync(initialPurchaseEvent.AppUserId.Value,
                             initialPurchaseEvent.PriceInPurchasedCurrency);
                         paymentHistory.Currency = initialPurchaseEvent.Currency;
                         paymentHistory.Price = initialPurchaseEvent.Price;
@@ -89,7 +97,7 @@ namespace NutrishaAPI.Controllers.V1.Mobile.RevenueCat
                     case RevenueCatEventTypes.Renewal:
                     {
                         var initialPurchaseEvent = body.Event.ToObject<InitialPurchaseEvent>();
-                        await _mobileUserRepository.UserRenewedAsync(initialPurchaseEvent.AppUserId,
+                        await _mobileUserRepository.UserRenewedAsync(initialPurchaseEvent.AppUserId.Value,
                             initialPurchaseEvent.PriceInPurchasedCurrency);
                         paymentHistory.Currency = initialPurchaseEvent.Currency;
                         paymentHistory.Price = initialPurchaseEvent.Price;
@@ -99,37 +107,21 @@ namespace NutrishaAPI.Controllers.V1.Mobile.RevenueCat
 
                     case RevenueCatEventTypes.Cancellation:
                     case RevenueCatEventTypes.ProductChange:
-                    {
-                        var initialPurchaseEvent = body.Event.ToObject<BaseRevenueCatEvent>();
-                        await _mobileUserRepository.UserUnSubscribedAsync(initialPurchaseEvent.AppUserId);
-                        paymentHistory.IsHandled = true;
-                        break;
-                    }
-
                     case RevenueCatEventTypes.SubscriptionPaused:
-                    {
-                        var initialPurchaseEvent = body.Event.ToObject<BaseRevenueCatEvent>();
-                        await _mobileUserRepository.UserUnSubscribedAsync(initialPurchaseEvent.AppUserId);
-                        paymentHistory.IsHandled = true;
-                        break;
-                    }
-
                     case RevenueCatEventTypes.Expiration:
                     {
                         var initialPurchaseEvent = body.Event.ToObject<BaseRevenueCatEvent>();
-                        await _mobileUserRepository.UserUnSubscribedAsync(initialPurchaseEvent.AppUserId);
-
+                        await _mobileUserRepository.UserUnSubscribedAsync(initialPurchaseEvent.AppUserId.Value);
+                        paymentHistory.IsHandled = true;
                         break;
                     }
 
                     case RevenueCatEventTypes.Transfer:
                     {
-                        break;
-                    }
-
-                    case null:
-                    {
-                        _logger.LogError("Critical: RevenueCat Request Body Changed.");
+                        var transferEvent = body.Event.ToObject<RevenueCatTransferEvent>();
+                        var transferTo = GetUserId(transferEvent.TransferredTo);
+                        var transferFrom = GetUserId(transferEvent.TransferredFrom);
+                        paymentHistory.UserId = transferTo;
                         break;
                     }
                 }
@@ -137,12 +129,26 @@ namespace NutrishaAPI.Controllers.V1.Mobile.RevenueCat
             catch (Exception e)
             {
                 await _paymentHistoryService.AddAsync(paymentHistory);
-                _logger.LogError("Critical: Unhandled RevenueCat Event. Api Version: {0} Event Body {1}",
-                    body.ApiVersion, body.Event.ToString());
+                _logger.LogError("Critical: Unhandled RevenueCat Event. Api Version: {0} Event Body {1}, Exception: {2}",
+                    body.ApiVersion, body.Event.ToString(), JsonConvert.SerializeObject(e));
                 throw;
             }
-
+            
+            await _paymentHistoryService.AddAsync(paymentHistory);
             return Ok();
+        }
+
+        private int GetUserId(IEnumerable<string> ids)
+        {
+            foreach (var id in ids)
+            {
+                if (int.TryParse(id, out var appId))
+                {
+                    return appId;
+                }
+            }
+
+            return 0;
         }
     }
 }

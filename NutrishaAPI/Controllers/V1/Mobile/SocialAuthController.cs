@@ -135,18 +135,16 @@ namespace NutrishaAPI.Controllers.V1.Mobile
                 return InvalidResult(NonLocalizedErrorMessages.InvalidParameters);
 
             var email = GetAppleEmailFromToken(loginDto.IdentityToken);
-            if (string.IsNullOrEmpty(email)) return InvalidResult(NonLocalizedErrorMessages.InvalidParameters);
+            if (string.IsNullOrEmpty(email) && string.IsNullOrEmpty(loginDto.Email)) return InvalidResult(NonLocalizedErrorMessages.InvalidParameters);
 
             var user = await _appDbContext.MUser.AsNoTracking().FirstOrDefaultAsync(user => user.Email == email);
 
             switch (user)
             {
-                case null when string.IsNullOrEmpty(loginDto.Email):
-                    return InvalidResult(NonLocalizedErrorMessages.InvalidParameters);
                 case null:
                     user = new MUser
                     {
-                        Email = loginDto.Email,
+                        Email = email ?? loginDto.Email,
                         Name = loginDto.GivenName,
                         LastName = loginDto.FamilyName,
                         IsAccountVerified = true,
@@ -154,6 +152,7 @@ namespace NutrishaAPI.Controllers.V1.Mobile
                     };
                     await _appDbContext.AddAsync(user);
                     await _appDbContext.SaveChangesAsync();
+                    await AddDefaultDataWhenAccountVerifiedForFirstTime(user.Id);
                     break;
                 default:
                     user.IsAccountVerified = true;

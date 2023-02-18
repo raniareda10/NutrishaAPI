@@ -81,7 +81,7 @@ namespace DL.Repositories.Comments
                 false);
 
             await UpdateParentTotalsAsync(
-                _currentUserService.UserId,
+                comment.UserId,
                 EntityType.User,
                 TotalKeys.Comments,
                 false);

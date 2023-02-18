@@ -5,7 +5,7 @@ namespace DL.EntitiesV1.Payments
 {
     public class PaymentHistoryEntity : BaseEntityV1
     {
-        public int UserId { get; set; }
+        public int? UserId { get; set; }
         public MUser User { get; set; }
         public string PaymentId { get; set; }
         public string Type { get; set; }
