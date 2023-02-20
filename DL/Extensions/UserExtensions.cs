@@ -73,7 +73,7 @@ namespace DL.Extensions
                 .Select(w => w.MeasurementValue)
                 .LastOrDefaultAsync();
 
-            return (float)(firstWeight - lastWeight) * -1;
+            return (float)(firstWeight - lastWeight);
         }
     }
 }

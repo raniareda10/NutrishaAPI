@@ -135,12 +135,10 @@ namespace DL.Repositories.MealPlan
 
         public async Task<object> GetRecommendedMealsForSwapAsync(SwapMealDto swapMealDto)
         {
-            return await _dbContext.PlanDayMenus
-                .AsNoTracking()
+            var meals = await _dbContext.PlanDayMenus
                 .Where(m => m.PlanDay.MealPlan.UserId == _currentUserService.UserId)
                 .Where(m => m.PlanDay.MealPlan.Id == swapMealDto.PlanId)
                 .Where(m => m.MealType == swapMealDto.Type)
-                .Where(m => m.PlanDay.Day != swapMealDto.Day)
                 .Select(m => new
                 {
                     Id = m.Id,
@@ -151,6 +149,26 @@ namespace DL.Repositories.MealPlan
                         meal.Meal.Name,
                     })
                 }).ToListAsync();
+
+            var swappedMealName = meals
+                .FirstOrDefault(m => m.Day == swapMealDto.Day)
+                ?.Meals
+                .Select(m => m.Name)
+                .ToHashSet();
+
+            return meals
+                .Select(m => new
+                {
+                    Id = m.Id,
+                    Day = m.Day,
+                    Meals = m.Meals.Where(m => !swappedMealName.Contains(m.Name)).Select(meal => new
+                    {
+                        meal.CoverImage,
+                        meal.Name,
+                    })
+                })
+                .Where(m => m.Meals.Any())
+                .ToList();
         }
 
 

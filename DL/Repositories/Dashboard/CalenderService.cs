@@ -184,7 +184,7 @@ namespace DL.Repositories.Dashboard
             return new
             {
                 WaterTaken = CalculateWaterLitersFromNumberOfCups(waterTaken),
-                Points = weightLoss > 0 ? weightLoss : 0
+                Points = weightLoss
             };
         }
 
