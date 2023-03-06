@@ -45,7 +45,6 @@ namespace NutrishaAPI.Controllers.V1.Mobile
             if (user == null) return InvalidResult(NonLocalizedErrorMessages.InvalidId);
 
             await _appDbContext.Database.ExecuteSqlRawAsync(@$"
-                DELETE FROM PaymentHistory WHERE UserId = {_currentUserService.UserId};
                 DELETE FROM Comments WHERE UserId = {_currentUserService.UserId};
                 DELETE FROM ContactSupports WHERE UserId = {_currentUserService.UserId};
                 DELETE FROM MDislikeMeal WHERE UserId = {_currentUserService.UserId};

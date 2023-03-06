@@ -40,7 +40,7 @@ namespace DL.Repositories.ContactSupport
             return new PayloadServiceResult<long>(contactEntity.Id);
         }
 
-
+        
         public async Task<IEnumerable<LookupItem>> GetAllTypes()
         {
             return await _appDbContext.ContactSupportTypes
