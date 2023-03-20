@@ -62,6 +62,8 @@ namespace DL.Entities
         public DateTime? SubscriptionDate { get; set; }
         public string SubscriptionType { get; set; }
         public bool IsSubscribed { get; set; }
+        public bool IsManuallySubscribed { get; set; }
+        
         public double TotalAmountPaid { get; set; }
 
         public ICollection<MealPlanEntity> Plans { get; set; }

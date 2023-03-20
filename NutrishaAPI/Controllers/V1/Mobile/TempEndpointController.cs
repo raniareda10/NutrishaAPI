@@ -64,7 +64,7 @@ namespace NutrishaAPI.Controllers.V1.Mobile
         [HttpPost("SyncReminder")]
         public async Task<IActionResult> SyncReminder()
         {
-            var userIds = await _dbContext.MUser.Select(u => u.Id).ToListAsync();
+            var userIds = await _dbContext.MUser.AsQueryable().Select(u => u.Id).ToListAsync();
 
             foreach (var id in userIds)
             {
@@ -88,7 +88,7 @@ namespace NutrishaAPI.Controllers.V1.Mobile
         [HttpPost("SyncAllergies")]
         public async Task<IActionResult> SyncAllergies()
         {
-            var userIds = await _dbContext.MUser.Select(u => u.Id).ToListAsync();
+            var userIds = await _dbContext.MUser.AsQueryable().Select(u => u.Id).ToListAsync();
 
             foreach (var id in userIds)
             {
@@ -103,7 +103,7 @@ namespace NutrishaAPI.Controllers.V1.Mobile
         [HttpPost("SyncDislikes")]
         public async Task<IActionResult> SyncDislikes()
         {
-            var userIds = await _dbContext.MUser.Select(u => u.Id).ToListAsync();
+            var userIds = await _dbContext.MUser.AsQueryable().Select(u => u.Id).ToListAsync();
 
             foreach (var id in userIds)
             {

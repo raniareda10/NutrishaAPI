@@ -374,3 +374,5 @@ FodyWeavers.xsd
 wwwroot
 appsettings.Development.json
 launchSettings.json
+
+fire-store-credentials.json

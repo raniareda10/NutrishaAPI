@@ -17,6 +17,7 @@ using DL.EntitiesV1.Reactions;
 using DL.EntitiesV1.Reminders;
 using DL.EntitiesV1.Roles;
 using DL.EntitiesV1.ShoppingCartEntity;
+using DL.EntitiesV1.Subscriptions;
 using DL.EntitiesV1.Users;
 using DL.EntityTypeBuilders;
 using DL.StorageServices;
@@ -40,6 +41,7 @@ namespace DL.DBContext
         public DbSet<AdminUserEntity> AdminUsers { get; set; }
 
         #endregion
+
         #region Blogs
 
         public DbSet<Blog> Blogs { get; set; }
@@ -134,10 +136,12 @@ namespace DL.DBContext
         public DbSet<PermissionEntity> Permissions { get; set; }
         public DbSet<RolePermissionEntity> RolePermissions { get; set; }
 
+        public DbSet<SubscriptionInfoEntity> SubscriptionInfos { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDBContext).Assembly);
-            
+
             ConfigureBlogs(modelBuilder);
             ConfigureUsers(modelBuilder);
             ConfigureUserMeasurements(modelBuilder);

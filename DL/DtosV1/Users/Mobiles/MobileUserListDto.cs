@@ -16,6 +16,7 @@ namespace DL.DtosV1.Users.Mobiles
         public string SubscriptionType { get; set; }
         public bool IsSubscribed { get; set; }
         public double? TotalPaidAmount { get; set; }
+        public bool IsManuallySubscribed { get; set; }
     }
     
     

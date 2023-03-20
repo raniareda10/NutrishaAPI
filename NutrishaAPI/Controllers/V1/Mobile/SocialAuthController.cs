@@ -71,7 +71,7 @@ namespace NutrishaAPI.Controllers.V1.Mobile
 
             if (socialUser == null) return InvalidResult(NonLocalizedErrorMessages.InvalidParameters);
 
-            var user = await _appDbContext.MUser.FirstOrDefaultAsync(user => user.Email == socialUser.Email);
+            var user = await _appDbContext.MUser.AsQueryable().FirstOrDefaultAsync(user => user.Email == socialUser.Email);
 
             if (user == null)
             {

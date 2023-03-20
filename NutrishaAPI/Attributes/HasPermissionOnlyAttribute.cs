@@ -24,7 +24,7 @@ namespace NutrishaAPI.Attributes
             var dbContext = context.HttpContext.RequestServices.GetRequiredService<AppDBContext>();
             var userContext = context.HttpContext.RequestServices.GetRequiredService<ICurrentUserService>();
 
-            if (await dbContext.MUserRoles.AnyAsync(r =>
+            if (await dbContext.MUserRoles.AsQueryable().AnyAsync(r =>
                     r.AdminUserId == userContext.UserId &&
                     r.Role.RolePermissions.Any(p => p.Permission.Name == _permission)))
             {

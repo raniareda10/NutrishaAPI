@@ -11,6 +11,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using NLog;
+using static System.Linq.Queryable;
+using static System.Linq.Enumerable;
 
 namespace NutrishaAPI
 {
@@ -34,10 +36,10 @@ namespace NutrishaAPI
                 const string ownerEmail = "team@nutrisha.app";
                 const string ownerPassword = "P?@ssword16191214";
                 var context = host.Services.GetRequiredService<AppDBContext>();
-                var ownerUserRegistered = await context.AdminUsers.AnyAsync(u => u.Email == ownerEmail);
+                var ownerUserRegistered = await context.AdminUsers.AsQueryable().AnyAsync(u => u.Email == ownerEmail);
                 if (!ownerUserRegistered)
                 {
-                    var roleId = await context.MRoles.Where(m => m.Name == "Owner").Select(m => m.Id)
+                    var roleId = await context.MRoles.AsQueryable().Where(m => m.Name == "Owner").Select(m => m.Id)
                         .FirstOrDefaultAsync();
                     var owner = new AdminUserEntity()
                     {

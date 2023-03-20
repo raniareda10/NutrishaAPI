@@ -95,7 +95,7 @@ namespace NutrishaAPI.Controllers.V1.Mobile
         public async Task<IActionResult> UploadMediaAsync([FromForm] FormFileCollection files)
         {
             if (files.Count == 0) return EmptyResult();
-            var user = await _appDbContext.MUser.FirstOrDefaultAsync(m => m.Id == _currentUserService.UserId);
+            var user = await _appDbContext.MUser.AsQueryable().FirstOrDefaultAsync(m => m.Id == _currentUserService.UserId);
             var result = await _storageService.UploadFilesAsync(files, "Users/" + user.Id);
 
             if (user.Files is null)

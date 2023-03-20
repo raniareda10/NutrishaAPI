@@ -7,9 +7,13 @@ using DL.DtosV1.MealPlans;
 using DL.DtosV1.Users.Admins;
 using DL.DtosV1.Users.Mobiles;
 using DL.EntitiesV1.Measurements;
+using DL.EntitiesV1.Payments;
+using DL.EntitiesV1.Subscriptions;
 using DL.EntitiesV1.Users;
 using DL.Extensions;
+using DL.Migrations;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 namespace DL.Repositories.MobileUser
 {
@@ -73,7 +77,8 @@ namespace DL.Repositories.MobileUser
                     SubscriptionDate = m.SubscriptionDate,
                     SubscriptionType = m.SubscriptionType,
                     TotalPaidAmount = m.TotalAmountPaid,
-                    IsSubscribed = m.IsSubscribed
+                    IsSubscribed = m.IsSubscribed,
+                    IsManuallySubscribed = m.IsManuallySubscribed
                 })
                 .ToPagedListAsync(model);
         }
@@ -98,7 +103,8 @@ namespace DL.Repositories.MobileUser
                     Gender = m.Gender.Name,
                     LastMessage = m.LastMessage,
                     HasNewMessage = m.HasNewMessage,
-                    IsSubscribed = m.IsSubscribed
+                    IsSubscribed = m.IsSubscribed,
+                    IsManuallySubscribed = m.IsManuallySubscribed
                 })
                 .FirstOrDefaultAsync(m => m.Id == mobileUserId);
 
@@ -192,7 +198,7 @@ namespace DL.Repositories.MobileUser
             await _dbContext.UserPreventions.AddAsync(userPrevention);
             await _dbContext.SaveChangesAsync();
         }
-        
+
 
         public async Task SetUserBanFlagAsync(int userId, bool ban)
         {
@@ -265,6 +271,52 @@ namespace DL.Repositories.MobileUser
         {
             await _dbContext.Database.ExecuteSqlRawAsync(
                 $"UPDATE MUser SET HasNewMessage = true AND LastMessage = {message} WHERE Id = {userId}");
+        }
+
+        public async Task MakePremiumAsync(ManualAppSubscribeRequest manualAppSubscribeRequest)
+        {
+            var user = await _dbContext.MUser.AsQueryable().Where(u => u.Id == manualAppSubscribeRequest.UserId)
+                .FirstOrDefaultAsync();
+
+            var currentData = DateTime.UtcNow;
+            user.IsSubscribed = true;
+            user.IsManuallySubscribed = true;
+            user.SubscriptionDate = currentData;
+            user.TotalAmountPaid += manualAppSubscribeRequest.AmountPaid;
+
+            var payment = new PaymentHistoryEntity()
+            {
+                Created = currentData,
+                UserId = manualAppSubscribeRequest.UserId,
+                Currency = "EGP",
+                Price = manualAppSubscribeRequest.AmountPaid,
+                Type = "Manual",
+                IsHandled = true,
+                Event = JsonConvert.SerializeObject(manualAppSubscribeRequest)
+            };
+
+            await _dbContext.AddAsync(payment);
+            await _dbContext.SubscriptionInfos.AddAsync(new SubscriptionInfoEntity()
+            {
+                UserId = manualAppSubscribeRequest.UserId,
+                StartDate = currentData,
+                EndDate = manualAppSubscribeRequest.EndDate,
+            });
+
+            await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task RemovePremiumAsync(ManualAppSubscribeRequest manualAppSubscribeRequest)
+        {
+            var sqlScript = @$"
+                    UPDATE MUser Set IsSubscribed = 0, 
+                                     SubscriptionDate = null, 
+                                     IsManuallySubscribed = 0 
+                                 WHERE Id = {manualAppSubscribeRequest.UserId});
+                    
+                    DELETE FROM SubscriptionInfos WHERE UserId = {manualAppSubscribeRequest.UserId});";
+            
+            await _dbContext.Database.ExecuteSqlRawAsync(sqlScript);
         }
     }
 }

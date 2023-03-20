@@ -19,5 +19,6 @@ namespace DL.DtosV1.Users.Mobiles
         public UserMealPlans UserMealPlans { get; set; }
         public IList<UserPlanTemplateDto> LastUsedTemplates { get; set; }
         public IEnumerable<string> UserRisks { get; set; }
+        public bool IsManuallySubscribed { get; set; }
     }
 }
