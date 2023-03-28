@@ -81,6 +81,7 @@ namespace NutrishaAPI
             // IRecurringJobManager recurringJobManager,
             IServiceProvider serviceProvider)
         {
+
             app.UseMiddleware<ExceptionMiddleware>();
             app.UseSwagger();
             app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Api v1"));

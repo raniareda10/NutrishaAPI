@@ -104,6 +104,7 @@ namespace DL.Repositories.MobileUser
                     LastMessage = m.LastMessage,
                     HasNewMessage = m.HasNewMessage,
                     IsSubscribed = m.IsSubscribed,
+                    IsBanned = m.IsBanned,
                     IsManuallySubscribed = m.IsManuallySubscribed
                 })
                 .FirstOrDefaultAsync(m => m.Id == mobileUserId);

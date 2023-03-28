@@ -11,9 +11,7 @@ namespace NutrishaAPI.Attributes
     {
         public override Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
         {
-            var isAdmin = context.HttpContext
-                .User
-                .IsAdmin();
+            var isAdmin = context.HttpContext.User.IsAdmin();
 
 
             if (isAdmin)
