@@ -37,4 +37,9 @@
     <ItemGroup>
         <Content Remove="wwwroot\**" />
     </ItemGroup>
+
+    <ItemGroup>
+      <None Include="Controllers\LegacyControllers\packages.config" />
+      <None Include="Controllers\LegacyControllers\PrecompiledApp.config" />
+    </ItemGroup>
 </Project>

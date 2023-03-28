@@ -269,8 +269,8 @@ namespace NutrishaAPI.Controllers.V1.Mobile
         //     public string AccessToken { get; set; }
         //     public string User { get; set; }
         // }
-
-        public string GetAppleEmailFromToken(string accessToken)
+        [NonAction]
+        public string  GetAppleEmailFromToken(string accessToken)
         {
             var jwt = new JwtSecurityTokenHandler().ReadJwtToken(accessToken);
 
