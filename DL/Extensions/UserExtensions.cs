@@ -41,7 +41,8 @@ namespace DL.Extensions
                     Password = u.Password,
                     Name = u.Name,
                     PersonalImage = u.PersonalImage,
-                    RoleName = u.Roles.First().Role.Name
+                    RoleName = u.Roles.First().Role.Name,
+                    IsOwned = u.Roles.FirstOrDefault(c=>c.RoleId ==1) != null ? true:false,
                 })
                 .FirstOrDefaultAsync();
 

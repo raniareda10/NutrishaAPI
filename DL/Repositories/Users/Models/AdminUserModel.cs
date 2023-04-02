@@ -19,5 +19,7 @@ namespace DL.Repositories.Users.Models
         public IEnumerable<string> Permissions { get; set; }
         public IEnumerable<RoleDto> Roles { get; set; }
         public string RoleName { get; set; }
+        public bool IsOwned { get; set; }
+        
     }
 }

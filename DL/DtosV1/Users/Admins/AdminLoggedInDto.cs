@@ -10,6 +10,7 @@ namespace DL.DtosV1.Users.Admins
         public string Name { get; set; }
         public string Language { get; set; }
         public string PersonalImage { get; set; }
+        public bool IsOwned { get; set; }
         public IEnumerable<string> Permissions { get; set; }
 
         public static AdminLoggedInDto FromAdminModel(AdminUserModel adminUserModel)
@@ -20,6 +21,7 @@ namespace DL.DtosV1.Users.Admins
                 Id = adminUserModel.Id,
                 Language = adminUserModel.Language,
                 PersonalImage = adminUserModel.PersonalImage,
+                IsOwned = adminUserModel.IsOwned,
                 Permissions = adminUserModel.Permissions
             };
         }
