@@ -46,7 +46,7 @@ namespace DL.Repositories
                 CoverImage = meal.CoverImage,
                 MealSteps = meal.MealSteps,
                 Allergies = meal.Allergies,
-                Ingredients = meal.Ingredients.Select(m => m.IngredientName),
+                Ingredients = meal.Ingredients.Select(m => m.IngredientName +"-" + m.Quantity),
                 isFavorite = isFavorite
             };
         }
