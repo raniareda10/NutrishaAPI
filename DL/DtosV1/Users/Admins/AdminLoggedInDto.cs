@@ -19,6 +19,7 @@ namespace DL.DtosV1.Users.Admins
             {
                 Email = adminUserModel.Email,
                 Id = adminUserModel.Id,
+                Name = adminUserModel.Name,
                 Language = adminUserModel.Language,
                 PersonalImage = adminUserModel.PersonalImage,
                 IsOwned = adminUserModel.IsOwned,

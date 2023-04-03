@@ -201,7 +201,7 @@ namespace DL.Repositories.Users.Admins
                        $"<p>Please use these credential to login <a href={_adminUrl}>Nutrisha</a></p>" +
                        "<p>Your credential</p>" +
                        $"<p>Email: {email}</p>" +
-                       $"<p>Password: {password}</p>" +
+                       //$"<p>Password: {password}</p>" +
                        "<p style='color: red'>Please Consider Change Your password as fast as possible</p>";
 
             mailRequest.Body = body;
