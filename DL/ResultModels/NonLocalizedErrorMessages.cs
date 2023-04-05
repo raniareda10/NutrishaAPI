@@ -3,6 +3,7 @@
     public class NonLocalizedErrorMessages
     {
         public const string InvalidParameters = "Invalid Parameters";
+        public const string DeletedUser = "User Is Deleted";
         public const string InvalidId = "Please provide valid Id.";
         public const string NoEntityWithThisId = "No Entity With This Id.";
         public const string InValidPageCountOrSize = "Please Enter Valid Page Size or Number.";

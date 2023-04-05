@@ -3,6 +3,7 @@ using DL.DtosV1.Users.Admins;
 using DL.DtosV1.Users.Mobiles;
 using DL.Repositories.MobileUser;
 using DL.Repositories.Permissions;
+using DL.Repositories.Users.Admins;
 using DL.ResultModels;
 using Google.Cloud.Firestore;
 using Microsoft.AspNetCore.Mvc;
@@ -14,22 +15,41 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Users
     {
         private readonly MobileUserRepository _mobileUserRepository;
         private readonly FirestoreDb _firestoreDb;
-
-        public MobileUserController(MobileUserRepository mobileUserRepository, FirestoreDb firestoreDb)
+        private readonly AdminUserRepository _adminAuthRepository;
+        public MobileUserController(MobileUserRepository mobileUserRepository, FirestoreDb firestoreDb, AdminUserRepository adminAuthRepository)
         {
             _mobileUserRepository = mobileUserRepository;
             _firestoreDb = firestoreDb;
+            _adminAuthRepository = adminAuthRepository;
         }
 
         [HttpGet("GetPagedList")]
         public async Task<IActionResult> GetPagedListAsync([FromQuery] GetUserMobilePagedListQueryModel model)
         {
+            var user = _adminAuthRepository.GetCurrentUserAsync();
+            if (user != null)
+            {
+                bool isDeleted = _adminAuthRepository.CheckDeletedAdminUser(user.Id);
+                if (isDeleted)
+                {
+                    return InvalidResult(NonLocalizedErrorMessages.DeletedUser);
+                }
+            }
             return PagedResult(await _mobileUserRepository.GetPagedListAsync(model));
         }
 
         [HttpGet("GetUserDetails")]
         public async Task<IActionResult> GetUserDetailsAsync(int userId)
         {
+            var user = _adminAuthRepository.GetCurrentUserAsync();
+            if (user != null)
+            {
+                bool isDeleted = _adminAuthRepository.CheckDeletedAdminUser(user.Id);
+                if (isDeleted)
+                {
+                    return InvalidResult(NonLocalizedErrorMessages.DeletedUser);
+                }
+            }
             var result = await _mobileUserRepository.GetUserDetailsAsync(userId);
             return result == null ? InvalidResult(NonLocalizedErrorMessages.InvalidId) : ItemResult(result);
         }
@@ -37,6 +57,15 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Users
         [HttpGet("UserMessageSeen")]
         public async Task<IActionResult> UserMessageSeenAsync(int userId)
         {
+            var user = _adminAuthRepository.GetCurrentUserAsync();
+            if (user != null)
+            {
+                bool isDeleted = _adminAuthRepository.CheckDeletedAdminUser(user.Id);
+                if (isDeleted)
+                {
+                    return InvalidResult(NonLocalizedErrorMessages.DeletedUser);
+                }
+            }
             await _mobileUserRepository.UserMessageSeenAsync(userId);
             return EmptyResult();
         }
@@ -44,6 +73,15 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Users
         [HttpGet("GetUserPersonalDetails")]
         public async Task<IActionResult> GetUserPersonalDetailsAsync(int userId)
         {
+            var user = _adminAuthRepository.GetCurrentUserAsync();
+            if (user != null)
+            {
+                bool isDeleted = _adminAuthRepository.CheckDeletedAdminUser(user.Id);
+                if (isDeleted)
+                {
+                    return InvalidResult(NonLocalizedErrorMessages.DeletedUser);
+                }
+            }
             var result = await _mobileUserRepository.GetUserPersonalDetailsAsync(userId);
             return ItemResult(result);
         }
@@ -52,6 +90,15 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Users
         [HasPermissionOnly(PermissionNames.CanBanAppUsers)]
         public async Task<IActionResult> BanUserAsync([FromQuery] int userId)
         {
+            var user = _adminAuthRepository.GetCurrentUserAsync();
+            if (user != null)
+            {
+                bool isDeleted = _adminAuthRepository.CheckDeletedAdminUser(user.Id);
+                if (isDeleted)
+                {
+                    return InvalidResult(NonLocalizedErrorMessages.DeletedUser);
+                }
+            }
             await _mobileUserRepository.SetUserBanFlagAsync(userId, true);
             return EmptyResult();
         }
@@ -60,6 +107,15 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Users
         [HasPermissionOnly(PermissionNames.CanBanAppUsers)]
         public async Task<IActionResult> UnBanUserAsync([FromQuery] int userId)
         {
+            var user = _adminAuthRepository.GetCurrentUserAsync();
+            if (user != null)
+            {
+                bool isDeleted = _adminAuthRepository.CheckDeletedAdminUser(user.Id);
+                if (isDeleted)
+                {
+                    return InvalidResult(NonLocalizedErrorMessages.DeletedUser);
+                }
+            }
             await _mobileUserRepository.SetUserBanFlagAsync(userId, false);
             return EmptyResult();
         }
@@ -67,6 +123,15 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Users
         [HttpPost("Prevent")]
         public async Task<IActionResult> PreventUserAsync([FromBody] PreventUserDto preventUserDto)
         {
+            var user = _adminAuthRepository.GetCurrentUserAsync();
+            if (user != null)
+            {
+                bool isDeleted = _adminAuthRepository.CheckDeletedAdminUser(user.Id);
+                if (isDeleted)
+                {
+                    return InvalidResult(NonLocalizedErrorMessages.DeletedUser);
+                }
+            }
             await _mobileUserRepository.PreventUserAsync(preventUserDto);
             return EmptyResult();
         }
@@ -75,6 +140,15 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Users
         public async Task<IActionResult> MakePremiumAsync(
             [FromBody] ManualAppSubscribeRequest manualAppSubscribeRequest)
         {
+            var user = _adminAuthRepository.GetCurrentUserAsync();
+            if (user != null)
+            {
+                bool isDeleted = _adminAuthRepository.CheckDeletedAdminUser(user.Id);
+                if (isDeleted)
+                {
+                    return InvalidResult(NonLocalizedErrorMessages.DeletedUser);
+                }
+            }
             await _mobileUserRepository.MakePremiumAsync(manualAppSubscribeRequest);
             await _firestoreDb.Collection("users").Document(manualAppSubscribeRequest.UserId.ToString()).CreateAsync(new
             {
@@ -90,6 +164,15 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Users
         public async Task<IActionResult> RemovePremiumAsync(
             [FromBody] ManualAppSubscribeRequest manualAppSubscribeRequest)
         {
+            var user = _adminAuthRepository.GetCurrentUserAsync();
+            if (user != null)
+            {
+                bool isDeleted = _adminAuthRepository.CheckDeletedAdminUser(user.Id);
+                if (isDeleted)
+                {
+                    return InvalidResult(NonLocalizedErrorMessages.DeletedUser);
+                }
+            }
             await _mobileUserRepository.RemovePremiumAsync(manualAppSubscribeRequest);
             await _firestoreDb.Collection("users").Document(manualAppSubscribeRequest.UserId.ToString()).DeleteAsync();
             return EmptyResult();

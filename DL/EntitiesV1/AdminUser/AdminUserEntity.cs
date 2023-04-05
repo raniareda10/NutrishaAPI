@@ -12,6 +12,8 @@ namespace DL.EntitiesV1.AdminUser
         public string Email { get; set; }
         public string Password { get; set; }
         public string PersonalImage { get; set; }
+        public bool IsActive { get; set; }
+        public bool IsDeleted { get; set; }
         public ICollection<MUserRoles> Roles { get; set; }
     }
 }

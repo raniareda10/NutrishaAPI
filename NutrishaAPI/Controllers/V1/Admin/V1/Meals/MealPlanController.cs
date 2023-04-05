@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using DL.CommonModels;
 using DL.DtosV1.Meals;
 using DL.Repositories.Meals;
+using DL.Repositories.Users.Admins;
 using DL.ResultModels;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,15 +13,25 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Meals
     public class MealPlanController : BaseAdminV1Controller
     {
         private readonly MealPlanRepository _mealRepository;
-
-        public MealPlanController(MealPlanRepository mealRepository)
+        private readonly AdminUserRepository _adminAuthRepository;
+        public MealPlanController(MealPlanRepository mealRepository, AdminUserRepository adminAuthRepository)
         {
             _mealRepository = mealRepository;
+            _adminAuthRepository = adminAuthRepository;
         }
 
         [HttpPost("PostMealPlan")]
         public async Task<IActionResult> PostMealPlanAsync([FromBody] PostMealPlanDto postMealDto)
         {
+            var user = _adminAuthRepository.GetCurrentUserAsync();
+            if (user != null)
+            {
+                bool isDeleted = _adminAuthRepository.CheckDeletedAdminUser(user.Id);
+                if (isDeleted)
+                {
+                    return InvalidResult(NonLocalizedErrorMessages.DeletedUser);
+                }
+            }
             if (postMealDto.Meals == null ||
                 postMealDto.Meals.Count is < 1 or > 7 ||
                 postMealDto.Meals.Select(m => m.Day).Distinct().Count() < 7)
@@ -43,6 +54,15 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Meals
         [HttpPut("UpdateMealPlan")]
         public async Task<IActionResult> UpdateMealPlanAsync([FromBody] UpdateMealPlan updateMealDto)
         {
+            var user = _adminAuthRepository.GetCurrentUserAsync();
+            if (user != null)
+            {
+                bool isDeleted = _adminAuthRepository.CheckDeletedAdminUser(user.Id);
+                if (isDeleted)
+                {
+                    return InvalidResult(NonLocalizedErrorMessages.DeletedUser);
+                }
+            }
             if (updateMealDto.Id < 1)
             {
                 return InvalidResult(NonLocalizedErrorMessages.InvalidParameters);
@@ -96,6 +116,15 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Meals
         [HttpGet("GetTemplatePagedList")]
         public async Task<IActionResult> GetTemplatePagedListAsync([FromQuery] GetPagedListQueryModel query)
         {
+            var user = _adminAuthRepository.GetCurrentUserAsync();
+            if (user != null)
+            {
+                bool isDeleted = _adminAuthRepository.CheckDeletedAdminUser(user.Id);
+                if (isDeleted)
+                {
+                    return InvalidResult(NonLocalizedErrorMessages.DeletedUser);
+                }
+            }
             var result = await _mealRepository.GetTemplatePagedListAsync(query);
             return PagedResult(result);
         }
@@ -104,6 +133,15 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Meals
         [HttpGet("GetTemplateById")]
         public async Task<IActionResult> GetTemplateByIdAsync([FromQuery] long id)
         {
+            var user = _adminAuthRepository.GetCurrentUserAsync();
+            if (user != null)
+            {
+                bool isDeleted = _adminAuthRepository.CheckDeletedAdminUser(user.Id);
+                if (isDeleted)
+                {
+                    return InvalidResult(NonLocalizedErrorMessages.DeletedUser);
+                }
+            }
             var result = await _mealRepository.GetTemplateByIdAsync(id);
 
             return ItemResult(result);
@@ -112,6 +150,15 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Meals
         [HttpDelete("Delete")]
         public async Task<IActionResult> DeleteTemplateAsync([FromQuery] long id)
         {
+            var user = _adminAuthRepository.GetCurrentUserAsync();
+            if (user != null)
+            {
+                bool isDeleted = _adminAuthRepository.CheckDeletedAdminUser(user.Id);
+                if (isDeleted)
+                {
+                    return InvalidResult(NonLocalizedErrorMessages.DeletedUser);
+                }
+            }
             var result = await _mealRepository.DeleteTemplateAsync(id);
 
             if (result.Success)

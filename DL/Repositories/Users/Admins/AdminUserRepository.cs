@@ -162,7 +162,12 @@ namespace DL.Repositories.Users.Admins
 
         public async Task DeleteUserAsync(long id)
         {
-            await _dbContext.Database.ExecuteSqlRawAsync($"DELETE FROM AdminUsers WHERE id = {id}");
+            var user = await _dbContext.AdminUsers.FirstOrDefaultAsync(m => m.Id == id);
+
+            user.IsDeleted = true;
+            _dbContext.Update(user);
+            await _dbContext.SaveChangesAsync();
+          //  await _dbContext.Database.ExecuteSqlRawAsync($"DELETE FROM AdminUsers WHERE id = {id}");
         }
 
         public async Task<AdminLoggedInDto> UpdateProfileAsync(UpdateAdminProfileRequest updateAdminProfileDto)
@@ -207,6 +212,18 @@ namespace DL.Repositories.Users.Admins
 
             mailRequest.Body = body;
             return mailRequest;
+        }
+
+        public bool CheckDeletedAdminUser(int userId)
+        {
+            bool isDeleted = false;
+            var result = _dbContext.AdminUsers.FirstOrDefault(m => m.Id == userId && m.IsDeleted);
+            if (result != null)
+            {
+                isDeleted = true;
+            }
+            return isDeleted;
+
         }
     }
 }
