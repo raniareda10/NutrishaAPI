@@ -18,10 +18,11 @@ namespace DL.Repositories.Blogs
             _dbContext = DbContext;
         }
 
-
         public async Task<IList<BlogTagDto>> GetAllTags(string keyword)
         {
-            var query = _dbContext.BlogTag.AsQueryable();
+           // var query = _dbContext.BlogTag.AsQueryable();
+            var query = _dbContext.Blogs.Select(c => c.Tag).AsQueryable();
+
             if (!string.IsNullOrWhiteSpace(keyword))
             {
                 query = query.Where(s => s.Name.Contains(keyword));
