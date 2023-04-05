@@ -8,6 +8,7 @@ namespace DL.EntitiesV1.Allergies
         public MUser User { get; set; }
         public bool IsSelected { get; set; }
         public string Title { get; set; }
+        public string TitleAr { get; set; }
         public bool IsCreatedByUser { get; set; }
     }
 }

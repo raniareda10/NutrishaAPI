@@ -44,7 +44,7 @@ namespace NutrishaAPI.Controllers.V1.Mobile
             if (string.IsNullOrWhiteSpace(postAllergyDto.AllergyName))
                 return InvalidResult(NonLocalizedErrorMessages.InvalidParameters);
             
-            var result = await _allergyService.AddCustomAllergiesAsync(postAllergyDto.AllergyName);
+            var result = await _allergyService.AddCustomAllergiesAsync(postAllergyDto.AllergyName, postAllergyDto.AllergyNameAr);
             return ItemResult(result);
         }
     }

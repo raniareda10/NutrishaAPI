@@ -12,5 +12,7 @@ namespace DL.DTOs.GenderDTO
         [MinLength(3), MaxLength(50)]
         public string Name { get; set; }
 
+        public string NameAr { get; set; }
+
     }
 }

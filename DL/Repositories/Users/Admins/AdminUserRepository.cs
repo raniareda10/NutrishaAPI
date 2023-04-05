@@ -121,6 +121,7 @@ namespace DL.Repositories.Users.Admins
             {
                 Name = createAdminDto.UserName,
                 Email = createAdminDto.Email,
+                Created = DateTime.UtcNow,
                 Password = PasswordHasher.HashPassword(password),
                 Roles = new List<MUserRoles>()
                 {

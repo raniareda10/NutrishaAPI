@@ -30,6 +30,7 @@ namespace DL.Repositories.Allergy
                 {
                     Id = allergy.Id,
                     Name = allergy.Title,
+                    NameAr = allergy.TitleAr,
                     IsSelected = allergy.IsSelected,
                     IsCreatedByUser = allergy.IsCreatedByUser
                 }).ToListAsync();
@@ -74,9 +75,9 @@ namespace DL.Repositories.Allergy
             return new BaseServiceResult();
         }
 
-        public async Task<AllergyDto> AddCustomAllergiesAsync(string allergyName)
+        public async Task<AllergyDto> AddCustomAllergiesAsync(string allergyName, string allergyNameAr)
         {
-            var userAllergy = CreateSharedUserAllergyEntity(_currentUserService.UserId, allergyName);
+            var userAllergy = CreateSharedUserAllergyEntity(_currentUserService.UserId, allergyName, allergyNameAr);
             userAllergy.IsCreatedByUser = true;
             userAllergy.IsSelected = true;
             await _appDbContext.UserAllergy.AddAsync(userAllergy);
@@ -86,6 +87,7 @@ namespace DL.Repositories.Allergy
             {
                 Id = userAllergy.Id,
                 Name = allergyName,
+                NameAr = allergyNameAr,
                 IsSelected = true,
                 IsCreatedByUser = true
             };
@@ -95,26 +97,27 @@ namespace DL.Repositories.Allergy
         {
             await _appDbContext.AddRangeAsync(new object[]
             {
-                CreateSharedUserAllergyEntity(userId, "Dairy"),
-                CreateSharedUserAllergyEntity(userId, "Egg"),
-                CreateSharedUserAllergyEntity(userId, "Fish"),
-                CreateSharedUserAllergyEntity(userId, "Shellfish"),
-                CreateSharedUserAllergyEntity(userId, "Peanuts"),
-                CreateSharedUserAllergyEntity(userId, "Sesame"),
-                CreateSharedUserAllergyEntity(userId, "Gluten"),
+                CreateSharedUserAllergyEntity(userId, "Dairy","البان"),
+                CreateSharedUserAllergyEntity(userId, "Egg","بيض"),
+                CreateSharedUserAllergyEntity(userId, "Fish","سمك"),
+                CreateSharedUserAllergyEntity(userId, "Shellfish","المحار"),
+                CreateSharedUserAllergyEntity(userId, "Peanuts","الفول السودانى"),
+                CreateSharedUserAllergyEntity(userId, "Sesame","السمسم"),
+                CreateSharedUserAllergyEntity(userId, "Gluten","الغولتين"),
             });
 
             await _appDbContext.SaveChangesAsync();
         }
 
 
-        private UserAllergy CreateSharedUserAllergyEntity(int userId, string title)
+        private UserAllergy CreateSharedUserAllergyEntity(int userId, string title, string titleAr)
         {
             return new UserAllergy()
             {
                 Created = DateTime.UtcNow,
                 UserId = userId,
-                Title = title
+                Title = title,
+                 TitleAr = titleAr
             };
         }
     }

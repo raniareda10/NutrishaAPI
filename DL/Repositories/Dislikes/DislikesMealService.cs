@@ -33,6 +33,7 @@ namespace DL.Repositories.Dislikes
                 {
                     Id = dislike.Id,
                     Name = dislike.Title,
+                    NameAr = dislike.TitleAr,
                     IsSelected = dislike.IsSelected,
                     DislikeMealType = dislike.DislikeType
                 }).ToListAsync();
@@ -76,10 +77,10 @@ namespace DL.Repositories.Dislikes
             return new BaseServiceResult();
         }
 
-        public async Task<DislikesDto> AddCustomAllergiesAsync(string dislikeMealName)
+        public async Task<DislikesDto> AddCustomAllergiesAsync(string dislikeMealName,string dislikeMealNameAr)
         {
             var disLikedMeal = CreateSharedDisLikedMeal(_currentUserService.UserId, 
-                DislikeMealType.Other, dislikeMealName);
+                DislikeMealType.Other, dislikeMealName, dislikeMealNameAr);
             
             disLikedMeal.IsSelected = true;
             await _appDbContext.UserDislikes.AddAsync(disLikedMeal);
@@ -89,6 +90,7 @@ namespace DL.Repositories.Dislikes
             {
                 Id = disLikedMeal.Id,
                 Name = dislikeMealName,
+                NameAr = dislikeMealNameAr,
                 IsSelected = true,
                 DislikeMealType = DislikeMealType.Other
             };
@@ -103,12 +105,13 @@ namespace DL.Repositories.Dislikes
         }
 
 
-        private UserDislikes CreateSharedDisLikedMeal(int userId, DislikeMealType dislikeMealType, string title = null)
+        private UserDislikes CreateSharedDisLikedMeal(int userId, DislikeMealType dislikeMealType, string title = null, string titleAr = null)
         {
             return new UserDislikes()
             {
                 Created = DateTime.UtcNow,
                 Title = title ?? dislikeMealType.ToString(),
+                TitleAr = titleAr ?? dislikeMealType.ToString(),
                 DislikeType = dislikeMealType,
                 UserId = userId
             };
