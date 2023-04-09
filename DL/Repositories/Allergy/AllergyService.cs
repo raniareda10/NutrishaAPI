@@ -77,6 +77,14 @@ namespace DL.Repositories.Allergy
 
         public async Task<AllergyDto> AddCustomAllergiesAsync(string allergyName, string allergyNameAr)
         {
+            if(allergyName == null || allergyName == "")
+            {
+                allergyName = allergyNameAr;
+            }
+            if (allergyNameAr == null || allergyNameAr == "")
+            {
+                allergyNameAr = allergyName;
+            }
             var userAllergy = CreateSharedUserAllergyEntity(_currentUserService.UserId, allergyName, allergyNameAr);
             userAllergy.IsCreatedByUser = true;
             userAllergy.IsSelected = true;

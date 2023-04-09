@@ -23,14 +23,10 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Meals
         [HttpPost("Post")]
         public async Task<IActionResult> Post([FromForm] PostMealDto postMealDto)
         {
-            var user = _adminAuthRepository.GetCurrentUserAsync();
-            if (user != null)
+            bool isDeleted = _adminAuthRepository.CheckDeletedAdminUser();
+            if (isDeleted)
             {
-                bool isDeleted = _adminAuthRepository.CheckDeletedAdminUser(user.Id);
-                if(isDeleted)
-                {
-                    return InvalidResult(NonLocalizedErrorMessages.DeletedUser);
-                }
+                return InvalidDeleteResult(NonLocalizedErrorMessages.DeletedUser);
             }
             if (!postMealDto.IsValid())
             {
@@ -44,14 +40,10 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Meals
         [HttpPut("Put")]
         public async Task<IActionResult> PutAsync([FromForm] EditMealDto editMealDto)
         {
-            var user = _adminAuthRepository.GetCurrentUserAsync();
-            if (user != null)
+            bool isDeleted = _adminAuthRepository.CheckDeletedAdminUser();
+            if (isDeleted)
             {
-                bool isDeleted = _adminAuthRepository.CheckDeletedAdminUser(user.Id);
-                if (isDeleted)
-                {
-                    return InvalidResult(NonLocalizedErrorMessages.DeletedUser);
-                }
+                return InvalidDeleteResult(NonLocalizedErrorMessages.DeletedUser);
             }
             if (!editMealDto.IsValid())
             {
@@ -66,14 +58,10 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Meals
         [HttpDelete("Delete")]
         public async Task<IActionResult> DeleteAsync([FromQuery] long id)
         {
-            var user = _adminAuthRepository.GetCurrentUserAsync();
-            if (user != null)
+            bool isDeleted = _adminAuthRepository.CheckDeletedAdminUser();
+            if (isDeleted)
             {
-                bool isDeleted = _adminAuthRepository.CheckDeletedAdminUser(user.Id);
-                if (isDeleted)
-                {
-                    return InvalidResult(NonLocalizedErrorMessages.DeletedUser);
-                }
+                return InvalidDeleteResult(NonLocalizedErrorMessages.DeletedUser);
             }
             if (id < 1)
             {
@@ -89,14 +77,10 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Meals
         [HttpPost("PostIngredient")]
         public async Task<IActionResult> PostIngredient([FromBody] PostLookupItem postLookupItem)
         {
-            var user = _adminAuthRepository.GetCurrentUserAsync();
-            if (user != null)
+            bool isDeleted = _adminAuthRepository.CheckDeletedAdminUser();
+            if (isDeleted)
             {
-                bool isDeleted = _adminAuthRepository.CheckDeletedAdminUser(user.Id);
-                if (isDeleted)
-                {
-                    return InvalidResult(NonLocalizedErrorMessages.DeletedUser);
-                }
+                return InvalidDeleteResult(NonLocalizedErrorMessages.DeletedUser);
             }
             var result = await _mealRepository.PostIngredientAsync(postLookupItem);
             return result.Success ? EmptyResult() : InvalidResult(result.Errors);
@@ -105,14 +89,10 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Meals
         [HttpGet("GetPagedList")]
         public async Task<IActionResult> GetPagedListAsync([FromQuery] GetMealsPagedListQuery getPagedListQueryModel)
         {
-            var user = _adminAuthRepository.GetCurrentUserAsync();
-            if (user != null)
+            bool isDeleted = _adminAuthRepository.CheckDeletedAdminUser();
+            if (isDeleted)
             {
-                bool isDeleted = _adminAuthRepository.CheckDeletedAdminUser(user.Id);
-                if (isDeleted)
-                {
-                    return InvalidResult(NonLocalizedErrorMessages.DeletedUser);
-                }
+                return InvalidDeleteResult(NonLocalizedErrorMessages.DeletedUser);
             }
             var result = await _mealRepository.GetMealsAsync(getPagedListQueryModel);
             return PagedResult(result);
@@ -121,14 +101,10 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Meals
         [HttpGet("GetMealsLookup")]
         public async Task<IActionResult> GetMealsLookupAsync()
         {
-            var user = _adminAuthRepository.GetCurrentUserAsync();
-            if (user != null)
+            bool isDeleted = _adminAuthRepository.CheckDeletedAdminUser();
+            if (isDeleted)
             {
-                bool isDeleted = _adminAuthRepository.CheckDeletedAdminUser(user.Id);
-                if (isDeleted)
-                {
-                    return InvalidResult(NonLocalizedErrorMessages.DeletedUser);
-                }
+                return InvalidDeleteResult(NonLocalizedErrorMessages.DeletedUser);
             }
             var result = await _mealRepository.GetMealsLookupAsync();
             return ItemResult(result);
@@ -138,14 +114,10 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Meals
         [HttpGet("GetById")]
         public async Task<IActionResult> GetByIdAsync([FromQuery] long id)
         {
-            var user = _adminAuthRepository.GetCurrentUserAsync();
-            if (user != null)
+            bool isDeleted = _adminAuthRepository.CheckDeletedAdminUser();
+            if (isDeleted)
             {
-                bool isDeleted = _adminAuthRepository.CheckDeletedAdminUser(user.Id);
-                if (isDeleted)
-                {
-                    return InvalidResult(NonLocalizedErrorMessages.DeletedUser);
-                }
+                return InvalidDeleteResult(NonLocalizedErrorMessages.DeletedUser);
             }
             var result = await _mealRepository.GetByIdAsync(id);
             return ItemResult(result);
@@ -154,14 +126,10 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Meals
         [HttpGet("GetIngredientLookup")]
         public async Task<IActionResult> GetIngredientLookupAsync([FromQuery] string searchWord)
         {
-            var user = _adminAuthRepository.GetCurrentUserAsync();
-            if (user != null)
+            bool isDeleted = _adminAuthRepository.CheckDeletedAdminUser();
+            if (isDeleted)
             {
-                bool isDeleted = _adminAuthRepository.CheckDeletedAdminUser(user.Id);
-                if (isDeleted)
-                {
-                    return InvalidResult(NonLocalizedErrorMessages.DeletedUser);
-                }
+                return InvalidDeleteResult(NonLocalizedErrorMessages.DeletedUser);
             }
             var result = await _mealRepository.GetIngredientLookupAsync(searchWord);
             return ItemResult(result);

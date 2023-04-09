@@ -40,6 +40,8 @@ namespace DL.Extensions
                     Email = u.Email,
                     Password = u.Password,
                     Name = u.Name,
+                    IsDeleted = u.IsDeleted,
+                    IsActive = u.IsActive,
                     PersonalImage = u.PersonalImage,
                     RoleName = u.Roles.First().Role.Name,
                     IsOwned = u.Roles.FirstOrDefault(c=>c.RoleId ==1) != null ? true:false,

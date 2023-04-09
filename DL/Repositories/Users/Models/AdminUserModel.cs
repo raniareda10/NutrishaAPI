@@ -20,6 +20,8 @@ namespace DL.Repositories.Users.Models
         public IEnumerable<RoleDto> Roles { get; set; }
         public string RoleName { get; set; }
         public bool IsOwned { get; set; }
-        
+        public bool IsActive { get; set; }
+        public bool IsDeleted { get; set; }
+
     }
 }

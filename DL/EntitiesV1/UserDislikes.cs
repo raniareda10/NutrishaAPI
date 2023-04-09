@@ -9,6 +9,6 @@ namespace DL.EntitiesV1
         public bool IsSelected { get; set; }
         public string Title { get; set; }
         public string TitleAr { get; set; }
-        public DislikeMealType DislikeType { get; set; }
+        public int DislikeType { get; set; }
     }
 }

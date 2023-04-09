@@ -214,10 +214,10 @@ namespace DL.Repositories.Users.Admins
             return mailRequest;
         }
 
-        public bool CheckDeletedAdminUser(int userId)
+        public bool CheckDeletedAdminUser()
         {
             bool isDeleted = false;
-            var result = _dbContext.AdminUsers.FirstOrDefault(m => m.Id == userId && m.IsDeleted);
+            var result = _dbContext.AdminUsers.FirstOrDefault(m => m.Id == _currentUserService.UserId && m.IsDeleted);
             if (result != null)
             {
                 isDeleted = true;

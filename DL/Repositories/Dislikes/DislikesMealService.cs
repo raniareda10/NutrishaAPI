@@ -46,15 +46,15 @@ namespace DL.Repositories.Dislikes
                 .Select(dislike => dislike.Title)
                 .ToListAsync();
         }
-        
+
         public async Task<BaseServiceResult> PutAsync(PutDisLikesDto putAllergyDto)
         {
             var userAllergies = await _appDbContext.UserDislikes
                 .AsNoTracking()
                 .Where(allergy => allergy.UserId == _currentUserService.UserId)
                 .ToListAsync();
-            
-            
+
+
             foreach (var userDislikedMeal in userAllergies)
             {
                 if (putAllergyDto.DislikedMealIds.Contains(userDislikedMeal.Id))
@@ -77,11 +77,18 @@ namespace DL.Repositories.Dislikes
             return new BaseServiceResult();
         }
 
-        public async Task<DislikesDto> AddCustomAllergiesAsync(string dislikeMealName,string dislikeMealNameAr)
+        public async Task<DislikesDto> AddCustomAllergiesAsync(string dislikeMealName, string dislikeMealNameAr)
         {
-            var disLikedMeal = CreateSharedDisLikedMeal(_currentUserService.UserId, 
-                DislikeMealType.Other, dislikeMealName, dislikeMealNameAr);
-            
+            if (dislikeMealName == null || dislikeMealName == "")
+            {
+                dislikeMealName = dislikeMealNameAr;
+            }
+            if (dislikeMealNameAr == null || dislikeMealNameAr == "")
+            {
+                dislikeMealNameAr = dislikeMealName;
+            }
+            var disLikedMeal = CreateSharedDisLikedMeal(_currentUserService.UserId, dislikeMealName, dislikeMealNameAr,13);
+
             disLikedMeal.IsSelected = true;
             await _appDbContext.UserDislikes.AddAsync(disLikedMeal);
             await _appDbContext.SaveChangesAsync();
@@ -92,31 +99,48 @@ namespace DL.Repositories.Dislikes
                 Name = dislikeMealName,
                 NameAr = dislikeMealNameAr,
                 IsSelected = true,
-                DislikeMealType = DislikeMealType.Other
+                DislikeMealType = 13
             };
         }
 
         public async Task AddDefaultDislikesAsync(int userId)
         {
-            await _appDbContext.UserDislikes.AddRangeAsync(DislikeMealConstants.DislikedMealsType
-                .Select(type => CreateSharedDisLikedMeal(userId, type)));
+
+            await _appDbContext.AddRangeAsync(new object[]
+          {
+                CreateSharedDisLikedMeal(userId, "WhiteFish","السمك الابيض",0),
+                CreateSharedDisLikedMeal(userId, "Tuna","تونه",1),
+                CreateSharedDisLikedMeal(userId, "Salmon","سالمون",2),
+                CreateSharedDisLikedMeal(userId, "Shrimp","جمبرى",3),
+                CreateSharedDisLikedMeal(userId, "RedMeat","لحم احر",4),
+                CreateSharedDisLikedMeal(userId, "Poultry","دواجن",5),
+                CreateSharedDisLikedMeal(userId, "Park","الخضار",6),
+                CreateSharedDisLikedMeal(userId, "Eggs","بيض",7),
+                CreateSharedDisLikedMeal(userId, "BlueCheese","جبنة زرقاء",8),
+                CreateSharedDisLikedMeal(userId, "GoatCheese","جبن الماعز",9),
+                CreateSharedDisLikedMeal(userId, "Mayonnaise","مايونيز",10),
+                CreateSharedDisLikedMeal(userId, "Avocado","افوكادو",11),
+                CreateSharedDisLikedMeal(userId, "Banana","الموز",12),
+                CreateSharedDisLikedMeal(userId, "Other","اخرى",13),
+
+          });
 
             await _appDbContext.SaveChangesAsync();
         }
 
 
-        private UserDislikes CreateSharedDisLikedMeal(int userId, DislikeMealType dislikeMealType, string title = null, string titleAr = null)
+        private UserDislikes CreateSharedDisLikedMeal(int userId, string title = null, string titleAr = null,int dislikeMealTypeId=0)
         {
             return new UserDislikes()
             {
                 Created = DateTime.UtcNow,
-                Title = title ?? dislikeMealType.ToString(),
-                TitleAr = titleAr ?? dislikeMealType.ToString(),
-                DislikeType = dislikeMealType,
+                Title = title,
+                TitleAr = titleAr,
+                DislikeType = dislikeMealTypeId,
                 UserId = userId
             };
         }
 
-        
+
     }
 }

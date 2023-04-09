@@ -63,5 +63,15 @@ namespace NutrishaAPI.Controllers.V1
                 StatusCode = 400
             });
         }
+
+        protected IActionResult InvalidDeleteResult(string error)
+        {
+            return Unauthorized(new BaseResponse<object>()
+            {
+                Done = false,
+                ErrorMessage = error,
+                StatusCode = 401
+            });
+        }
     }
 }

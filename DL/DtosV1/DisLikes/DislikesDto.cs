@@ -8,6 +8,6 @@ namespace DL.DtosV1.DisLikes
         public string Name { get; set; }
         public string NameAr { get; set; }
         public bool IsSelected { get; set; }
-        public DislikeMealType DislikeMealType { get; set; }
+        public int DislikeMealType { get; set; }
     }
 }
