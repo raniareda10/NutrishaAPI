@@ -65,7 +65,7 @@ namespace DL.Repositories.Users.Admins
         public async Task<PagedResult<dynamic>> GetPagedListAsync(GetAdminUserPagedListQueryDto model)
         {
             var userQuery = _dbContext.AdminUsers
-                .Where(m => m.Id != _currentUserService.UserId);
+                .Where(m => m.Id != _currentUserService.UserId && !m.IsDeleted);
 
             if (!string.IsNullOrWhiteSpace(model.SearchWord))
             {
