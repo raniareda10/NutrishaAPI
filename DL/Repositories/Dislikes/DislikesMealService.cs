@@ -112,7 +112,7 @@ namespace DL.Repositories.Dislikes
                 CreateSharedDisLikedMeal(userId, "Tuna","تونه",1),
                 CreateSharedDisLikedMeal(userId, "Salmon","سالمون",2),
                 CreateSharedDisLikedMeal(userId, "Shrimp","جمبرى",3),
-                CreateSharedDisLikedMeal(userId, "RedMeat","لحم احر",4),
+                CreateSharedDisLikedMeal(userId, "RedMeat","لحم احمر",4),
                 CreateSharedDisLikedMeal(userId, "Poultry","دواجن",5),
                 CreateSharedDisLikedMeal(userId, "Park","الخضار",6),
                 CreateSharedDisLikedMeal(userId, "Eggs","بيض",7),
