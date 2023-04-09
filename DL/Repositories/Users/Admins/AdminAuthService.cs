@@ -52,7 +52,11 @@ namespace DL.Repositories.Users.Admins
                 result.Errors.Add(NonLocalizedErrorMessages.WrongCredential);
                 return result;
             }
-
+            if (currentUser.IsDeleted)
+            {
+                result.Errors.Add(NonLocalizedErrorMessages.DeletedUser);
+                return result;
+            }
             var token = _tokenService.GenerateAdminToken(currentUser);
 
             result.Data = new
