@@ -144,7 +144,7 @@ namespace DL.Repositories.MobileUser
                 .Where(dislike => dislike.UserId == mobileUserId && dislike.IsSelected)
                 .Select(dislike => dislike.Title).ToListAsync();
 
-            var plans = await _dbContext.MealPlans.Where(m => m.UserId == mobileUserId)
+            var plans = await _dbContext.MealPlans.Where(m => m.UserId == mobileUserId && m.EndDate > DateTime.Today)
                 .Include(m => m.PlanDays)
                 .ThenInclude(m => m.PlanMeals)
                 .ThenInclude(m => m.Meals)
