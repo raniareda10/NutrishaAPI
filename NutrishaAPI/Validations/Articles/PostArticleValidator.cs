@@ -38,7 +38,7 @@ namespace NutrishaAPI.Validations.Articles
                 result.AddError("Please Add Cover Image.");
                 return result;
             }
-            
+
             if (model.Files.All(f => f.Flags?.Contains(MediaFlags.CoverImage) == false))
             {
                 result.AddError("Please Add Cover Image.");
