@@ -129,6 +129,7 @@ namespace DL.Repositories.MealPlan
                 DayId = planDayEntity.Id,
                 DayOfWeek = currentDay,
                 TakenWaterCupsCount = planDayEntity.TakenWaterCupsCount,
+                IsExercised = planDayEntity.IsExercised,
                 Meals = meals
             };
         }
@@ -189,7 +190,19 @@ namespace DL.Repositories.MealPlan
             _dbContext.Update(day);
             await _dbContext.SaveChangesAsync();
         }
+        public async Task AddIsExercisedAsync(long dayId, bool isExercised)
+        {
 
+            var day = await _dbContext.PlanDays
+                .Where(d => d.Id == dayId && d.MealPlan.UserId == _currentUserService.UserId)
+                .FirstOrDefaultAsync();
+
+            if (day is null) return;
+
+            day.IsExercised = isExercised;
+            _dbContext.Update(day);
+            await _dbContext.SaveChangesAsync();
+        }
         public async Task UserCLickedIAmHungryAsync(long planId)
         {
             await _dbContext.Database.ExecuteSqlRawAsync(

@@ -160,6 +160,7 @@ namespace DL.Repositories.MobileUser
                     {
                         day = day.Day,
                         WaterCount = day.TakenWaterCupsCount,
+                        IsExercised = day.IsExercised,
                         Menus = day.PlanMeals.Select(menu => new
                         {
                             Id = menu.Id,
