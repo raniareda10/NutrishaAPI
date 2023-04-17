@@ -12,6 +12,7 @@ namespace DL.Entities
         [Required]
         [MinLength(3), MaxLength(100)]
         public string Name { get; set; }
+        public string NameAr { get; set; }
         public string Notes { get; set; } = string.Empty;
     }
 }

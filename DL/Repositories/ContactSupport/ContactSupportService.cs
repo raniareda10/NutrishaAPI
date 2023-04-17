@@ -41,10 +41,10 @@ namespace DL.Repositories.ContactSupport
         }
 
         
-        public async Task<IEnumerable<LookupItem>> GetAllTypes()
+        public async Task<IEnumerable<LookupItemAr>> GetAllTypes()
         {
             return await _appDbContext.ContactSupportTypes
-                .Select(s => new LookupItem(s.Id, s.Name))
+                .Select(s => new LookupItemAr(s.Id, s.Name,s.NameAr))
                 .ToListAsync();
         }
     }
