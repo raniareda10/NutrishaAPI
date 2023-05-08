@@ -180,7 +180,6 @@ namespace DL.Repositories.Dashboard
             var waterTaken = isSubscribed
                 ? await GetSubscribedDashboardDetailsAsync(day)
                 : await GetUnSubscribedDashboardDetailsAsync(day);
-
             var weightLoss = await _appDbContext.GetWeightLossAsync(_currentUserService.UserId);
             return new
             {
