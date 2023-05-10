@@ -70,12 +70,9 @@ namespace DL.Repositories.MealPlan
                     })
             };
         }
-
         public async Task<object> GetTodayMealsAsync()
         {
-            var currentDate = DateTime
-                .UtcNow
-                .AddHours(_currentUserService.UserTimeZoneDifference);
+            var currentDate = DateTime.UtcNow.AddHours(_currentUserService.UserTimeZoneDifference);
 
             var currentDay = currentDate.DayOfWeek;
             var planDayEntity = await _dbContext.PlanDays

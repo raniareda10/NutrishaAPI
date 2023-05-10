@@ -117,7 +117,7 @@ namespace DL.Repositories.Dashboard
                 WaterTaken = planInTheMonth.TakenWaterCupsCount,
                 IsExercised = planInTheMonth.IsExercised,
                 Meals = planInTheMonth.PlanMeals
-                    .Where(m => !m.IsSkipped)
+                    .Where(m => !m.IsSkipped&& m.IsEaten)
                     .Select(m => new
                 {
                     MealType = m.MealType,
@@ -136,7 +136,7 @@ namespace DL.Repositories.Dashboard
             var endDay = day.AddDays(1);
             var startDays = await _appDbContext.Dairies
                 .AsNoTracking()
-                .Where(d => d.UserId == _currentUserService.UserId)
+                .Where(d => d.UserId == _currentUserService.UserId )
                 .Where(GetDairyFilter(day, endDay))
                 .Select(d => new
                 {
@@ -191,6 +191,7 @@ namespace DL.Repositories.Dashboard
         private async Task<int> GetSubscribedDashboardDetailsAsync(DateTime day)
         {
             var dayOfWeek = day.AddHours(_currentUserService.UserTimeZoneDifference).DayOfWeek;
+            var currentDate = day.AddHours(_currentUserService.UserTimeZoneDifference);
             var start = day.AddDays(-NumberOfDaysInWeek);
             var endDay = day.AddDays(1);
             var waterTakenInDay = await _appDbContext.PlanDays
@@ -199,7 +200,7 @@ namespace DL.Repositories.Dashboard
                 .ThenInclude(m => m.Meals)
                 .ThenInclude(m => m.Meal)
                 .Where(p => p.MealPlan.UserId == _currentUserService.UserId)
-                .Where(d => d.MealPlan.StartDate >= start && d.MealPlan.StartDate < endDay)
+                .Where(d => d.MealPlan.StartDate.Value.AddHours(_currentUserService.UserTimeZoneDifference) <= currentDate && d.MealPlan.EndDate.Value.AddHours(_currentUserService.UserTimeZoneDifference) >= currentDate)
                 .Where(p => p.Day == dayOfWeek)
                 .Select(m => m.TakenWaterCupsCount)
                 .FirstOrDefaultAsync();
