@@ -104,6 +104,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
         [ProducesResponseType(typeof(UserWithTokenDTO), StatusCodes.Status200OK)]
         public async Task<IActionResult> LogIn(ApiLoginModelDTO request)
         {
+            var x = _locale;
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);

@@ -319,7 +319,7 @@ namespace DL.Repositories.MealPlan
             return menu;
         }
 
-        public async Task<BaseServiceResult> AddExtraBiteMealAsync(AddExtraBitesDto dto)
+        public async Task<BaseServiceResult> AddExtraBiteMealAsync(AddExtraBitesDto dto,string local)
         {
             var result = new BaseServiceResult();
             var extraBitesMenu = await _dbContext.PlanDays
@@ -345,7 +345,15 @@ namespace DL.Repositories.MealPlan
 
             if (extraBitesMenu.Menu?.NumberOfMeals >= 3)
             {
-                result.Errors.Add("You can add 3 bites only");
+                if(local.Contains("ar"))
+                {
+                    result.Errors.Add("يجب اضافة ثلاثة فقط");
+                }
+                else
+                {
+                    result.Errors.Add("You can add 3 bites only");
+                }
+           
                 return result;
             }
 

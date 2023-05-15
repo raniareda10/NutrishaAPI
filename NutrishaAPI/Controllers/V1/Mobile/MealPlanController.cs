@@ -2,6 +2,7 @@
 using DL.DtosV1.MealPlans;
 using DL.Repositories.MealPlan;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NutrishaAPI.Controllers.V1.Mobile.Bases;
 
@@ -10,10 +11,11 @@ namespace NutrishaAPI.Controllers.V1.Mobile
     public class MealPlanController : BaseMobileController
     {
         private readonly MobileMealPlanRepository _mobileMealPlanRepository;
-
-        public MealPlanController(MobileMealPlanRepository mobileMealPlanRepository)
+        private readonly string _locale;
+        public MealPlanController(MobileMealPlanRepository mobileMealPlanRepository, IHttpContextAccessor httpContextAccessor)
         {
             _mobileMealPlanRepository = mobileMealPlanRepository;
+            _locale = httpContextAccessor.HttpContext.Request.Headers["Accept-Language"];
         }
 
         [HttpGet("GetTodayMeals")]
@@ -85,7 +87,7 @@ namespace NutrishaAPI.Controllers.V1.Mobile
         [HttpPut("AddExtraBiteMeal")]
         public async Task<IActionResult> AddExtraBiteMealAsync([FromBody] AddExtraBitesDto dto)
         {
-            var result = await _mobileMealPlanRepository.AddExtraBiteMealAsync(dto);
+            var result = await _mobileMealPlanRepository.AddExtraBiteMealAsync(dto,_locale);
             return result.Success ? EmptyResult() : InvalidResult(result.Errors);
         }
     }
