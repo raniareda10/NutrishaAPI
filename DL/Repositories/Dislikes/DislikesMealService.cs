@@ -17,7 +17,7 @@ namespace DL.Repositories.Dislikes
     {
         private readonly AppDBContext _appDbContext;
         private readonly ICurrentUserService _currentUserService;
-
+         
         public DislikesMealService(AppDBContext appDbContext,
             ICurrentUserService currentUserService)
         {
@@ -25,18 +25,34 @@ namespace DL.Repositories.Dislikes
             _currentUserService = currentUserService;
         }
 
-        public async Task<IList<DislikesDto>> GetAllAsync()
+        public async Task<IList<DislikesDto>> GetAllAsync(string _locale)
         {
-            return await _appDbContext.UserDislikes
+            if (_locale.Contains("ar"))
+            {
+                return await _appDbContext.UserDislikes
                 .Where(dislike => dislike.UserId == _currentUserService.UserId)
                 .Select(dislike => new DislikesDto()
                 {
                     Id = dislike.Id,
-                    Name = dislike.Title,
+                    Name = dislike.TitleAr,
                     NameAr = dislike.TitleAr,
                     IsSelected = dislike.IsSelected,
                     DislikeMealType = dislike.DislikeType
                 }).ToListAsync();
+            }
+            else
+            {
+                return await _appDbContext.UserDislikes
+                                .Where(dislike => dislike.UserId == _currentUserService.UserId)
+                                .Select(dislike => new DislikesDto()
+                                {
+                                    Id = dislike.Id,
+                                    Name = dislike.Title,
+                                    NameAr = dislike.TitleAr,
+                                    IsSelected = dislike.IsSelected,
+                                    DislikeMealType = dislike.DislikeType
+                                }).ToListAsync();
+            }
         }
 
         public async Task<List<string>> GetSelectAllergyNamesAsync()
@@ -77,7 +93,7 @@ namespace DL.Repositories.Dislikes
             return new BaseServiceResult();
         }
 
-        public async Task<DislikesDto> AddCustomAllergiesAsync(string dislikeMealName, string dislikeMealNameAr)
+        public async Task<DislikesDto> AddCustomAllergiesAsync(string dislikeMealName, string dislikeMealNameAr, string _locale)
         {
             if (dislikeMealName == null || dislikeMealName == "")
             {
@@ -87,20 +103,35 @@ namespace DL.Repositories.Dislikes
             {
                 dislikeMealNameAr = dislikeMealName;
             }
-            var disLikedMeal = CreateSharedDisLikedMeal(_currentUserService.UserId, dislikeMealName, dislikeMealNameAr,13);
+          
+                var disLikedMeal = CreateSharedDisLikedMeal(_currentUserService.UserId, dislikeMealName, dislikeMealNameAr,13);
 
             disLikedMeal.IsSelected = true;
             await _appDbContext.UserDislikes.AddAsync(disLikedMeal);
             await _appDbContext.SaveChangesAsync();
-
-            return new DislikesDto()
+            if (_locale.Contains("ar"))
             {
-                Id = disLikedMeal.Id,
-                Name = dislikeMealName,
-                NameAr = dislikeMealNameAr,
-                IsSelected = true,
-                DislikeMealType = 13
-            };
+                return new DislikesDto()
+                {
+                    Id = disLikedMeal.Id,
+                    Name = dislikeMealNameAr,
+                    NameAr = dislikeMealNameAr,
+                    IsSelected = true,
+                    DislikeMealType = 13
+                };
+            }
+            else
+            {
+                return new DislikesDto()
+                {
+                    Id = disLikedMeal.Id,
+                    Name = dislikeMealName,
+                    NameAr = dislikeMealNameAr,
+                    IsSelected = true,
+                    DislikeMealType = 13
+                };
+            }
+        
         }
 
         public async Task AddDefaultDislikesAsync(int userId)

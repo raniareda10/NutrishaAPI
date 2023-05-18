@@ -6,6 +6,7 @@ using DL.Repositories.Allergy;
 using DL.Repositories.Dislikes;
 using DL.ResultModels;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NutrishaAPI.Controllers.V1.Mobile.Bases;
 
@@ -15,16 +16,17 @@ namespace NutrishaAPI.Controllers.V1.Mobile
     public class DislikeMealController : BaseMobileController
     {
         private readonly DislikesMealService _dislikesMealService;
-
-        public DislikeMealController(DislikesMealService dislikesMealService)
+        private readonly string _locale;
+        public DislikeMealController(DislikesMealService dislikesMealService, IHttpContextAccessor httpContextAccessor)
         {
             _dislikesMealService = dislikesMealService;
+            _locale = httpContextAccessor.HttpContext.Request.Headers["Accept-Language"];
         }
 
         [HttpGet("GetAll")]
         public async Task<IActionResult> GetAllAllergiesAsync()
         {
-            return ListResult(await _dislikesMealService.GetAllAsync());
+            return ListResult(await _dislikesMealService.GetAllAsync(_locale));
         }
 
         [HttpGet("GetSelectedDislikedMeals")]
