@@ -23,15 +23,17 @@ namespace DL.DtosV1.Meals
             if (MealType == MealType.Supplement)
             {
                 return !string.IsNullOrWhiteSpace(Name) &&
-                       !string.IsNullOrWhiteSpace(Allergies) &&
+                    
                        CoverImage != null;
+                //  !string.IsNullOrWhiteSpace(Allergies) &&
             }
-            
-            
+
+
             return !string.IsNullOrWhiteSpace(Name) &&
-                   !string.IsNullOrWhiteSpace(CockingTime) &&
-                   !string.IsNullOrWhiteSpace(PreparingTime) &&
-                   !string.IsNullOrWhiteSpace(Allergies) && CoverImage != null;
+                   CoverImage != null;
+            //!string.IsNullOrWhiteSpace(CockingTime) &&
+            //      !string.IsNullOrWhiteSpace(PreparingTime) &&
+            //      !string.IsNullOrWhiteSpace(Allergies) &&
             //!string.IsNullOrWhiteSpace(MealSteps) &&
             //&& Ingredients is { Count: > 0 } && 
             //Ingredients.All(ingre => ingre.Quantity > 0 &&

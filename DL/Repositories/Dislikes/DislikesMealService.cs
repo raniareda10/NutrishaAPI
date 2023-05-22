@@ -93,7 +93,7 @@ namespace DL.Repositories.Dislikes
             return new BaseServiceResult();
         }
 
-        public async Task<DislikesDto> AddCustomAllergiesAsync(string dislikeMealName, string dislikeMealNameAr, string _locale)
+        public async Task<DislikesDto> AddCustomAllergiesAsync(string dislikeMealName, string dislikeMealNameAr)
         {
             if (dislikeMealName == null || dislikeMealName == "")
             {
@@ -103,35 +103,20 @@ namespace DL.Repositories.Dislikes
             {
                 dislikeMealNameAr = dislikeMealName;
             }
-          
-                var disLikedMeal = CreateSharedDisLikedMeal(_currentUserService.UserId, dislikeMealName, dislikeMealNameAr,13);
+            var disLikedMeal = CreateSharedDisLikedMeal(_currentUserService.UserId, dislikeMealName, dislikeMealNameAr,13);
 
             disLikedMeal.IsSelected = true;
             await _appDbContext.UserDislikes.AddAsync(disLikedMeal);
             await _appDbContext.SaveChangesAsync();
-            if (_locale.Contains("ar"))
+
+            return new DislikesDto()
             {
-                return new DislikesDto()
-                {
-                    Id = disLikedMeal.Id,
-                    Name = dislikeMealNameAr,
-                    NameAr = dislikeMealNameAr,
-                    IsSelected = true,
-                    DislikeMealType = 13
-                };
-            }
-            else
-            {
-                return new DislikesDto()
-                {
-                    Id = disLikedMeal.Id,
-                    Name = dislikeMealName,
-                    NameAr = dislikeMealNameAr,
-                    IsSelected = true,
-                    DislikeMealType = 13
-                };
-            }
-        
+                Id = disLikedMeal.Id,
+                Name = dislikeMealName,
+                NameAr = dislikeMealNameAr,
+                IsSelected = true,
+                DislikeMealType = 13
+            };
         }
 
         public async Task AddDefaultDislikesAsync(int userId)
