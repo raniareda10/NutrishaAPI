@@ -114,7 +114,7 @@ namespace DL.Repositories.Dashboard
 
             return new
             {
-                WaterTaken = planInTheMonth.TakenWaterCupsCount,
+                WaterTaken = CalculateWaterLitersFromNumberOfCups(planInTheMonth.TakenWaterCupsCount),
                 IsExercised = planInTheMonth.IsExercised,
                 Meals = planInTheMonth.PlanMeals
                     .Where(m => !m.IsSkipped&& m.IsEaten)
