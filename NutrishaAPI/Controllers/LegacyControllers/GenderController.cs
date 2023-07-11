@@ -28,14 +28,15 @@ namespace NutrishaAPI.Controllers.LegacyControllers
         private readonly IMapper _mapper;
         private ILoggerManager _logger;
         private readonly BaseResponseHelper baseResponse;
-
-        public GenderController(IUnitOfWork uow ,IHostingEnvironment hostingEnvironment, IMapper mapper, ILoggerManager logger)
+        private readonly string _locale;
+        public GenderController(IUnitOfWork uow ,IHostingEnvironment hostingEnvironment, IMapper mapper, ILoggerManager logger, IHttpContextAccessor httpContextAccessor)
         {
             _uow = uow; 
             _hostingEnvironment = _hostingEnvironment;
             _mapper = mapper;
             _logger = logger;
             baseResponse = new BaseResponseHelper();
+            _locale = httpContextAccessor.HttpContext.Request.Headers["Accept-Language"];
         }
 
 

@@ -32,7 +32,7 @@ namespace NutrishaAPI.Controllers.V1.Mobile
         [HttpGet("GetSelectedDislikedMeals")]
         public async Task<IActionResult> GetSelectedDislikedMealsAsync()
         {
-            return ListResult(await _dislikesMealService.GetSelectAllergyNamesAsync());
+            return ListResult(await _dislikesMealService.GetSelectAllergyNamesAsync(_locale));
         }
         
         [HttpPut("Put")]

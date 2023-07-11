@@ -22,27 +22,54 @@ namespace DL.Repositories.Allergy
             _currentUserService = currentUserService;
         }
 
-        public async Task<IList<AllergyDto>> GetAllAsync()
+        public async Task<IList<AllergyDto>> GetAllAsync(string _locale)
         {
-            return await _appDbContext.UserAllergy
+            if (_locale.Contains("ar"))
+            {
+                return await _appDbContext.UserAllergy
                 .Where(allergy => allergy.UserId == _currentUserService.UserId)
                 .Select(allergy => new AllergyDto()
                 {
                     Id = allergy.Id,
-                    Name = allergy.Title,
+                    Name = allergy.TitleAr,
                     NameAr = allergy.TitleAr,
                     IsSelected = allergy.IsSelected,
                     IsCreatedByUser = allergy.IsCreatedByUser
                 }).ToListAsync();
-        }
+            }
+            else
+            {
+                return await _appDbContext.UserAllergy
+                               .Where(allergy => allergy.UserId == _currentUserService.UserId)
+                               .Select(allergy => new AllergyDto()
+                               {
+                                   Id = allergy.Id,
+                                   Name = allergy.Title,
+                                   NameAr = allergy.TitleAr,
+                                   IsSelected = allergy.IsSelected,
+                                   IsCreatedByUser = allergy.IsCreatedByUser
+                               }).ToListAsync();
+
+            }
+            }
 
         
-        public async Task<IList<string>> GetSelectAllergyNamesAsync()
+        public async Task<IList<string>> GetSelectAllergyNamesAsync(string _locale)
         {
-            return await _appDbContext.UserAllergy
+            if (_locale.Contains("ar"))
+            {
+                return await _appDbContext.UserAllergy
                 .Where(allergy => allergy.UserId == _currentUserService.UserId && allergy.IsSelected)
-                .Select(allergy => allergy.Title).ToListAsync();
-        }
+                .Select(allergy => allergy.TitleAr).ToListAsync();
+            }
+            else
+            {
+                return await _appDbContext.UserAllergy
+                            .Where(allergy => allergy.UserId == _currentUserService.UserId && allergy.IsSelected)
+                            .Select(allergy => allergy.Title).ToListAsync();
+
+            }
+           }
         
         public async Task<BaseServiceResult> PutAsync(PutAllergyDto putAllergyDto)
         {

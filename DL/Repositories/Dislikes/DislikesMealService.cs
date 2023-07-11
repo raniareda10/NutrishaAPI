@@ -55,12 +55,22 @@ namespace DL.Repositories.Dislikes
             }
         }
 
-        public async Task<List<string>> GetSelectAllergyNamesAsync()
+        public async Task<List<string>> GetSelectAllergyNamesAsync(string _locale)
         {
-            return await _appDbContext.UserDislikes
+            if (_locale.Contains("ar"))
+            {
+                return await _appDbContext.UserDislikes
                 .Where(dislike => dislike.UserId == _currentUserService.UserId && dislike.IsSelected)
-                .Select(dislike => dislike.Title)
+                .Select(dislike => dislike.TitleAr)
                 .ToListAsync();
+            }
+            else
+            {
+                return await _appDbContext.UserDislikes
+                             .Where(dislike => dislike.UserId == _currentUserService.UserId && dislike.IsSelected)
+                             .Select(dislike => dislike.Title)
+                             .ToListAsync();
+            }
         }
 
         public async Task<BaseServiceResult> PutAsync(PutDisLikesDto putAllergyDto)
