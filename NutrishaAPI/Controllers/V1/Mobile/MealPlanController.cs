@@ -85,7 +85,7 @@ namespace NutrishaAPI.Controllers.V1.Mobile
         }
 
         [HttpPut("AddExtraBiteMeal")]
-        public async Task<IActionResult> AddExtraBiteMealAsync([FromBody] AddExtraBitesDto dto)
+        public async Task<IActionResult> AddExtraBiteMealAsync([FromBody] AddExtraBitesDto dto, [FromHeader(Name = "Accept-Language")] string _locale)
         {
             var result = await _mobileMealPlanRepository.AddExtraBiteMealAsync(dto,_locale);
             return result.Success ? EmptyResult() : InvalidResult(result.Errors);

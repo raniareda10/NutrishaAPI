@@ -344,7 +344,7 @@ namespace DL.Repositories.MealPlan
 
             if (extraBitesMenu.Menu?.NumberOfMeals >= 3)
             {
-                if(local.Contains("ar"))
+                if(local != null && local.Contains("ar"))
                 {
                     result.Errors.Add("يجب اضافة ثلاثة فقط");
                 }

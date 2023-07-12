@@ -21,13 +21,13 @@ namespace NutrishaAPI.Controllers.V1.Mobile
         }
 
         [HttpGet("GetAll")]
-        public async Task<IActionResult> GetAllAllergiesAsync()
+        public async Task<IActionResult> GetAllAllergiesAsync([FromHeader(Name = "Accept-Language")] string _locale)
         {
             return ListResult(await _allergyService.GetAllAsync(_locale));
         }
         
         [HttpGet("GetSelectedAllergies")]
-        public async Task<IActionResult> GetSelectedAllergiesAsync()
+        public async Task<IActionResult> GetSelectedAllergiesAsync([FromHeader(Name = "Accept-Language")] string _locale)
         {
             return ListResult(await _allergyService.GetSelectAllergyNamesAsync(_locale));
         }

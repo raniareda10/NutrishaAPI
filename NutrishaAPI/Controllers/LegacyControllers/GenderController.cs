@@ -24,15 +24,15 @@ namespace NutrishaAPI.Controllers.LegacyControllers
     public class GenderController : Controller
     {
         private readonly IUnitOfWork _uow; 
-        private readonly IHostingEnvironment _hostingEnvironment; 
+       // private readonly IHostingEnvironment _hostingEnvironment; 
         private readonly IMapper _mapper;
         private ILoggerManager _logger;
         private readonly BaseResponseHelper baseResponse;
         private readonly string _locale;
-        public GenderController(IUnitOfWork uow ,IHostingEnvironment hostingEnvironment, IMapper mapper, ILoggerManager logger, IHttpContextAccessor httpContextAccessor)
+        public GenderController(IUnitOfWork uow , IMapper mapper, ILoggerManager logger, IHttpContextAccessor httpContextAccessor)
         {
             _uow = uow; 
-            _hostingEnvironment = _hostingEnvironment;
+         //   _hostingEnvironment = _hostingEnvironment;
             _mapper = mapper;
             _logger = logger;
             baseResponse = new BaseResponseHelper();

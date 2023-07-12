@@ -10,16 +10,15 @@ using DL.Repositories.Dislikes.Constants;
 using DL.ResultModels;
 using Microsoft.EntityFrameworkCore;
 using Org.BouncyCastle.Bcpg;
-
+using Microsoft.AspNetCore.Http;
 namespace DL.Repositories.Dislikes
 {
     public class DislikesMealService
     {
         private readonly AppDBContext _appDbContext;
         private readonly ICurrentUserService _currentUserService;
-         
         public DislikesMealService(AppDBContext appDbContext,
-            ICurrentUserService currentUserService)
+            ICurrentUserService currentUserService, IHttpContextAccessor httpContextAccessor)
         {
             _appDbContext = appDbContext;
             _currentUserService = currentUserService;
@@ -27,7 +26,7 @@ namespace DL.Repositories.Dislikes
 
         public async Task<IList<DislikesDto>> GetAllAsync(string _locale)
         {
-            if (_locale.Contains("ar"))
+            if (_locale != null && _locale.Contains("ar"))
             {
                 return await _appDbContext.UserDislikes
                 .Where(dislike => dislike.UserId == _currentUserService.UserId)
@@ -57,7 +56,7 @@ namespace DL.Repositories.Dislikes
 
         public async Task<List<string>> GetSelectAllergyNamesAsync(string _locale)
         {
-            if (_locale.Contains("ar"))
+            if (_locale != null && _locale.Contains("ar"))
             {
                 return await _appDbContext.UserDislikes
                 .Where(dislike => dislike.UserId == _currentUserService.UserId && dislike.IsSelected)

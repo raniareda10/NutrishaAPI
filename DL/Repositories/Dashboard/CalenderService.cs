@@ -159,7 +159,7 @@ namespace DL.Repositories.Dashboard
             var waterCupCount = waterCup ? water.Count() : 0;
             return new
             {
-                WaterTaken = waterCupCount,
+                WaterTaken = CalculateWaterLitersFromNumberOfCups(waterCupCount),
                 Meals = data.Select(m => new
                 {
                     MealType = m.Key,

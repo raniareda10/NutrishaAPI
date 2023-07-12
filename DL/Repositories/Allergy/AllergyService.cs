@@ -24,7 +24,7 @@ namespace DL.Repositories.Allergy
 
         public async Task<IList<AllergyDto>> GetAllAsync(string _locale)
         {
-            if (_locale.Contains("ar"))
+            if (_locale != null && _locale.Contains("ar"))
             {
                 return await _appDbContext.UserAllergy
                 .Where(allergy => allergy.UserId == _currentUserService.UserId)
@@ -56,7 +56,7 @@ namespace DL.Repositories.Allergy
         
         public async Task<IList<string>> GetSelectAllergyNamesAsync(string _locale)
         {
-            if (_locale.Contains("ar"))
+            if (_locale != null && _locale.Contains("ar"))
             {
                 return await _appDbContext.UserAllergy
                 .Where(allergy => allergy.UserId == _currentUserService.UserId && allergy.IsSelected)
