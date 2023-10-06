@@ -127,7 +127,7 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Users
             });
             return EmptyResult();
         }
-        
+
         [HttpPost("RemovePremium")]
         public async Task<IActionResult> RemovePremiumAsync(
             [FromBody] ManualAppSubscribeRequest manualAppSubscribeRequest)

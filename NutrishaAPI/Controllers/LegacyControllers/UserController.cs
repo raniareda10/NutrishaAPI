@@ -104,7 +104,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
         [ProducesResponseType(typeof(UserWithTokenDTO), StatusCodes.Status200OK)]
         public async Task<IActionResult> LogIn(ApiLoginModelDTO request)
         {
-         //   var x = _locale;
+            //   var x = _locale;
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
@@ -536,7 +536,7 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                 return StatusCode((int)HttpStatusCode.BadRequest, baseResponse);
             }
 
-            
+
         }
 
         [HttpPost, Route("GetVerifyCode")]
@@ -571,13 +571,13 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                 {
                     int num = new Random().Next(1000, 9999);
                     verfiyCode = new MVerfiyCode
-                        { Date = DateTime.Now.AddMinutes(5), Mobile = userMobileEmaiDTO.Mobile, VirfeyCode = num };
+                    { Date = DateTime.Now.AddMinutes(5), Mobile = userMobileEmaiDTO.Mobile, VirfeyCode = num };
                     _uow.VerfiyCodeRepository.Add(verfiyCode);
                     _uow.Save();
                 }
 
                 _smsGetaway.SendMessageAsync($"Your verification code is {verfiyCode.VirfeyCode}",
-                    userMobileEmaiDTO.Mobile);
+                    "20" + userMobileEmaiDTO.Mobile);
                 baseResponse.data = verfiyCode;
                 baseResponse.total_rows = 1;
                 baseResponse.statusCode = (int)HttpStatusCode.OK; // Errors.Success;
@@ -600,7 +600,8 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                     await _mailService.SendWelcomeEmailAsync(new WelcomeRequest
                     {
                         ToEmail = user.Email,
-                        UserName = userMobileEmaiDTO.Email, Id = 0,
+                        UserName = userMobileEmaiDTO.Email,
+                        Id = 0,
                         VerifyCode = num.ToString()
                     });
                 }
@@ -608,12 +609,14 @@ namespace NutrishaAPI.Controllers.LegacyControllers
                 {
                     int num = new Random().Next(1000, 9999);
                     verfiyCode = new MVerfiyCode
-                        { Date = DateTime.Now.AddMinutes(5), Email = userMobileEmaiDTO.Email, VirfeyCode = num };
+                    { Date = DateTime.Now.AddMinutes(5), Email = userMobileEmaiDTO.Email, VirfeyCode = num };
                     _uow.VerfiyCodeRepository.Add(verfiyCode);
                     _uow.Save();
                     await _mailService.SendWelcomeEmailAsync(new WelcomeRequest
                     {
-                        ToEmail = userMobileEmaiDTO.Email, UserName = userMobileEmaiDTO.Email, Id = 0,
+                        ToEmail = userMobileEmaiDTO.Email,
+                        UserName = userMobileEmaiDTO.Email,
+                        Id = 0,
                         VerifyCode = num.ToString()
                     });
                 }

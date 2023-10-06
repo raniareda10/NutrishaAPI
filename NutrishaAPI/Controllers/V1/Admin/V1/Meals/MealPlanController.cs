@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using DL.CommonModels;
@@ -108,13 +109,13 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Meals
         [HttpGet("GetTemplatePagedList")]
         public async Task<IActionResult> GetTemplatePagedListAsync([FromQuery] GetPagedListQueryModel query)
         {
-            
-                bool isDeleted = _adminAuthRepository.CheckDeletedAdminUser();
-                if (isDeleted)
-                {
-                    return InvalidDeleteResult(NonLocalizedErrorMessages.DeletedUser);
-                }
-            
+
+            bool isDeleted = _adminAuthRepository.CheckDeletedAdminUser();
+            if (isDeleted)
+            {
+                return InvalidDeleteResult(NonLocalizedErrorMessages.DeletedUser);
+            }
+
             var result = await _mealRepository.GetTemplatePagedListAsync(query);
             return PagedResult(result);
         }
@@ -142,6 +143,24 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Meals
                 return InvalidDeleteResult(NonLocalizedErrorMessages.DeletedUser);
             }
             var result = await _mealRepository.DeleteTemplateAsync(id);
+
+            if (result.Success)
+            {
+                return EmptyResult();
+            }
+
+            return InvalidResult(result.Errors);
+        }
+
+        [HttpDelete("DeleteByUser")]
+        public async Task<IActionResult> DeleteByUserTemplateAsync(int id, DateTime date)
+        {
+            bool isDeleted = _adminAuthRepository.CheckDeletedAdminUser();
+            if (isDeleted)
+            {
+                return InvalidDeleteResult(NonLocalizedErrorMessages.DeletedUser);
+            }
+            var result = await _mealRepository.DeleteTemplateByUserAndDateAsync(id, date);
 
             if (result.Success)
             {

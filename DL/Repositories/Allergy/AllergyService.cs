@@ -51,9 +51,9 @@ namespace DL.Repositories.Allergy
                                }).ToListAsync();
 
             }
-            }
+        }
 
-        
+
         public async Task<IList<string>> GetSelectAllergyNamesAsync(string _locale)
         {
             if (_locale != null && _locale.Contains("ar"))
@@ -69,8 +69,8 @@ namespace DL.Repositories.Allergy
                             .Select(allergy => allergy.Title).ToListAsync();
 
             }
-           }
-        
+        }
+
         public async Task<BaseServiceResult> PutAsync(PutAllergyDto putAllergyDto)
         {
             var userAllergies = await _appDbContext.UserAllergy
@@ -85,14 +85,14 @@ namespace DL.Repositories.Allergy
                 if (putAllergyDto.AllergyIds.Contains(userAllergy.Id))
                 {
                     if (userAllergy.IsSelected) continue;
-                    
+
                     userAllergy.IsSelected = true;
                     _appDbContext.Update(userAllergy);
                 }
                 else
                 {
                     if (!userAllergy.IsSelected) continue;
-                    
+
                     userAllergy.IsSelected = false;
                     _appDbContext.Update(userAllergy);
                 }
@@ -104,7 +104,7 @@ namespace DL.Repositories.Allergy
 
         public async Task<AllergyDto> AddCustomAllergiesAsync(string allergyName, string allergyNameAr)
         {
-            if(allergyName == null || allergyName == "")
+            if (allergyName == null || allergyName == "")
             {
                 allergyName = allergyNameAr;
             }
@@ -127,7 +127,7 @@ namespace DL.Repositories.Allergy
                 IsCreatedByUser = true
             };
         }
-        
+
         public async Task AddDefaultAllergiesToUser(int userId)
         {
             await _appDbContext.AddRangeAsync(new object[]
@@ -137,7 +137,7 @@ namespace DL.Repositories.Allergy
                 CreateSharedUserAllergyEntity(userId, "Fish","سمك"),
                 CreateSharedUserAllergyEntity(userId, "Shellfish","المحار"),
                 CreateSharedUserAllergyEntity(userId, "Peanuts","الفول السودانى"),
-                CreateSharedUserAllergyEntity(userId, "Sesame","السمسم"),
+                CreateSharedUserAllergyEntity(userId, "Other","اخرى"),
                 CreateSharedUserAllergyEntity(userId, "Gluten","الغولتين"),
             });
 
@@ -152,7 +152,7 @@ namespace DL.Repositories.Allergy
                 Created = DateTime.UtcNow,
                 UserId = userId,
                 Title = title,
-                 TitleAr = titleAr
+                TitleAr = titleAr
             };
         }
     }

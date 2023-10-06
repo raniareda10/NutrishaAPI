@@ -12,7 +12,7 @@ namespace DL.EntitiesV1.Meals
         public AdminUserEntity CreatedBy { get; set; }
         public ICollection<PlanDayEntity> PlanDays { get; set; }
         public string Notes { get; set; }
-
+        public string DoctorNotes { get; set; }
         // User Plan Fields
         public int? UserId { get; set; }
         public MUser User { get; set; }

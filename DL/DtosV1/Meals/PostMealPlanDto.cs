@@ -10,7 +10,7 @@ namespace DL.DtosV1.Meals
         public long? TemplateId { get; set; }
         public DateTime? StartDate { get; set; }
         public string Notes { get; set; }
-
+        public string DoctorNotes { get; set; }
         public bool IsTemplate { get; set; }
         public string TemplateName { get; set; }
     }

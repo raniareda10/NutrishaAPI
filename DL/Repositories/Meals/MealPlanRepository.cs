@@ -49,6 +49,7 @@ namespace DL.Repositories.Meals
                 TemplateName = plans.TemplateName,
                 ParentTemplateId = plans.TemplateId,
                 Notes = plans.Notes,
+                DoctorNotes = plans.DoctorNotes,
                 Created = currentDate,
                 PlanDays = plans.Meals.Select(m => new PlanDayEntity()
                 {
@@ -89,7 +90,7 @@ namespace DL.Repositories.Meals
 
             return await query
                 .Select(m => new TemplateListModel()
-                    { Id = m.Id, TemplateName = m.TemplateName, OwnerName = m.CreatedBy.Name })
+                { Id = m.Id, TemplateName = m.TemplateName, OwnerName = m.CreatedBy.Name })
                 .ToPagedListAsync(model);
         }
 
@@ -111,7 +112,40 @@ namespace DL.Repositories.Meals
             await _dbContext.Database.ExecuteSqlRawAsync($"DELETE FROM MealPlans WHERE Id = {id}");
             return new BaseServiceResult();
         }
+        public async Task<BaseServiceResult> DeleteTemplateByUserAndDateAsync(long id, DateTime date)
+        {
+            var mealPlan = await _dbContext.MealPlans.FirstOrDefaultAsync(m => m.UserId == id && m.Created == date);
 
+            if (mealPlan != null && !mealPlan.IsTemplate)
+            {
+                var isTemplateUsed = await _dbContext.MealPlans.AnyAsync(m => m.ParentTemplateId == mealPlan.Id);
+                if (isTemplateUsed)
+                {
+                    return new BaseServiceResult()
+                    {
+                        Errors = new List<string>()
+                    {
+                        "This Template Already used in other template, please delete other first to be able to delete it"
+                    }
+                    };
+                }
+                await _dbContext.Database.ExecuteSqlRawAsync($"DELETE FROM MealPlans WHERE Id = {mealPlan.Id}");
+
+            }
+            else
+            {
+                return new BaseServiceResult()
+                {
+                    Errors = new List<string>()
+                    {
+                        "This Template Is Main Template You Cant Delete"
+                    }
+                };
+            }
+
+
+            return new BaseServiceResult();
+        }
         public async Task<object> GetTemplateByIdAsync(long id)
         {
             var mealPlans = await _dbContext.MealPlans.AsNoTracking()
@@ -128,6 +162,7 @@ namespace DL.Repositories.Meals
             {
                 mealPlans.Id,
                 mealPlans.Notes,
+                mealPlans.DoctorNotes,
                 mealPlans.Created,
                 mealPlans.PlanDays,
                 mealPlans.TemplateName,
@@ -193,6 +228,7 @@ namespace DL.Repositories.Meals
 
             plan.TemplateName = updateMealPlan.TemplateName;
             plan.Notes = updateMealPlan.Notes;
+            plan.DoctorNotes = updateMealPlan.DoctorNotes;
             _dbContext.MealPlans.Update(plan);
             await _dbContext.SaveChangesAsync();
         }

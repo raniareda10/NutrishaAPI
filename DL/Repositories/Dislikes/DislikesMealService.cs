@@ -112,7 +112,7 @@ namespace DL.Repositories.Dislikes
             {
                 dislikeMealNameAr = dislikeMealName;
             }
-            var disLikedMeal = CreateSharedDisLikedMeal(_currentUserService.UserId, dislikeMealName, dislikeMealNameAr,13);
+            var disLikedMeal = CreateSharedDisLikedMeal(_currentUserService.UserId, dislikeMealName, dislikeMealNameAr, 13);
 
             disLikedMeal.IsSelected = true;
             await _appDbContext.UserDislikes.AddAsync(disLikedMeal);
@@ -154,7 +154,7 @@ namespace DL.Repositories.Dislikes
         }
 
 
-        private UserDislikes CreateSharedDisLikedMeal(int userId, string title = null, string titleAr = null,int dislikeMealTypeId=0)
+        private UserDislikes CreateSharedDisLikedMeal(int userId, string title = null, string titleAr = null, int dislikeMealTypeId = 0)
         {
             return new UserDislikes()
             {

@@ -132,6 +132,7 @@ namespace DL.Repositories.MobileUser
                 .Take(8)
                 .Select(plan => new UserPlanTemplateDto
                 {
+                    MealPlanId = plan.Id,
                     StartDate = plan.StartDate,
                     TemplateName = plan.ParentTemplate.TemplateName
                 }).ToList().OrderBy(template => template.StartDate).ToList();
@@ -317,7 +318,7 @@ namespace DL.Repositories.MobileUser
                                  WHERE Id = {manualAppSubscribeRequest.UserId});
                     
                     DELETE FROM SubscriptionInfos WHERE UserId = {manualAppSubscribeRequest.UserId});";
-            
+
             await _dbContext.Database.ExecuteSqlRawAsync(sqlScript);
         }
     }
