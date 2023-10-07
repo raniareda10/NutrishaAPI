@@ -134,7 +134,8 @@ namespace DL.Repositories.MobileUser
                 {
                     MealPlanId = plan.Id,
                     StartDate = plan.StartDate,
-                    TemplateName = plan.ParentTemplate.TemplateName
+                    TemplateName = plan.ParentTemplate.TemplateName,
+                      DoctorNotes = plan.DoctorNotes,
                 }).ToList().OrderBy(template => template.StartDate).ToList();
 
             user.Allergies = await _dbContext.UserAllergy
@@ -157,6 +158,7 @@ namespace DL.Repositories.MobileUser
                     Id = m.Id,
                     Created = m.Created,
                     Notes = m.Notes,
+                    DoctorNotes = m.DoctorNotes,
                     Days = m.PlanDays.Select(day => new
                     {
                         day = day.Day,

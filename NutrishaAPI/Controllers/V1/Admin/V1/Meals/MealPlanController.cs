@@ -152,22 +152,6 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Meals
             return InvalidResult(result.Errors);
         }
 
-        [HttpDelete("DeleteByUser")]
-        public async Task<IActionResult> DeleteByUserTemplateAsync(int id, DateTime date)
-        {
-            bool isDeleted = _adminAuthRepository.CheckDeletedAdminUser();
-            if (isDeleted)
-            {
-                return InvalidDeleteResult(NonLocalizedErrorMessages.DeletedUser);
-            }
-            var result = await _mealRepository.DeleteTemplateByUserAndDateAsync(id, date);
-
-            if (result.Success)
-            {
-                return EmptyResult();
-            }
-
-            return InvalidResult(result.Errors);
-        }
+  
     }
 }

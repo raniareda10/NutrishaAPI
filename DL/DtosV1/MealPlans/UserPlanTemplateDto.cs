@@ -7,5 +7,6 @@ namespace DL.DtosV1.MealPlans
         public DateTime? StartDate { get; set; }
         public string TemplateName { get; set; }
         public long MealPlanId { get; set; }
+        public string DoctorNotes { get; set; }
     }
 }
