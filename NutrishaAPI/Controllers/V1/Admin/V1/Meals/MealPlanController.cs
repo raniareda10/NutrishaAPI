@@ -80,6 +80,24 @@ namespace NutrishaAPI.Controllers.V1.Admin.V1.Meals
             return EmptyResult();
         }
 
+        [HttpPut("UpdateMealPlanNotes")]
+        public async Task<IActionResult> UpdateMealPlanNotesAsync([FromQuery] long mealPlanId, [FromQuery] string doctorNotes)
+        {
+            bool isDeleted = _adminAuthRepository.CheckDeletedAdminUser();
+            if (isDeleted)
+            {
+                return InvalidDeleteResult(NonLocalizedErrorMessages.DeletedUser);
+            }
+            if (mealPlanId < 1)
+            {
+                return InvalidResult(NonLocalizedErrorMessages.InvalidParameters);
+            }
+           
+
+            await _mealRepository.UpdateTemplateNotesAsync(mealPlanId, doctorNotes);
+            return EmptyResult();
+        }
+
         // [HttpPut("UpdateMealPlan")]
         // public async Task<IActionResult> UpdateMealPlanAsync([FromBody] UpdateMealPlan postMealDto)
         // {

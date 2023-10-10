@@ -199,7 +199,23 @@ namespace DL.Repositories.Meals
             _dbContext.MealPlans.Update(plan);
             await _dbContext.SaveChangesAsync();
         }
+        public async Task UpdateTemplateNotesAsync(long mealPlanId, string doctorNotes)
+        {
+            var plan = await _dbContext.MealPlans
+                .Where(plan => plan.Id == mealPlanId)
+                .FirstOrDefaultAsync();
 
+            if (plan != null)
+            {
+                plan.DoctorNotes = doctorNotes;
+                _dbContext.MealPlans.Update(plan);
+                await _dbContext.SaveChangesAsync();
+            }
+            else
+            {
+                return;
+            }
+        }
         // public async Task<long> UpdateTemplateAsync(UpdateMealPlan updateMealPlan)
         // {
         //     var effectedRowsCount = await _dbContext.Database.ExecuteSqlRawAsync(
